@@ -1,5 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, useRef } from 'react'
 import { AuthenticationApi, Configuration, type AuthLoggedUser, type AuthLoginRequest } from '../services'
+import axios from 'axios'
 
 type AuthState = {
   accessToken: string | null
@@ -12,8 +13,11 @@ export type AuthContextType = {
   user: AuthLoggedUser | null
   loading: boolean
   login: (payload: AuthLoginRequest) => Promise<void>
-  logout: () => void
+  logout: (reason?: string) => void
   getApiConfig: () => Configuration
+  getAuthorizationHeaderValue: () => string
+  logoutNotice: string | null
+  clearLogoutNotice: () => void
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -48,6 +52,8 @@ function clearStorage() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(() => loadFromStorage())
   const [loading, setLoading] = useState(false)
+  const didSetupInterceptors = useRef(false)
+  const [logoutNotice, setLogoutNotice] = useState<string | null>(null)
 
   useEffect(() => {
     // keep storage in sync when state changes
@@ -65,6 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }, [state.accessToken])
 
+  const getAuthorizationHeaderValue = useCallback(() => {
+    return state.accessToken ? `Bearer ${state.accessToken}` : ''
+  }, [state.accessToken])
+
   const login = useCallback(async (payload: AuthLoginRequest) => {
     setLoading(true)
     try {
@@ -79,15 +89,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const next: AuthState = { accessToken, refreshToken, user }
       setState(next)
       saveToStorage(next)
+      setLogoutNotice(null)
+      // Redireciona para o dashboard se estiver no /login
+      if (window.location.pathname === '/login') {
+        window.history.replaceState({}, '', '/dashboard')
+      }
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback((reason?: string) => {
     setState({ accessToken: null, refreshToken: null, user: null })
     clearStorage()
+    setLogoutNotice(reason ?? null)
+    if (window.location.pathname !== '/login') {
+      window.history.replaceState({}, '', '/login')
+    }
   }, [])
+
+  const clearLogoutNotice = useCallback(() => setLogoutNotice(null), [])
+
+  // Globally intercept 401 responses to force logout (sessão expirada)
+  useEffect(() => {
+    if (didSetupInterceptors.current) return
+    didSetupInterceptors.current = true
+    const isUnauthorizedBody = (data: any) => {
+      try {
+        const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code
+        if (raw === undefined || raw === null) return false
+        const num = Number(raw)
+        if (!Number.isNaN(num) && num === 401) return true
+        const code = String(raw).toUpperCase()
+        return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
+      } catch {
+        return false
+      }
+    }
+
+    const id = axios.interceptors.response.use(
+      (response) => {
+        // Alguns endpoints podem responder 200 com { code: 'UNAUTHORIZED' }
+        if (isUnauthorizedBody(response?.data)) {
+          logout('Sessão expirada. Inicie sessão novamente.')
+          return Promise.reject(new Error('UNAUTHORIZED'))
+        }
+        return response
+      },
+      (error) => {
+        const status = error?.response?.status
+        const data = error?.response?.data
+        if (status === 401 || isUnauthorizedBody(data)) {
+          // Limpa sessão e deixa o App renderizar o LoginScreen
+          logout('Sessão expirada. Inicie sessão novamente.')
+        }
+        return Promise.reject(error)
+      }
+    )
+    return () => {
+      axios.interceptors.response.eject(id)
+    }
+  }, [logout])
 
   const value = useMemo<AuthContextType>(
     () => ({
@@ -96,9 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       login,
       logout,
-      getApiConfig
+      getApiConfig,
+      getAuthorizationHeaderValue,
+      logoutNotice,
+      clearLogoutNotice
     }),
-    [state.accessToken, state.user, loading, login, logout, getApiConfig]
+    [state.accessToken, state.user, loading, login, logout, getApiConfig, getAuthorizationHeaderValue, logoutNotice, clearLogoutNotice]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

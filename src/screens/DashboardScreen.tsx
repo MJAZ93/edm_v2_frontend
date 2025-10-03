@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Card } from '../components/ui/Card'
 import { Heading } from '../components/ui/Heading'
 import { Grid } from '../components/layout/Grid'
 import { PRIMARY_COLOR } from '../utils/theme'
+import UsersScreen from './UsersScreen'
+import ConfigScreen from './ConfigScreen'
+import RegioesScreen from './RegioesScreen'
+import ASCsScreen from './ASCsScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 
 const MENU = [
@@ -14,11 +18,46 @@ const MENU = [
   { key: 'infracoes', label: 'Infrações' },
   { key: 'infractores', label: 'Infractores' },
   { key: 'sucatarias', label: 'Sucatarias' },
+  { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'config', label: 'Configurações' }
 ]
 
 export default function DashboardScreen() {
-  const [active, setActive] = useState('dashboard')
+  const KEY_TO_PATH = useMemo(() => ({
+    dashboard: '/dashboard',
+    mapa: '/mapa',
+    ocorrencias: '/ocorrencias',
+    infracoes: '/infracoes',
+    infractores: '/infractores',
+    sucatarias: '/sucatarias',
+    utilizadores: '/utilizadores',
+    config: '/config',
+    regioes: '/regioes',
+    ascs: '/ascs'
+  } as const), [])
+
+  const PATH_TO_KEY = useMemo(() => Object.fromEntries(Object.entries(KEY_TO_PATH).map(([k, v]) => [v, k])), [KEY_TO_PATH]) as Record<string, keyof typeof KEY_TO_PATH>
+
+  const normalizePath = (path: string): string => {
+    if (!path) return '/dashboard'
+    // remove trailing slashes
+    let p = path.replace(/\/+$/, '')
+    if (p === '') p = '/'
+    if (p === '/') return '/dashboard'
+    return p
+  }
+
+  const resolveKeyFromPath = (path: string): keyof typeof KEY_TO_PATH => {
+    const p = normalizePath(path)
+    const direct = PATH_TO_KEY[p]
+    if (direct) return direct
+    // tenta por prefixo (ex.: /ascs/123)
+    const entry = Object.entries(KEY_TO_PATH).find(([, v]) => p.startsWith(v))
+    if (entry) return entry[0] as keyof typeof KEY_TO_PATH
+    return 'dashboard'
+  }
+
+  const [active, setActive] = useState<keyof typeof KEY_TO_PATH>(() => resolveKeyFromPath(window.location.pathname))
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<string>('--:--:--')
 
@@ -30,9 +69,28 @@ export default function DashboardScreen() {
     return () => clearInterval(id)
   }, [autoRefresh])
 
+  // Sincroniza estado com URL (history API)
+  useEffect(() => {
+    const onPopState = () => {
+      const nextKey = resolveKeyFromPath(window.location.pathname)
+      setActive(nextKey)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const handleSelect = (key: string) => {
+    const k = key as keyof typeof KEY_TO_PATH
+    const path = KEY_TO_PATH[k] || '/dashboard'
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path)
+    }
+    setActive(k)
+  }
+
   return (
     <AppShell
-      sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={setActive} />}
+      sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
       header={
         <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Heading level={1}>
@@ -42,7 +100,10 @@ export default function DashboardScreen() {
             {active === 'infracoes' && 'Infrações'}
             {active === 'infractores' && 'Infractores'}
             {active === 'sucatarias' && 'Sucatarias'}
+            {active === 'utilizadores' && 'Utilizadores'}
             {active === 'config' && 'Configurações'}
+            {active === 'regioes' && 'Regiões'}
+            {active === 'ascs' && 'ASCs'}
           </Heading>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#6b7280' }}>
             <span style={{ background: '#eef2ff', color: '#4338ca', padding: '6px 10px', borderRadius: 999 }}>Atualizado: {lastUpdated}</span>
@@ -110,11 +171,16 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {active !== 'dashboard' && (
+      {active !== 'dashboard' && active !== 'utilizadores' && active !== 'config' && active !== 'regioes' && active !== 'ascs' && (
         <Card>
           <div style={{ color: '#6b7280' }}>Conteúdo de "{MENU.find(m => m.key === active)?.label}" a implementar.</div>
         </Card>
       )}
+
+      {active === 'utilizadores' && <UsersScreen />}
+      {active === 'config' && <ConfigScreen />}
+      {active === 'regioes' && <RegioesScreen />}
+      {active === 'ascs' && <ASCsScreen />}
     </AppShell>
   )
 }

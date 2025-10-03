@@ -5,13 +5,14 @@ import loginPhoto from '../images/login_photo.jpg'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function LoginScreen() {
-  const { login, loading } = useAuth()
+  const { login, loading, logoutNotice, clearLogoutNotice } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (logoutNotice) clearLogoutNotice()
     setError(null)
     if (!email || !password) {
       setError('Introduza o email e a palavra‑passe')
@@ -51,8 +52,10 @@ export default function LoginScreen() {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <Heading level={1}>Iniciar sessão</Heading>
               <Text>Utilize as suas credenciais para continuar.</Text>
-              {error ? (
-                <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div>
+              {(error || logoutNotice) ? (
+                <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>
+                  {error ?? logoutNotice}
+                </div>
               ) : null}
               <div style={{ width: '100%', maxWidth: 420 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

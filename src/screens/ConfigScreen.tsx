@@ -1,0 +1,32 @@
+import React from 'react'
+import { Card, Grid, Heading, Button } from '../components'
+
+export default function ConfigScreen() {
+  function go(path: string) {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Heading level={2}>Configurações</Heading>
+      <Grid columns={2} gap={16}>
+        <Card title="Regiões" subtitle="Gerir lista de regiões">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover regiões.</span>
+            <Button onClick={() => go('/regioes')}>Gerir</Button>
+          </div>
+        </Card>
+        <Card title="ASCs" subtitle="Gerir lista de ASCs">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover ASCs.</span>
+            <Button onClick={() => go('/ascs')}>Gerir</Button>
+          </div>
+        </Card>
+      </Grid>
+    </div>
+  )
+}
+
