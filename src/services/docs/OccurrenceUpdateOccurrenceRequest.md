@@ -1,0 +1,26 @@
+# OccurrenceUpdateOccurrenceRequest
+
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**descricao** | **string** |  | [optional] [default to undefined]
+**lat** | **number** |  | [optional] [default to undefined]
+**local** | **string** |  | [optional] [default to undefined]
+**_long** | **number** |  | [optional] [default to undefined]
+
+## Example
+
+```typescript
+import { OccurrenceUpdateOccurrenceRequest } from './api';
+
+const instance: OccurrenceUpdateOccurrenceRequest = {
+    descricao,
+    lat,
+    local,
+    _long,
+};
+```
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
