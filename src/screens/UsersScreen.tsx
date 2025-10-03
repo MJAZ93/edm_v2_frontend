@@ -13,9 +13,12 @@ export default function UsersScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const [items, setItems] = useState<ModelUser[]>([])
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
   const [ui, setUi] = useState<UiState>({ loading: false, error: null })
+  const [filterText, setFilterText] = useState('')
+  const [orderBy, setOrderBy] = useState<'name' | 'username' | 'email' | 'created_at'>('created_at')
+  const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc')
 
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<ModelUser | null>(null)
@@ -41,7 +44,7 @@ export default function UsersScreen() {
   const load = useCallback(async () => {
     setUi({ loading: true, error: null })
     try {
-      const { data } = await api.privateUsersGet(authHeader, page, pageSize, 'created_at', 'desc')
+      const { data } = await api.privateUsersGet(authHeader, page, pageSize, orderBy, orderDirection)
       if (isUnauthorizedBody(data)) {
         logout('Sessão expirada. Inicie sessão novamente.')
         return
@@ -62,11 +65,19 @@ export default function UsersScreen() {
       return
     }
     setUi({ loading: false, error: null })
-  }, [api, authHeader, page, pageSize])
+  }, [api, authHeader, page, pageSize, orderBy, orderDirection])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(1) }, [pageSize, filterText, orderBy, orderDirection])
+
+  function toggleSort(key: 'name' | 'username' | 'email') {
+    if (orderBy === key) {
+      setOrderDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setOrderBy(key)
+      setOrderDirection('asc')
+    }
+  }
 
   async function handleCreateSubmit(values: UserFormValues) {
     setSubmitting(true)
@@ -164,7 +175,20 @@ export default function UsersScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Heading level={2}>Utilizadores</Heading>
-        <Button onClick={() => setShowCreate(true)}>Novo utilizador</Button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            placeholder="Pesquisar (nome, utilizador, email)"
+            style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }}
+          />
+          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <Button onClick={() => setShowCreate(true)}>Novo utilizador</Button>
+        </div>
       </div>
 
       {ui.error ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>{ui.error}</div> : null}
@@ -174,9 +198,9 @@ export default function UsersScreen() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Nome</th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Utilizador</th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Email</th>
+                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('name')} title="Ordenar por nome">Nome {orderBy === 'name' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('username')} title="Ordenar por utilizador">Utilizador {orderBy === 'username' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
+                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('email')} title="Ordenar por email">Email {orderBy === 'email' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tipo</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
               </tr>
@@ -191,7 +215,17 @@ export default function UsersScreen() {
                   <td colSpan={5} style={{ padding: 16, color: '#6b7280' }}>Sem utilizadores para mostrar.</td>
                 </tr>
               ) : (
-                items.map((u) => (
+                items
+                  .filter((u) => {
+                    if (!filterText.trim()) return true
+                    const f = filterText.toLowerCase()
+                    return (
+                      (u.name || '').toLowerCase().includes(f) ||
+                      (u.username || '').toLowerCase().includes(f) ||
+                      (u.email || '').toLowerCase().includes(f)
+                    )
+                  })
+                  .map((u) => (
                   <tr key={u.id}>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.name}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.username}</td>

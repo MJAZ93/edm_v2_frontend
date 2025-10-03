@@ -42,3 +42,9 @@
 ## Architecture Overview
 - Follow `STRUCTURE.md`: components as a single source of truth, screens compose components, contexts manage global state, routing guards in `components/routing`.
 - Keep implementations minimal and consistent; prioritize maintainability and clear boundaries.
+
+## Tabelas: Filtros, Ordenação e Paginação
+- Todas as tabelas/listagens devem incluir filtros visíveis e ordenação por colunas relevantes.
+- Filtros: pelo menos um campo de pesquisa por nome/termo; adicionar filtros específicos do domínio (ex.: Região, Setor) quando aplicável. Quando a API suportar filtros, enviar os parâmetros; caso contrário, aplicar filtragem local sobre os dados carregados sem quebrar a paginação.
+- Ordenação: cabeçalhos clicáveis que alternam `asc`/`desc`, com indicação visual (▲/▼). Quando a API suportar, enviar `order_by` e `order_direction`; se não suportar, ordenar localmente.
+- Paginação: incluir seletor de tamanho de página (ex.: 10/20/50) e controlos Anterior/Seguinte. Ao alterar filtros, tamanho de página ou ordenação, reiniciar a página para 1.
