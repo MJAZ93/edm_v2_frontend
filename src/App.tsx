@@ -8,16 +8,9 @@ function Shell() {
   const { isAuthenticated, user, logout } = useAuth()
   if (!isAuthenticated) return <LoginScreen />
   return (
-    <Container>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1>Gestão de Vandalizações EDM</h1>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ color: '#374151' }}>{user?.name || user?.email}</span>
-          <Button variant="secondary" onClick={logout}>Terminar sessão</Button>
-        </div>
-      </div>
+    <div>
       <DashboardScreen />
-    </Container>
+    </div>
   )
 }
 

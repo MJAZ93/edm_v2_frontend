@@ -6,6 +6,8 @@ export { Navbar } from './layout/Navbar'
 export { Container } from './layout/Container'
 export { Section } from './layout/Section'
 export { PrivateArea } from './layout/PrivateArea'
+export { AppShell } from './layout/AppShell'
+export { Sidebar } from './layout/Sidebar'
 
 // UI Components
 export { Card } from './ui/Card'
@@ -26,4 +28,3 @@ export { default as AdminRoute } from './routing/AdminRoute'
 // Form Components
 export { default as UserForm } from './forms/UserForm'
 export { default as GroupForm } from './forms/GroupForm'
-

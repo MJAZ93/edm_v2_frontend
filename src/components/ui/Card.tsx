@@ -1,11 +1,25 @@
 import React from 'react'
+import { BORDER_COLOR, SHADOW_SM, RADIUS } from '../../utils/theme'
 
-type Props = React.PropsWithChildren<{ title?: string; style?: React.CSSProperties }>
+type Props = React.PropsWithChildren<{
+  title?: string
+  subtitle?: string
+  extra?: React.ReactNode
+  style?: React.CSSProperties
+}>
 
-export function Card({ title, style, children }: Props) {
+export function Card({ title, subtitle, extra, style, children }: Props) {
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 24, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', width: '100%', ...style }}>
-      {title && <h3 style={{ marginTop: 0 }}>{title}</h3>}
+    <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: RADIUS, padding: 20, boxShadow: SHADOW_SM, width: '100%', background: '#fff', ...style }}>
+      {(title || extra) && (
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            {title && <h3 style={{ margin: 0, fontSize: 16 }}>{title}</h3>}
+            {subtitle && <div style={{ color: '#6b7280', fontSize: 12 }}>{subtitle}</div>}
+          </div>
+          {extra && <div>{extra}</div>}
+        </div>
+      )}
       {children}
     </div>
   )
