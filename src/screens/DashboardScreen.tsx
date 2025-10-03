@@ -9,6 +9,10 @@ import UsersScreen from './UsersScreen'
 import ConfigScreen from './ConfigScreen'
 import RegioesScreen from './RegioesScreen'
 import ASCsScreen from './ASCsScreen'
+import FormasConhecimentoScreen from './FormasConhecimentoScreen'
+import MateriaisScreen from './MateriaisScreen'
+import SetoresInfracaoScreen from './SetoresInfracaoScreen'
+import TiposInfracaoScreen from './TiposInfracaoScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 
 const MENU = [
@@ -33,7 +37,11 @@ export default function DashboardScreen() {
     utilizadores: '/utilizadores',
     config: '/config',
     regioes: '/regioes',
-    ascs: '/ascs'
+    ascs: '/ascs',
+    formasConhecimento: '/formas-conhecimento',
+    materiais: '/materiais',
+    setoresInfracao: '/setores-infracao',
+    tiposInfracao: '/tipos-infracao'
   } as const), [])
 
   const PATH_TO_KEY = useMemo(() => Object.fromEntries(Object.entries(KEY_TO_PATH).map(([k, v]) => [v, k])), [KEY_TO_PATH]) as Record<string, keyof typeof KEY_TO_PATH>
@@ -76,6 +84,7 @@ export default function DashboardScreen() {
       setActive(nextKey)
     }
     window.addEventListener('popstate', onPopState)
+    window.addEventListener('locationchange', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
@@ -104,6 +113,10 @@ export default function DashboardScreen() {
             {active === 'config' && 'Configurações'}
             {active === 'regioes' && 'Regiões'}
             {active === 'ascs' && 'ASCs'}
+            {active === 'formasConhecimento' && 'Formas de Conhecimento'}
+            {active === 'materiais' && 'Materiais'}
+            {active === 'setoresInfracao' && 'Setores de Infração'}
+            {active === 'tiposInfracao' && 'Tipos de Infração'}
           </Heading>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#6b7280' }}>
             <span style={{ background: '#eef2ff', color: '#4338ca', padding: '6px 10px', borderRadius: 999 }}>Atualizado: {lastUpdated}</span>
@@ -171,7 +184,7 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {active !== 'dashboard' && active !== 'utilizadores' && active !== 'config' && active !== 'regioes' && active !== 'ascs' && (
+      {active !== 'dashboard' && active !== 'utilizadores' && active !== 'config' && active !== 'regioes' && active !== 'ascs' && active !== 'formasConhecimento' && active !== 'materiais' && active !== 'setoresInfracao' && active !== 'tiposInfracao' && (
         <Card>
           <div style={{ color: '#6b7280' }}>Conteúdo de "{MENU.find(m => m.key === active)?.label}" a implementar.</div>
         </Card>
@@ -181,6 +194,10 @@ export default function DashboardScreen() {
       {active === 'config' && <ConfigScreen />}
       {active === 'regioes' && <RegioesScreen />}
       {active === 'ascs' && <ASCsScreen />}
+      {active === 'formasConhecimento' && <FormasConhecimentoScreen />}
+      {active === 'materiais' && <MateriaisScreen />}
+      {active === 'setoresInfracao' && <SetoresInfracaoScreen />}
+      {active === 'tiposInfracao' && <TiposInfracaoScreen />}
     </AppShell>
   )
 }

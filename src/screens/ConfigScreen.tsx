@@ -5,7 +5,12 @@ export default function ConfigScreen() {
   function go(path: string) {
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path)
-      window.dispatchEvent(new PopStateEvent('popstate'))
+      try {
+        window.dispatchEvent(new PopStateEvent('popstate'))
+      } catch {}
+      try {
+        window.dispatchEvent(new Event('locationchange'))
+      } catch {}
     }
   }
 
@@ -25,8 +30,31 @@ export default function ConfigScreen() {
             <Button onClick={() => go('/ascs')}>Gerir</Button>
           </div>
         </Card>
+        <Card title="Formas de Conhecimento" subtitle="Gerir formas de conhecimento">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover formas de conhecimento.</span>
+            <Button onClick={() => go('/formas-conhecimento')}>Gerir</Button>
+          </div>
+        </Card>
+        <Card title="Materiais" subtitle="Gerir materiais">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover materiais.</span>
+            <Button onClick={() => go('/materiais')}>Gerir</Button>
+          </div>
+        </Card>
+        <Card title="Setores de Infração" subtitle="Gerir setores de infração">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover setores.</span>
+            <Button onClick={() => go('/setores-infracao')}>Gerir</Button>
+          </div>
+        </Card>
+        <Card title="Tipos de Infração" subtitle="Gerir tipos de infração">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover tipos de infração.</span>
+            <Button onClick={() => go('/tipos-infracao')}>Gerir</Button>
+          </div>
+        </Card>
       </Grid>
     </div>
   )
 }
-
