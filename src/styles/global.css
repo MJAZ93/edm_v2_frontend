@@ -1,0 +1,22 @@
+/* Fonte principal: Inter */
+html { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+body { margin: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Hierarquia de títulos consistente */
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
+p, span, label, input, button { font-size: 14px; }
+
+/* Inputs básicos */
+input, button { font-family: inherit; }
+
+/* Layout da página de autenticação */
+.auth-grid { display: grid; grid-template-columns: 1fr; width: 100vw; }
+.auth-grid .login-bg { display: none; }
+@media (min-width: 900px) and (max-width: 1279px) {
+  .auth-grid { grid-template-columns: 45% 55%; }
+  .auth-grid .login-bg { display: block; }
+}
+@media (min-width: 1280px) {
+  .auth-grid { grid-template-columns: 35% 65%; }
+  .auth-grid .login-bg { display: block; }
+}

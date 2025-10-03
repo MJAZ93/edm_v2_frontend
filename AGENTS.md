@@ -1,5 +1,10 @@
 # Repository Guidelines
 
+## Idioma do Projeto
+- Sempre usar Português (pt-PT) para interfaces, textos exibidos ao utilizador, documentação e mensagens de erro.
+- Mensagens de commit e descrições de PR podem ser em Português. Os tipos do Conventional Commits (feat, fix, chore, etc.) permanecem em inglês.
+- Identificadores de código (nomes de variáveis, funções e componentes) seguem convenções em inglês técnico, mas todo o conteúdo de UI deve estar em Português.
+
 ## Project Structure & Module Organization
 - Source: `src/` with `components/` (layout, ui, routing, forms, modals), `contexts/`, `screens/`, `utils/`.
 - Entry points: `index.html`, `src/main.tsx`, `src/App.tsx`.
