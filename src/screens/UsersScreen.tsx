@@ -199,7 +199,6 @@ export default function UsersScreen() {
             <thead>
               <tr style={{ textAlign: 'left', color: '#6b7280' }}>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('name')} title="Ordenar por nome">Nome {orderBy === 'name' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('username')} title="Ordenar por utilizador">Utilizador {orderBy === 'username' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('email')} title="Ordenar por email">Email {orderBy === 'email' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tipo</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
@@ -208,11 +207,11 @@ export default function UsersScreen() {
             <tbody>
               {ui.loading ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td>
+                  <td colSpan={4} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: 16, color: '#6b7280' }}>Sem utilizadores para mostrar.</td>
+                  <td colSpan={4} style={{ padding: 16, color: '#6b7280' }}>Sem utilizadores para mostrar.</td>
                 </tr>
               ) : (
                 items
@@ -228,7 +227,6 @@ export default function UsersScreen() {
                   .map((u) => (
                   <tr key={u.id}>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.name}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.username}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.email}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{u.type}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
