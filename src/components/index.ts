@@ -19,6 +19,8 @@ export { DatePicker } from './ui/DatePicker'
 export { AlertCard } from './ui/AlertCard'
 export { SemiCircularGauge } from './ui/SemiCircularGauge'
 export { HexTileChart } from './ui/HexTileChart'
+export { MultiSelect } from './ui/MultiSelect'
+export { SearchSelect } from './ui/SearchSelect'
 
 // Routing Components
 export { default as PrivateRoute } from './routing/PrivateRoute'

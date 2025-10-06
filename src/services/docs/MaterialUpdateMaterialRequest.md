@@ -6,7 +6,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [optional] [default to undefined]
-**scrapyard_id** | **string** |  | [optional] [default to undefined]
 **sector_infracao_id** | **string** |  | [optional] [default to undefined]
 **unidade** | **string** |  | [optional] [default to undefined]
 
@@ -17,7 +16,6 @@ import { MaterialUpdateMaterialRequest } from './api';
 
 const instance: MaterialUpdateMaterialRequest = {
     name,
-    scrapyard_id,
     sector_infracao_id,
     unidade,
 };

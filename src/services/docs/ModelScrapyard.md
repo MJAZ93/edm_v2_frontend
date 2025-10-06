@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **asc_id** | **string** |  | [optional] [default to undefined]
+**asc_name** | **string** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
 **lat** | **number** |  | [optional] [default to undefined]
@@ -22,6 +23,7 @@ import { ModelScrapyard } from './api';
 
 const instance: ModelScrapyard = {
     asc_id,
+    asc_name,
     created_at,
     id,
     lat,

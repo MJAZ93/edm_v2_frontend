@@ -1,6 +1,5 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 api.ts
 base.ts
 common.ts
@@ -51,6 +50,11 @@ docs/InfractorInfractorListResponse.md
 docs/InfractorUpdateInfractorRequest.md
 docs/InoutBaseResponse.md
 docs/InoutOkResponse.md
+docs/InstallationInstallationCreateRequest.md
+docs/InstallationInstallationListResponse.md
+docs/InstallationInstallationUpdateRequest.md
+docs/InstallationMonthlyImportResponse.md
+docs/InstallationsApi.md
 docs/MaterialApi.md
 docs/MaterialCreateMaterialRequest.md
 docs/MaterialMaterialListResponse.md
@@ -60,12 +64,14 @@ docs/ModelAccoes.md
 docs/ModelFormaConhecimento.md
 docs/ModelInfraction.md
 docs/ModelInfractor.md
+docs/ModelInstallation.md
 docs/ModelMaterial.md
 docs/ModelOccurrence.md
 docs/ModelPermission.md
 docs/ModelRegiao.md
 docs/ModelScrapyard.md
 docs/ModelSectorInfracao.md
+docs/ModelTendenciaCompras.md
 docs/ModelTipoInfracao.md
 docs/ModelUser.md
 docs/ModelUserType.md

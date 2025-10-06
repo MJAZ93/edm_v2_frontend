@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **asc_id** | **string** |  | [optional] [default to undefined]
 **lat** | **number** |  | [optional] [default to undefined]
 **_long** | **number** |  | [optional] [default to undefined]
+**material_ids** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
 **nivel_confianca** | **number** |  | [optional] [default to undefined]
 **nome** | **string** |  | [optional] [default to undefined]
 
@@ -20,6 +21,7 @@ const instance: ScrapyardCreateScrapyardRequest = {
     asc_id,
     lat,
     _long,
+    material_ids,
     nivel_confianca,
     nome,
 };

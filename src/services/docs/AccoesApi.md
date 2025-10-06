@@ -28,7 +28,7 @@ const configuration = new Configuration();
 const apiInstance = new AccoesApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let page: number; //Page number (optional) (default to undefined)
+let page: number; //Page number (-1 returns all) (optional) (default to undefined)
 let pageSize: number; //Page size (optional) (default to undefined)
 let orderBy: string; //Order by (optional) (default to 'id')
 let orderDirection: string; //asc|desc (optional) (default to 'asc')
@@ -49,7 +49,7 @@ const { status, data } = await apiInstance.privateAccoesEffectivenessGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **page** | [**number**] | Page number | (optional) defaults to undefined|
+| **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
 | **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
 | **orderBy** | [**string**] | Order by | (optional) defaults to 'id'|
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|
@@ -95,7 +95,7 @@ const configuration = new Configuration();
 const apiInstance = new AccoesApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let page: number; //Page number (optional) (default to undefined)
+let page: number; //Page number (-1 returns all) (optional) (default to undefined)
 let pageSize: number; //Page size (optional) (default to undefined)
 let orderBy: string; //Order by (optional) (default to 'id')
 let orderDirection: string; //asc|desc (optional) (default to 'asc')
@@ -116,7 +116,7 @@ const { status, data } = await apiInstance.privateAccoesGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **page** | [**number**] | Page number | (optional) defaults to undefined|
+| **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
 | **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
 | **orderBy** | [**string**] | Order by | (optional) defaults to 'id'|
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|

@@ -13,7 +13,7 @@ All URIs are relative to */api*
 # **privateScrapyardsGet**
 > ScrapyardScrapyardListResponse privateScrapyardsGet()
 
-Paginated list of Scrapyards
+Paginated list of Scrapyards. If lat/long are provided, results are filtered within QUERY_RADIUS_KM.
 
 ### Example
 
@@ -27,7 +27,7 @@ const configuration = new Configuration();
 const apiInstance = new ScrapyardApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let page: number; //Page number (optional) (default to undefined)
+let page: number; //Page number (-1 returns all) (optional) (default to undefined)
 let pageSize: number; //Page size (optional) (default to undefined)
 let orderBy: string; //Order by (optional) (default to 'id')
 let orderDirection: string; //asc|desc (optional) (default to 'asc')
@@ -37,7 +37,6 @@ let materialId: string; //Filter by material (optional) (default to undefined)
 let nivelMin: number; //Min confidence (optional) (default to undefined)
 let lat: number; //Latitude (optional) (default to undefined)
 let _long: number; //Longitude (optional) (default to undefined)
-let raioKm: number; //Radius kilometers (optional) (default to undefined)
 
 const { status, data } = await apiInstance.privateScrapyardsGet(
     authorization,
@@ -50,8 +49,7 @@ const { status, data } = await apiInstance.privateScrapyardsGet(
     materialId,
     nivelMin,
     lat,
-    _long,
-    raioKm
+    _long
 );
 ```
 
@@ -60,7 +58,7 @@ const { status, data } = await apiInstance.privateScrapyardsGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **page** | [**number**] | Page number | (optional) defaults to undefined|
+| **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
 | **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
 | **orderBy** | [**string**] | Order by | (optional) defaults to 'id'|
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|
@@ -70,7 +68,6 @@ const { status, data } = await apiInstance.privateScrapyardsGet(
 | **nivelMin** | [**number**] | Min confidence | (optional) defaults to undefined|
 | **lat** | [**number**] | Latitude | (optional) defaults to undefined|
 | **_long** | [**number**] | Longitude | (optional) defaults to undefined|
-| **raioKm** | [**number**] | Radius kilometers | (optional) defaults to undefined|
 
 
 ### Return type

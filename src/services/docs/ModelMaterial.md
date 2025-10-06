@@ -8,7 +8,6 @@ Name | Type | Description | Notes
 **created_at** | **string** |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
-**scrapyard_id** | **string** |  | [optional] [default to undefined]
 **sector_infracao_id** | **string** |  | [optional] [default to undefined]
 **unidade** | **string** |  | [optional] [default to undefined]
 **updated_at** | **string** |  | [optional] [default to undefined]
@@ -22,7 +21,6 @@ const instance: ModelMaterial = {
     created_at,
     id,
     name,
-    scrapyard_id,
     sector_infracao_id,
     unidade,
     updated_at,

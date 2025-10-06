@@ -886,6 +886,12 @@ export interface InfractionCreateInfractionRequest {
      * @type {string}
      * @memberof InfractionCreateInfractionRequest
      */
+    'material_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InfractionCreateInfractionRequest
+     */
     'occurrence_id'?: string;
     /**
      * 
@@ -906,7 +912,7 @@ export interface InfractionCreateInfractionRequest {
      */
     'tipo_infracao_id'?: string;
     /**
-     * 
+     * Deprecated: kept for backward compatibility
      * @type {string}
      * @memberof InfractionCreateInfractionRequest
      */
@@ -975,6 +981,12 @@ export interface InfractionUpdateInfractionRequest {
     'long'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof InfractionUpdateInfractionRequest
+     */
+    'material_id'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof InfractionUpdateInfractionRequest
      */
@@ -992,7 +1004,7 @@ export interface InfractionUpdateInfractionRequest {
      */
     'tipo_infracao_id'?: string;
     /**
-     * 
+     * Deprecated: kept for backward compatibility
      * @type {string}
      * @memberof InfractionUpdateInfractionRequest
      */
@@ -1132,6 +1144,344 @@ export interface InoutOkResponse {
 /**
  * 
  * @export
+ * @interface InstallationInstallationCreateRequest
+ */
+export interface InstallationInstallationCreateRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'ai_score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'compras_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'compras_vizinhos_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'equipamentos_6_meses'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'ignore'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'ignore_user'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'inspecao_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'inspecao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'lat'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'long'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'mes': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'nome'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'nr_fraudes'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'nr_inspecoes'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'pf': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'pt_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'pt_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'regiao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'tarifa'?: number;
+    /**
+     * 
+     * @type {ModelTendenciaCompras}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'tendencia_compras'?: ModelTendenciaCompras;
+}
+
+
+/**
+ * 
+ * @export
+ * @interface InstallationInstallationListResponse
+ */
+export interface InstallationInstallationListResponse {
+    /**
+     * 
+     * @type {Array<ModelInstallation>}
+     * @memberof InstallationInstallationListResponse
+     */
+    'items'?: Array<ModelInstallation>;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationListResponse
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationListResponse
+     */
+    'page_size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationListResponse
+     */
+    'total'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface InstallationInstallationUpdateRequest
+ */
+export interface InstallationInstallationUpdateRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'ai_score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'compras_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'compras_vizinhos_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'equipamentos_6_meses'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'ignore'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'ignore_user'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'inspecao_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'inspecao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'lat'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'long'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'nome'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'nr_fraudes'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'nr_inspecoes'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'pt_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'pt_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'regiao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'tarifa'?: number;
+    /**
+     * 
+     * @type {ModelTendenciaCompras}
+     * @memberof InstallationInstallationUpdateRequest
+     */
+    'tendencia_compras'?: ModelTendenciaCompras;
+}
+
+
+/**
+ * 
+ * @export
+ * @interface InstallationMonthlyImportResponse
+ */
+export interface InstallationMonthlyImportResponse {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'has_more_data'?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'imported_rows'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'message'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'offset'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'processed_rows'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'skipped_rows'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstallationMonthlyImportResponse
+     */
+    'total_available'?: number;
+}
+/**
+ * 
+ * @export
  * @interface MaterialCreateMaterialRequest
  */
 export interface MaterialCreateMaterialRequest {
@@ -1203,12 +1553,6 @@ export interface MaterialUpdateMaterialRequest {
      * @memberof MaterialUpdateMaterialRequest
      */
     'name'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialUpdateMaterialRequest
-     */
-    'scrapyard_id'?: string;
     /**
      * 
      * @type {string}
@@ -1407,6 +1751,18 @@ export interface ModelInfraction {
     'long'?: number;
     /**
      * 
+     * @type {ModelMaterial}
+     * @memberof ModelInfraction
+     */
+    'material'?: ModelMaterial;
+    /**
+     * Stores the Material ID in column tipo_material for backward-compatible schema
+     * @type {string}
+     * @memberof ModelInfraction
+     */
+    'material_id'?: string;
+    /**
+     * 
      * @type {string}
      * @memberof ModelInfraction
      */
@@ -1419,22 +1775,28 @@ export interface ModelInfraction {
     'quantidade'?: number;
     /**
      * 
+     * @type {ModelSectorInfracao}
+     * @memberof ModelInfraction
+     */
+    'sector_infracao'?: ModelSectorInfracao;
+    /**
+     * 
      * @type {string}
      * @memberof ModelInfraction
      */
     'sector_infracao_id'?: string;
+    /**
+     * Relations
+     * @type {ModelTipoInfracao}
+     * @memberof ModelInfraction
+     */
+    'tipo_infracao'?: ModelTipoInfracao;
     /**
      * 
      * @type {string}
      * @memberof ModelInfraction
      */
     'tipo_infracao_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelInfraction
-     */
-    'tipo_material'?: string;
     /**
      * 
      * @type {string}
@@ -1500,6 +1862,147 @@ export interface ModelInfractor {
 /**
  * 
  * @export
+ * @interface ModelInstallation
+ */
+export interface ModelInstallation {
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'ai_score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'compras_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'compras_vizinhos_6_meses'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'equipamentos_6_meses'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'ignore'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'ignore_user'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'inspecao_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'inspecao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'lat'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'long'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'mes'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'nome'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'nr_fraudes'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'nr_inspecoes'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'pf'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'point'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'pt_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'pt_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelInstallation
+     */
+    'regiao_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'score'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelInstallation
+     */
+    'tarifa'?: number;
+    /**
+     * 
+     * @type {ModelTendenciaCompras}
+     * @memberof ModelInstallation
+     */
+    'tendencia_compras'?: ModelTendenciaCompras;
+}
+
+
+/**
+ * 
+ * @export
  * @interface ModelMaterial
  */
 export interface ModelMaterial {
@@ -1521,12 +2024,6 @@ export interface ModelMaterial {
      * @memberof ModelMaterial
      */
     'name'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelMaterial
-     */
-    'scrapyard_id'?: string;
     /**
      * 
      * @type {string}
@@ -1770,6 +2267,12 @@ export interface ModelScrapyard {
      * @type {string}
      * @memberof ModelScrapyard
      */
+    'asc_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelScrapyard
+     */
     'created_at'?: string;
     /**
      * 
@@ -1845,6 +2348,24 @@ export interface ModelSectorInfracao {
      */
     'updated_at'?: string;
 }
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const ModelTendenciaCompras = {
+    TendenciaComprasCrescente: 'CRESCENTE',
+    TendenciaComprasDecrescente: 'DECRESCENTE',
+    TendenciaComprasMuitoCrescente: 'MUITO_CRESCENTE',
+    TendenciaComprasMuitoDecrescente: 'MUITO_DECRESCENTE',
+    TendenciaComprasNormal: 'NORMAL',
+    TendenciaComprasSemCompras: 'SEM_COMPRAS'
+} as const;
+
+export type ModelTendenciaCompras = typeof ModelTendenciaCompras[keyof typeof ModelTendenciaCompras];
+
+
 /**
  * 
  * @export
@@ -1988,6 +2509,12 @@ export interface OccurrenceCreateOccurrenceInfraction {
     'long'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof OccurrenceCreateOccurrenceInfraction
+     */
+    'material_id'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof OccurrenceCreateOccurrenceInfraction
      */
@@ -2005,7 +2532,7 @@ export interface OccurrenceCreateOccurrenceInfraction {
      */
     'tipo_infracao_id'?: string;
     /**
-     * 
+     * Deprecated: kept for backward compatibility with clients/tests
      * @type {string}
      * @memberof OccurrenceCreateOccurrenceInfraction
      */
@@ -2242,6 +2769,12 @@ export interface ScrapyardCreateScrapyardRequest {
     'long'?: number;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof ScrapyardCreateScrapyardRequest
+     */
+    'material_ids'?: Array<string>;
+    /**
+     * 
      * @type {number}
      * @memberof ScrapyardCreateScrapyardRequest
      */
@@ -2308,6 +2841,12 @@ export interface ScrapyardUpdateScrapyardRequest {
      * @memberof ScrapyardUpdateScrapyardRequest
      */
     'long'?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ScrapyardUpdateScrapyardRequest
+     */
+    'material_ids'?: Array<string>;
     /**
      * 
      * @type {number}
@@ -2568,7 +3107,7 @@ export const ASCApiAxiosParamCreator = function (configuration?: Configuration) 
          * Paginated list of ASCs
          * @summary List ASCs
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -2827,7 +3366,7 @@ export const ASCApiFp = function(configuration?: Configuration) {
          * Paginated list of ASCs
          * @summary List ASCs
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -2913,7 +3452,7 @@ export const ASCApiFactory = function (configuration?: Configuration, basePath?:
          * Paginated list of ASCs
          * @summary List ASCs
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -2984,7 +3523,7 @@ export class ASCApi extends BaseAPI {
      * Paginated list of ASCs
      * @summary List ASCs
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -3064,7 +3603,7 @@ export const AccoesApiAxiosParamCreator = function (configuration?: Configuratio
          * For each action, returns counts and amounts before and after implementation date (window = meses_analise)
          * @summary List Accoes effectiveness
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3128,7 +3667,7 @@ export const AccoesApiAxiosParamCreator = function (configuration?: Configuratio
          * Paginated list of Accoes
          * @summary List Accoes
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3382,7 +3921,7 @@ export const AccoesApiFp = function(configuration?: Configuration) {
          * For each action, returns counts and amounts before and after implementation date (window = meses_analise)
          * @summary List Accoes effectiveness
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3400,7 +3939,7 @@ export const AccoesApiFp = function(configuration?: Configuration) {
          * Paginated list of Accoes
          * @summary List Accoes
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3485,7 +4024,7 @@ export const AccoesApiFactory = function (configuration?: Configuration, basePat
          * For each action, returns counts and amounts before and after implementation date (window = meses_analise)
          * @summary List Accoes effectiveness
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3500,7 +4039,7 @@ export const AccoesApiFactory = function (configuration?: Configuration, basePat
          * Paginated list of Accoes
          * @summary List Accoes
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -3570,7 +4109,7 @@ export class AccoesApi extends BaseAPI {
      * For each action, returns counts and amounts before and after implementation date (window = meses_analise)
      * @summary List Accoes effectiveness
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -3587,7 +4126,7 @@ export class AccoesApi extends BaseAPI {
      * Paginated list of Accoes
      * @summary List Accoes
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -5335,7 +5874,7 @@ export const FormaConhecimentoApiAxiosParamCreator = function (configuration?: C
          * Paginated list of FormaConhecimento
          * @summary List FormaConhecimento
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -5594,7 +6133,7 @@ export const FormaConhecimentoApiFp = function(configuration?: Configuration) {
          * Paginated list of FormaConhecimento
          * @summary List FormaConhecimento
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -5680,7 +6219,7 @@ export const FormaConhecimentoApiFactory = function (configuration?: Configurati
          * Paginated list of FormaConhecimento
          * @summary List FormaConhecimento
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -5751,7 +6290,7 @@ export class FormaConhecimentoApi extends BaseAPI {
      * Paginated list of FormaConhecimento
      * @summary List FormaConhecimento
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -6008,7 +6547,7 @@ export const InfractionApiAxiosParamCreator = function (configuration?: Configur
          * Paginated list of infractions
          * @summary List Infractions
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6267,7 +6806,7 @@ export const InfractionApiFp = function(configuration?: Configuration) {
          * Paginated list of infractions
          * @summary List Infractions
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6353,7 +6892,7 @@ export const InfractionApiFactory = function (configuration?: Configuration, bas
          * Paginated list of infractions
          * @summary List Infractions
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6424,7 +6963,7 @@ export class InfractionApi extends BaseAPI {
      * Paginated list of infractions
      * @summary List Infractions
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -6504,7 +7043,7 @@ export const InfractorApiAxiosParamCreator = function (configuration?: Configura
          * Paginated list of infractors
          * @summary List Infractors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6768,7 +7307,7 @@ export const InfractorApiFp = function(configuration?: Configuration) {
          * Paginated list of infractors
          * @summary List Infractors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6855,7 +7394,7 @@ export const InfractorApiFactory = function (configuration?: Configuration, base
          * Paginated list of infractors
          * @summary List Infractors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -6927,7 +7466,7 @@ export class InfractorApi extends BaseAPI {
      * Paginated list of infractors
      * @summary List Infractors
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -6999,6 +7538,676 @@ export class InfractorApi extends BaseAPI {
 
 
 /**
+ * InstallationsApi - axios parameter creator
+ * @export
+ */
+export const InstallationsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Starts an asynchronous monthly import worker from INSP database to EDM database. Returns immediately with job ID. User receives email notification when complete. Processes data in 10k chunks and calculates neighbor compras.
+         * @summary Execute Monthly Import (Async)
+         * @param {string} authorization Bearer token
+         * @param {number} [maxRows] Maximum number of rows to process (optional, processes all data if not specified)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsExecuteMonthlyImportPost: async (authorization: string, maxRows?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsExecuteMonthlyImportPost', 'authorization', authorization)
+            const localVarPath = `/private/installations/execute-monthly-import`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (maxRows !== undefined) {
+                localVarQueryParameter['max_rows'] = maxRows;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Paginated list of installations
+         * @summary List Installations
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by PF
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {string} [nome] Filter by Nome
+         * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [minScore] Minimum Score
+         * @param {number} [maxScore] Maximum Score
+         * @param {number} [minAiScore] Minimum AI Score
+         * @param {number} [maxAiScore] Maximum AI Score
+         * @param {string} [dateFrom] Date from (YYYY-MM-DD)
+         * @param {string} [dateTo] Date to (YYYY-MM-DD)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ptId?: string, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsGet', 'authorization', authorization)
+            const localVarPath = `/private/installations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['page_size'] = pageSize;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+            if (orderDirection !== undefined) {
+                localVarQueryParameter['order_direction'] = orderDirection;
+            }
+
+            if (pf !== undefined) {
+                localVarQueryParameter['pf'] = pf;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+            if (nome !== undefined) {
+                localVarQueryParameter['nome'] = nome;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (minScore !== undefined) {
+                localVarQueryParameter['min_score'] = minScore;
+            }
+
+            if (maxScore !== undefined) {
+                localVarQueryParameter['max_score'] = maxScore;
+            }
+
+            if (minAiScore !== undefined) {
+                localVarQueryParameter['min_ai_score'] = minAiScore;
+            }
+
+            if (maxAiScore !== undefined) {
+                localVarQueryParameter['max_ai_score'] = maxAiScore;
+            }
+
+            if (dateFrom !== undefined) {
+                localVarQueryParameter['date_from'] = dateFrom;
+            }
+
+            if (dateTo !== undefined) {
+                localVarQueryParameter['date_to'] = dateTo;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfDelete: async (pf: string, mes: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pf' is not null or undefined
+            assertParamExists('privateInstallationsPfDelete', 'pf', pf)
+            // verify required parameter 'mes' is not null or undefined
+            assertParamExists('privateInstallationsPfDelete', 'mes', mes)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsPfDelete', 'authorization', authorization)
+            const localVarPath = `/private/installations/{pf}`
+                .replace(`{${"pf"}}`, encodeURIComponent(String(pf)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (mes !== undefined) {
+                localVarQueryParameter['mes'] = mes;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfGet: async (pf: string, mes: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pf' is not null or undefined
+            assertParamExists('privateInstallationsPfGet', 'pf', pf)
+            // verify required parameter 'mes' is not null or undefined
+            assertParamExists('privateInstallationsPfGet', 'mes', mes)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsPfGet', 'authorization', authorization)
+            const localVarPath = `/private/installations/{pf}`
+                .replace(`{${"pf"}}`, encodeURIComponent(String(pf)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (mes !== undefined) {
+                localVarQueryParameter['mes'] = mes;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update Installation
+         * @param {string} pf PF
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationUpdateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfPut: async (pf: string, authorization: string, installation: InstallationInstallationUpdateRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pf' is not null or undefined
+            assertParamExists('privateInstallationsPfPut', 'pf', pf)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsPfPut', 'authorization', authorization)
+            // verify required parameter 'installation' is not null or undefined
+            assertParamExists('privateInstallationsPfPut', 'installation', installation)
+            const localVarPath = `/private/installations/{pf}`
+                .replace(`{${"pf"}}`, encodeURIComponent(String(pf)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(installation, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create Installation
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationCreateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPost: async (authorization: string, installation: InstallationInstallationCreateRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstallationsPost', 'authorization', authorization)
+            // verify required parameter 'installation' is not null or undefined
+            assertParamExists('privateInstallationsPost', 'installation', installation)
+            const localVarPath = `/private/installations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(installation, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * InstallationsApi - functional programming interface
+ * @export
+ */
+export const InstallationsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = InstallationsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Starts an asynchronous monthly import worker from INSP database to EDM database. Returns immediately with job ID. User receives email notification when complete. Processes data in 10k chunks and calculates neighbor compras.
+         * @summary Execute Monthly Import (Async)
+         * @param {string} authorization Bearer token
+         * @param {number} [maxRows] Maximum number of rows to process (optional, processes all data if not specified)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsExecuteMonthlyImportPost(authorization: string, maxRows?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InstallationMonthlyImportResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsExecuteMonthlyImportPost(authorization, maxRows, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsExecuteMonthlyImportPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Paginated list of installations
+         * @summary List Installations
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by PF
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {string} [nome] Filter by Nome
+         * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [minScore] Minimum Score
+         * @param {number} [maxScore] Maximum Score
+         * @param {number} [minAiScore] Minimum AI Score
+         * @param {number} [maxAiScore] Maximum AI Score
+         * @param {string} [dateFrom] Date from (YYYY-MM-DD)
+         * @param {string} [dateTo] Date to (YYYY-MM-DD)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ptId?: string, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InstallationInstallationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ptId, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsPfDelete(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsPfDelete(pf, mes, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsPfDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsPfGet(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelInstallation>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsPfGet(pf, mes, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsPfGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update Installation
+         * @param {string} pf PF
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationUpdateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsPfPut(pf: string, authorization: string, installation: InstallationInstallationUpdateRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelInstallation>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsPfPut(pf, authorization, installation, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsPfPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create Installation
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationCreateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstallationsPost(authorization: string, installation: InstallationInstallationCreateRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelInstallation>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsPost(authorization, installation, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * InstallationsApi - factory interface
+ * @export
+ */
+export const InstallationsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = InstallationsApiFp(configuration)
+    return {
+        /**
+         * Starts an asynchronous monthly import worker from INSP database to EDM database. Returns immediately with job ID. User receives email notification when complete. Processes data in 10k chunks and calculates neighbor compras.
+         * @summary Execute Monthly Import (Async)
+         * @param {string} authorization Bearer token
+         * @param {number} [maxRows] Maximum number of rows to process (optional, processes all data if not specified)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsExecuteMonthlyImportPost(authorization: string, maxRows?: number, options?: RawAxiosRequestConfig): AxiosPromise<InstallationMonthlyImportResponse> {
+            return localVarFp.privateInstallationsExecuteMonthlyImportPost(authorization, maxRows, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Paginated list of installations
+         * @summary List Installations
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by PF
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {string} [nome] Filter by Nome
+         * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [minScore] Minimum Score
+         * @param {number} [maxScore] Maximum Score
+         * @param {number} [minAiScore] Minimum AI Score
+         * @param {number} [maxAiScore] Maximum AI Score
+         * @param {string} [dateFrom] Date from (YYYY-MM-DD)
+         * @param {string} [dateTo] Date to (YYYY-MM-DD)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ptId?: string, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): AxiosPromise<InstallationInstallationListResponse> {
+            return localVarFp.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ptId, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfDelete(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.privateInstallationsPfDelete(pf, mes, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Installation
+         * @param {string} pf PF
+         * @param {string} mes Month (YYYY-MM-DD format)
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfGet(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<ModelInstallation> {
+            return localVarFp.privateInstallationsPfGet(pf, mes, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update Installation
+         * @param {string} pf PF
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationUpdateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPfPut(pf: string, authorization: string, installation: InstallationInstallationUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelInstallation> {
+            return localVarFp.privateInstallationsPfPut(pf, authorization, installation, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create Installation
+         * @param {string} authorization Bearer token
+         * @param {InstallationInstallationCreateRequest} installation Installation data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstallationsPost(authorization: string, installation: InstallationInstallationCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelInstallation> {
+            return localVarFp.privateInstallationsPost(authorization, installation, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * InstallationsApi - object-oriented interface
+ * @export
+ * @class InstallationsApi
+ * @extends {BaseAPI}
+ */
+export class InstallationsApi extends BaseAPI {
+    /**
+     * Starts an asynchronous monthly import worker from INSP database to EDM database. Returns immediately with job ID. User receives email notification when complete. Processes data in 10k chunks and calculates neighbor compras.
+     * @summary Execute Monthly Import (Async)
+     * @param {string} authorization Bearer token
+     * @param {number} [maxRows] Maximum number of rows to process (optional, processes all data if not specified)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsExecuteMonthlyImportPost(authorization: string, maxRows?: number, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsExecuteMonthlyImportPost(authorization, maxRows, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Paginated list of installations
+     * @summary List Installations
+     * @param {string} authorization Bearer token
+     * @param {number} [page] Page number (-1 returns all)
+     * @param {number} [pageSize] Page size
+     * @param {string} [orderBy] Order by
+     * @param {string} [orderDirection] asc|desc
+     * @param {string} [pf] Filter by PF
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {string} [nome] Filter by Nome
+     * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+     * @param {number} [minScore] Minimum Score
+     * @param {number} [maxScore] Maximum Score
+     * @param {number} [minAiScore] Minimum AI Score
+     * @param {number} [maxAiScore] Maximum AI Score
+     * @param {string} [dateFrom] Date from (YYYY-MM-DD)
+     * @param {string} [dateTo] Date to (YYYY-MM-DD)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ptId?: string, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ptId, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete Installation
+     * @param {string} pf PF
+     * @param {string} mes Month (YYYY-MM-DD format)
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsPfDelete(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsPfDelete(pf, mes, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Installation
+     * @param {string} pf PF
+     * @param {string} mes Month (YYYY-MM-DD format)
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsPfGet(pf: string, mes: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsPfGet(pf, mes, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update Installation
+     * @param {string} pf PF
+     * @param {string} authorization Bearer token
+     * @param {InstallationInstallationUpdateRequest} installation Installation data
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsPfPut(pf: string, authorization: string, installation: InstallationInstallationUpdateRequest, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsPfPut(pf, authorization, installation, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create Installation
+     * @param {string} authorization Bearer token
+     * @param {InstallationInstallationCreateRequest} installation Installation data
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstallationsApi
+     */
+    public privateInstallationsPost(authorization: string, installation: InstallationInstallationCreateRequest, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsPost(authorization, installation, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * MaterialApi - axios parameter creator
  * @export
  */
@@ -7008,7 +8217,7 @@ export const MaterialApiAxiosParamCreator = function (configuration?: Configurat
          * Paginated list of Materiais
          * @summary List Materiais
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7272,7 +8481,7 @@ export const MaterialApiFp = function(configuration?: Configuration) {
          * Paginated list of Materiais
          * @summary List Materiais
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7359,7 +8568,7 @@ export const MaterialApiFactory = function (configuration?: Configuration, baseP
          * Paginated list of Materiais
          * @summary List Materiais
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7431,7 +8640,7 @@ export class MaterialApi extends BaseAPI {
      * Paginated list of Materiais
      * @summary List Materiais
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -7512,7 +8721,7 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
          * Paginated list of occurrences
          * @summary List Occurrences
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7522,10 +8731,12 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
+         * @param {number} [lat] Latitude (uses QUERY_RADIUS_KM when lat/long provided)
+         * @param {number} [_long] Longitude (uses QUERY_RADIUS_KM when lat/long provided)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateOccurrencesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        privateOccurrencesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('privateOccurrencesGet', 'authorization', authorization)
             const localVarPath = `/private/occurrences`;
@@ -7581,6 +8792,14 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
 
             if (texto !== undefined) {
                 localVarQueryParameter['texto'] = texto;
+            }
+
+            if (lat !== undefined) {
+                localVarQueryParameter['lat'] = lat;
+            }
+
+            if (_long !== undefined) {
+                localVarQueryParameter['long'] = _long;
             }
 
 
@@ -7791,7 +9010,7 @@ export const OccurrenceApiFp = function(configuration?: Configuration) {
          * Paginated list of occurrences
          * @summary List Occurrences
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7801,11 +9020,13 @@ export const OccurrenceApiFp = function(configuration?: Configuration) {
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
+         * @param {number} [lat] Latitude (uses QUERY_RADIUS_KM when lat/long provided)
+         * @param {number} [_long] Longitude (uses QUERY_RADIUS_KM when lat/long provided)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OccurrenceOccurrenceListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, options);
+        async privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OccurrenceOccurrenceListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OccurrenceApi.privateOccurrencesGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -7881,7 +9102,7 @@ export const OccurrenceApiFactory = function (configuration?: Configuration, bas
          * Paginated list of occurrences
          * @summary List Occurrences
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -7891,11 +9112,13 @@ export const OccurrenceApiFactory = function (configuration?: Configuration, bas
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
+         * @param {number} [lat] Latitude (uses QUERY_RADIUS_KM when lat/long provided)
+         * @param {number} [_long] Longitude (uses QUERY_RADIUS_KM when lat/long provided)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, options?: RawAxiosRequestConfig): AxiosPromise<OccurrenceOccurrenceListResponse> {
-            return localVarFp.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, options).then((request) => request(axios, basePath));
+        privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): AxiosPromise<OccurrenceOccurrenceListResponse> {
+            return localVarFp.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -7956,7 +9179,7 @@ export class OccurrenceApi extends BaseAPI {
      * Paginated list of occurrences
      * @summary List Occurrences
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -7966,12 +9189,14 @@ export class OccurrenceApi extends BaseAPI {
      * @param {string} [dataInicio] Start date (RFC3339)
      * @param {string} [dataFim] End date (RFC3339)
      * @param {string} [texto] Free text search
+     * @param {number} [lat] Latitude (uses QUERY_RADIUS_KM when lat/long provided)
+     * @param {number} [_long] Longitude (uses QUERY_RADIUS_KM when lat/long provided)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OccurrenceApi
      */
-    public privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, options?: RawAxiosRequestConfig) {
-        return OccurrenceApiFp(this.configuration).privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, options).then((request) => request(this.axios, this.basePath));
+    public privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig) {
+        return OccurrenceApiFp(this.configuration).privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8040,7 +9265,7 @@ export const RegiaoApiAxiosParamCreator = function (configuration?: Configuratio
          * Paginated list of Regioes
          * @summary List Regiões
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -8294,7 +9519,7 @@ export const RegiaoApiFp = function(configuration?: Configuration) {
          * Paginated list of Regioes
          * @summary List Regiões
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -8379,7 +9604,7 @@ export const RegiaoApiFactory = function (configuration?: Configuration, basePat
          * Paginated list of Regioes
          * @summary List Regiões
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -8449,7 +9674,7 @@ export class RegiaoApi extends BaseAPI {
      * Paginated list of Regioes
      * @summary List Regiões
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -8754,10 +9979,10 @@ export class ReportsApi extends BaseAPI {
 export const ScrapyardApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Paginated list of Scrapyards
+         * Paginated list of Scrapyards. If lat/long are provided, results are filtered within QUERY_RADIUS_KM.
          * @summary List Scrapyards
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -8767,11 +9992,10 @@ export const ScrapyardApiAxiosParamCreator = function (configuration?: Configura
          * @param {number} [nivelMin] Min confidence
          * @param {number} [lat] Latitude
          * @param {number} [_long] Longitude
-         * @param {number} [raioKm] Radius kilometers
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateScrapyardsGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, raioKm?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        privateScrapyardsGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('privateScrapyardsGet', 'authorization', authorization)
             const localVarPath = `/private/scrapyards`;
@@ -8827,10 +10051,6 @@ export const ScrapyardApiAxiosParamCreator = function (configuration?: Configura
 
             if (_long !== undefined) {
                 localVarQueryParameter['long'] = _long;
-            }
-
-            if (raioKm !== undefined) {
-                localVarQueryParameter['raio_km'] = raioKm;
             }
 
 
@@ -9038,10 +10258,10 @@ export const ScrapyardApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ScrapyardApiAxiosParamCreator(configuration)
     return {
         /**
-         * Paginated list of Scrapyards
+         * Paginated list of Scrapyards. If lat/long are provided, results are filtered within QUERY_RADIUS_KM.
          * @summary List Scrapyards
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -9051,12 +10271,11 @@ export const ScrapyardApiFp = function(configuration?: Configuration) {
          * @param {number} [nivelMin] Min confidence
          * @param {number} [lat] Latitude
          * @param {number} [_long] Longitude
-         * @param {number} [raioKm] Radius kilometers
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, raioKm?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ScrapyardScrapyardListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, raioKm, options);
+        async privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ScrapyardScrapyardListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ScrapyardApi.privateScrapyardsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -9129,10 +10348,10 @@ export const ScrapyardApiFactory = function (configuration?: Configuration, base
     const localVarFp = ScrapyardApiFp(configuration)
     return {
         /**
-         * Paginated list of Scrapyards
+         * Paginated list of Scrapyards. If lat/long are provided, results are filtered within QUERY_RADIUS_KM.
          * @summary List Scrapyards
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -9142,12 +10361,11 @@ export const ScrapyardApiFactory = function (configuration?: Configuration, base
          * @param {number} [nivelMin] Min confidence
          * @param {number} [lat] Latitude
          * @param {number} [_long] Longitude
-         * @param {number} [raioKm] Radius kilometers
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, raioKm?: number, options?: RawAxiosRequestConfig): AxiosPromise<ScrapyardScrapyardListResponse> {
-            return localVarFp.privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, raioKm, options).then((request) => request(axios, basePath));
+        privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, options?: RawAxiosRequestConfig): AxiosPromise<ScrapyardScrapyardListResponse> {
+            return localVarFp.privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -9205,10 +10423,10 @@ export const ScrapyardApiFactory = function (configuration?: Configuration, base
  */
 export class ScrapyardApi extends BaseAPI {
     /**
-     * Paginated list of Scrapyards
+     * Paginated list of Scrapyards. If lat/long are provided, results are filtered within QUERY_RADIUS_KM.
      * @summary List Scrapyards
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -9218,13 +10436,12 @@ export class ScrapyardApi extends BaseAPI {
      * @param {number} [nivelMin] Min confidence
      * @param {number} [lat] Latitude
      * @param {number} [_long] Longitude
-     * @param {number} [raioKm] Radius kilometers
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ScrapyardApi
      */
-    public privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, raioKm?: number, options?: RawAxiosRequestConfig) {
-        return ScrapyardApiFp(this.configuration).privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, raioKm, options).then((request) => request(this.axios, this.basePath));
+    public privateScrapyardsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, ascId?: string, nome?: string, materialId?: string, nivelMin?: number, lat?: number, _long?: number, options?: RawAxiosRequestConfig) {
+        return ScrapyardApiFp(this.configuration).privateScrapyardsGet(authorization, page, pageSize, orderBy, orderDirection, ascId, nome, materialId, nivelMin, lat, _long, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -9293,7 +10510,7 @@ export const SectorInfracaoApiAxiosParamCreator = function (configuration?: Conf
          * Paginated list of SectorInfracao
          * @summary List Sectors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -9547,7 +10764,7 @@ export const SectorInfracaoApiFp = function(configuration?: Configuration) {
          * Paginated list of SectorInfracao
          * @summary List Sectors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -9632,7 +10849,7 @@ export const SectorInfracaoApiFactory = function (configuration?: Configuration,
          * Paginated list of SectorInfracao
          * @summary List Sectors
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -9702,7 +10919,7 @@ export class SectorInfracaoApi extends BaseAPI {
      * Paginated list of SectorInfracao
      * @summary List Sectors
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -9781,7 +10998,7 @@ export const TipoInfracaoApiAxiosParamCreator = function (configuration?: Config
          * Paginated list of TipoInfracao
          * @summary List Tipos de Infração
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10035,7 +11252,7 @@ export const TipoInfracaoApiFp = function(configuration?: Configuration) {
          * Paginated list of TipoInfracao
          * @summary List Tipos de Infração
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10120,7 +11337,7 @@ export const TipoInfracaoApiFactory = function (configuration?: Configuration, b
          * Paginated list of TipoInfracao
          * @summary List Tipos de Infração
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10190,7 +11407,7 @@ export class TipoInfracaoApi extends BaseAPI {
      * Paginated list of TipoInfracao
      * @summary List Tipos de Infração
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc
@@ -10269,7 +11486,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * Paginated list of users
          * @summary List Users
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10518,7 +11735,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * Paginated list of users
          * @summary List Users
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10602,7 +11819,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * Paginated list of users
          * @summary List Users
          * @param {string} authorization Bearer token
-         * @param {number} [page] Page number
+         * @param {number} [page] Page number (-1 returns all)
          * @param {number} [pageSize] Page size
          * @param {string} [orderBy] Order by
          * @param {string} [orderDirection] asc|desc
@@ -10671,7 +11888,7 @@ export class UsersApi extends BaseAPI {
      * Paginated list of users
      * @summary List Users
      * @param {string} authorization Bearer token
-     * @param {number} [page] Page number
+     * @param {number} [page] Page number (-1 returns all)
      * @param {number} [pageSize] Page size
      * @param {string} [orderBy] Order by
      * @param {string} [orderDirection] asc|desc

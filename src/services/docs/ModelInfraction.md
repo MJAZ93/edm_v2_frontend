@@ -11,11 +11,14 @@ Name | Type | Description | Notes
 **infractors** | [**Array&lt;ModelInfractor&gt;**](ModelInfractor.md) |  | [optional] [default to undefined]
 **lat** | **number** |  | [optional] [default to undefined]
 **_long** | **number** |  | [optional] [default to undefined]
+**material** | [**ModelMaterial**](ModelMaterial.md) |  | [optional] [default to undefined]
+**material_id** | **string** | Stores the Material ID in column tipo_material for backward-compatible schema | [optional] [default to undefined]
 **occurrence_id** | **string** |  | [optional] [default to undefined]
 **quantidade** | **number** |  | [optional] [default to undefined]
+**sector_infracao** | [**ModelSectorInfracao**](ModelSectorInfracao.md) |  | [optional] [default to undefined]
 **sector_infracao_id** | **string** |  | [optional] [default to undefined]
+**tipo_infracao** | [**ModelTipoInfracao**](ModelTipoInfracao.md) | Relations | [optional] [default to undefined]
 **tipo_infracao_id** | **string** |  | [optional] [default to undefined]
-**tipo_material** | **string** |  | [optional] [default to undefined]
 **updated_at** | **string** |  | [optional] [default to undefined]
 **valor** | **number** |  | [optional] [default to undefined]
 
@@ -31,11 +34,14 @@ const instance: ModelInfraction = {
     infractors,
     lat,
     _long,
+    material,
+    material_id,
     occurrence_id,
     quantidade,
+    sector_infracao,
     sector_infracao_id,
+    tipo_infracao,
     tipo_infracao_id,
-    tipo_material,
     updated_at,
     valor,
 };

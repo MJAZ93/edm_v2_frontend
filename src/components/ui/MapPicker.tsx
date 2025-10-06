@@ -1,0 +1,199 @@
+import React, { useEffect, useRef, useState } from 'react'
+
+type LatLng = { lat: number; lng: number }
+
+type Props = {
+  value?: Partial<LatLng>
+  onChange?: (pos: LatLng) => void
+  height?: number
+  zoom?: number
+  apiKey?: string
+  disabled?: boolean
+  extraMarkers?: Array<{ lat: number; lng: number; title?: string; color?: string; infoHtml?: string }>
+}
+
+declare global {
+  interface Window {
+    __gmapsLoadingPromise?: Promise<void>
+  }
+}
+
+function injectScriptOnce(apiKey: string): Promise<void> {
+  if ((window as any).google && (window as any).google.maps) return Promise.resolve()
+  if (window.__gmapsLoadingPromise) return window.__gmapsLoadingPromise
+  const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`
+  window.__gmapsLoadingPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`)
+    if (existing) {
+      existing.addEventListener('load', () => resolve())
+      existing.addEventListener('error', () => reject(new Error('Falha ao carregar Google Maps')))
+      return
+    }
+    const script = document.createElement('script')
+    script.src = src
+    script.async = true
+    script.defer = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Falha ao carregar Google Maps'))
+    document.head.appendChild(script)
+  })
+  return window.__gmapsLoadingPromise
+}
+
+export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, disabled = false, extraMarkers = [] }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<any>(null)
+  const markerRef = useRef<any>(null)
+  const extraMarkersRef = useRef<any[]>([])
+  const infoWindowRef = useRef<any>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const effectiveKey = apiKey || (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY
+  const center: LatLng = {
+    lat: typeof value?.lat === 'number' ? (value!.lat as number) : -25.965,
+    lng: typeof value?.lng === 'number' ? (value!.lng as number) : 32.571
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    async function setup() {
+      setError(null)
+      if (!effectiveKey) {
+        setError('Google Maps não está configurado (VITE_GOOGLE_MAPS_API_KEY ausente).')
+        return
+      }
+      try {
+        await injectScriptOnce(effectiveKey)
+        if (cancelled) return
+        const gmaps = (window as any).google.maps
+        const map = new gmaps.Map(containerRef.current!, {
+          center,
+          zoom,
+          disableDefaultUI: false,
+        })
+        mapRef.current = map
+        const marker = new gmaps.Marker({ position: center, map, draggable: !disabled })
+        markerRef.current = marker
+        // Add extra markers (read-only visual)
+        extraMarkersRef.current.forEach((m) => m.setMap(null))
+        // Prettier pin icon for extra markers (e.g., sucatarias)
+        const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
+        extraMarkersRef.current = (extraMarkers || []).map((m) => {
+          const marker = new gmaps.Marker({
+            position: { lat: m.lat, lng: m.lng },
+            title: m.title,
+            map,
+            icon: {
+              path: pinPath,
+              fillColor: m.color || '#ea580c',
+              fillOpacity: 1,
+              strokeColor: '#9a3412',
+              strokeWeight: 1,
+              scale: 1.2,
+              anchor: new gmaps.Point(12, 22),
+            },
+          })
+          marker.addListener('click', () => {
+            try { infoWindowRef.current?.close() } catch {}
+            infoWindowRef.current = new gmaps.InfoWindow({ content: m.infoHtml || `<div><strong>${m.title || ''}</strong></div>` })
+            infoWindowRef.current.open(map, marker)
+          })
+          return marker
+        })
+
+        map.addListener('click', (e: any) => {
+          if (disabled) return
+          const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() }
+          marker.setPosition(pos)
+          onChange?.(pos)
+        })
+        marker.addListener('dragend', () => {
+          if (disabled) return
+          const pos = marker.getPosition()
+          const next = { lat: pos.lat(), lng: pos.lng() }
+          onChange?.(next)
+        })
+        // Fit bounds to include main marker and extras (read-only best effort)
+        try {
+          const bounds = new gmaps.LatLngBounds()
+          const pos = marker.getPosition()
+          if (pos) bounds.extend(pos)
+          extraMarkersRef.current.forEach((m) => { const p = m.getPosition(); if (p) bounds.extend(p) })
+          if (!bounds.isEmpty()) map.fitBounds(bounds)
+        } catch {}
+      } catch (err: any) {
+        if (!cancelled) setError(err?.message || 'Falha ao inicializar o mapa.')
+      }
+    }
+    setup()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Atualiza marker/centro quando value muda externamente
+  useEffect(() => {
+    const gmaps = (window as any).google?.maps
+    if (!gmaps || !mapRef.current || !markerRef.current) return
+    const lat = typeof value?.lat === 'number' ? value!.lat : undefined
+    const lng = typeof value?.lng === 'number' ? value!.lng : undefined
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      const pos = { lat, lng }
+      markerRef.current.setPosition(pos)
+      mapRef.current.setCenter(pos)
+    }
+  }, [value?.lat, value?.lng])
+
+  // Atualiza extra markers quando prop muda
+  useEffect(() => {
+    const gmaps = (window as any).google?.maps
+    if (!gmaps || !mapRef.current) return
+    // cleanup existing
+    extraMarkersRef.current.forEach((m) => m.setMap(null))
+    const gmap = mapRef.current
+    const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
+    extraMarkersRef.current = (extraMarkers || []).map((m) => {
+      const marker = new gmaps.Marker({
+        position: { lat: m.lat, lng: m.lng },
+        title: m.title,
+        map: gmap,
+        icon: {
+          path: pinPath,
+          fillColor: m.color || '#ea580c',
+          fillOpacity: 1,
+          strokeColor: '#9a3412',
+          strokeWeight: 1,
+          scale: 1.2,
+          anchor: new gmaps.Point(12, 22),
+        },
+      })
+      marker.addListener('click', () => {
+        try { infoWindowRef.current?.close() } catch {}
+        infoWindowRef.current = new gmaps.InfoWindow({ content: m.infoHtml || `<div><strong>${m.title || ''}</strong></div>` })
+        infoWindowRef.current.open(gmap, marker)
+      })
+      return marker
+    })
+    // try to fit bounds when disabled (view mode)
+    try {
+      if (disabled) {
+        const bounds = new gmaps.LatLngBounds()
+        const pos = markerRef.current?.getPosition()
+        if (pos) bounds.extend(pos)
+        extraMarkersRef.current.forEach((m) => { const p = m.getPosition(); if (p) bounds.extend(p) })
+        if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds)
+      }
+    } catch {}
+  }, [extraMarkers.map((m) => `${m.lat},${m.lng}`).join('|'), disabled])
+
+  return (
+    <div>
+      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+      {error ? <div style={{ color: '#991b1b', background: '#fee2e2', padding: 8, borderRadius: 8, marginTop: 8 }}>{error}</div> : null}
+      {!error && !disabled && (
+        <div style={{ color: '#6b7280', marginTop: 6, fontSize: 12 }}>
+          Clique no mapa para definir a localização. Pode arrastar o marcador.
+        </div>
+      )}
+    </div>
+  )
+}

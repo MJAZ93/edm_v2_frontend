@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
+// Navbar removido conforme pedido (sem dropdown "Sucatarias")
+import ScrapyardsMapScreen from './ScrapyardsMapScreen'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Card } from '../components/ui/Card'
 import { Heading } from '../components/ui/Heading'
@@ -13,11 +15,15 @@ import FormasConhecimentoScreen from './FormasConhecimentoScreen'
 import MateriaisScreen from './MateriaisScreen'
 import SetoresInfracaoScreen from './SetoresInfracaoScreen'
 import TiposInfracaoScreen from './TiposInfracaoScreen'
+import ScrapyardsScreen from './ScrapyardsScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
+import OcorrenciasScreen from './OcorrenciasScreen'
+import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
+import OcorrenciaDetailScreen from './OcorrenciaDetailScreen'
+import OcorrenciaEditScreen from './OcorrenciaEditScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
-  { key: 'mapa', label: 'Mapa' },
   { key: 'ocorrencias', label: 'Ocorrências' },
   { key: 'infracoes', label: 'Infrações' },
   { key: 'infractores', label: 'Infractores' },
@@ -29,11 +35,11 @@ const MENU = [
 export default function DashboardScreen() {
   const KEY_TO_PATH = useMemo(() => ({
     dashboard: '/dashboard',
-    mapa: '/mapa',
     ocorrencias: '/ocorrencias',
     infracoes: '/infracoes',
     infractores: '/infractores',
     sucatarias: '/sucatarias',
+    sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
     config: '/config',
     regioes: '/regioes',
@@ -66,21 +72,15 @@ export default function DashboardScreen() {
   }
 
   const [active, setActive] = useState<keyof typeof KEY_TO_PATH>(() => resolveKeyFromPath(window.location.pathname))
-  const [autoRefresh, setAutoRefresh] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<string>('--:--:--')
-
-  useEffect(() => {
-    const updateTime = () => setLastUpdated(new Date().toLocaleTimeString())
-    updateTime()
-    if (!autoRefresh) return
-    const id = setInterval(updateTime, 10_000)
-    return () => clearInterval(id)
-  }, [autoRefresh])
+  const [path, setPath] = useState<string>(() => normalizePath(window.location.pathname))
+  // Removed auto-refresh and timestamp UI to simplify header
 
   // Sincroniza estado com URL (history API)
   useEffect(() => {
     const onPopState = () => {
-      const nextKey = resolveKeyFromPath(window.location.pathname)
+      const currentPath = normalizePath(window.location.pathname)
+      setPath(currentPath)
+      const nextKey = resolveKeyFromPath(currentPath)
       setActive(nextKey)
     }
     window.addEventListener('popstate', onPopState)
@@ -93,47 +93,33 @@ export default function DashboardScreen() {
     const path = KEY_TO_PATH[k] || '/dashboard'
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path)
+      setPath(normalizePath(path))
+      window.dispatchEvent(new Event('locationchange'))
     }
     setActive(k)
   }
 
+  const navigateToPath = (path: string) => {
+    const norm = normalizePath(path)
+    if (window.location.pathname !== norm) {
+      window.history.pushState({}, '', norm)
+      setPath(norm)
+      window.dispatchEvent(new Event('locationchange'))
+    }
+    setActive(resolveKeyFromPath(norm))
+  }
+
+  const occRoute = useMemo(() => {
+    if (path.startsWith('/ocorrencias/novo')) return 'create'
+    if (/^\/ocorrencias\/[^/]+\/editar$/.test(path)) return 'edit'
+    if (/^\/ocorrencias\/[^/]+$/.test(path)) return 'detail'
+    return 'list'
+  }, [path]) as 'create' | 'edit' | 'detail' | 'list'
+
   return (
     <AppShell
       sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
-      header={
-        <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Heading level={1}>
-            {active === 'dashboard' && 'Dashboard'}
-            {active === 'mapa' && 'Mapa'}
-            {active === 'ocorrencias' && 'Ocorrências'}
-            {active === 'infracoes' && 'Infrações'}
-            {active === 'infractores' && 'Infractores'}
-            {active === 'sucatarias' && 'Sucatarias'}
-            {active === 'utilizadores' && 'Utilizadores'}
-            {active === 'config' && 'Configurações'}
-            {active === 'regioes' && 'Regiões'}
-            {active === 'ascs' && 'ASCs'}
-            {active === 'formasConhecimento' && 'Formas de Conhecimento'}
-            {active === 'materiais' && 'Materiais'}
-            {active === 'setoresInfracao' && 'Setores de Infração'}
-            {active === 'tiposInfracao' && 'Tipos de Infração'}
-          </Heading>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#6b7280' }}>
-            <span style={{ background: '#eef2ff', color: '#4338ca', padding: '6px 10px', borderRadius: 999 }}>Atualizado: {lastUpdated}</span>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
-              <span>Auto-refresh (10s)</span>
-            </label>
-            <select defaultValue="24h" style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', background: '#fff' }}>
-              <option value="1h">Last 1h</option>
-              <option value="12h">Last 12h</option>
-              <option value="24h">Last 24h</option>
-              <option value="7d">Last 7d</option>
-            </select>
-            <button style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', background: '#fff' }}>Refresh</button>
-          </div>
-        </div>
-      }
+      header={undefined}
     >
       {active === 'dashboard' && (
         <>
@@ -155,7 +141,7 @@ export default function DashboardScreen() {
               <div style={{ color: '#6b7280', marginTop: 6 }}>Peak: 0 rpm</div>
             </Card>
 
-            <Card title="Avg Latency (p95)" subtitle={`Atualizado ${lastUpdated}`}>
+            <Card title="Avg Latency (p95)">
               <div style={{ fontSize: 28, fontWeight: 700 }}>0.00 ms</div>
             </Card>
           </Grid>
@@ -184,13 +170,22 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {active !== 'dashboard' && active !== 'utilizadores' && active !== 'config' && active !== 'regioes' && active !== 'ascs' && active !== 'formasConhecimento' && active !== 'materiais' && active !== 'setoresInfracao' && active !== 'tiposInfracao' && (
-        <Card>
-          <div style={{ color: '#6b7280' }}>Conteúdo de "{MENU.find(m => m.key === active)?.label}" a implementar.</div>
-        </Card>
-      )}
+      {/* Placeholder removido a pedido: não mostrar conteúdo a implementar */}
 
       {active === 'utilizadores' && <UsersScreen />}
+      {active === 'ocorrencias' && (
+        occRoute === 'create' ? (
+          <OcorrenciaCreateScreen />
+        ) : occRoute === 'edit' ? (
+          <OcorrenciaEditScreen />
+        ) : occRoute === 'detail' ? (
+          <OcorrenciaDetailScreen />
+        ) : (
+          <OcorrenciasScreen />
+        )
+      )}
+      {active === 'sucatarias' && <ScrapyardsScreen />}
+      {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       {active === 'config' && <ConfigScreen />}
       {active === 'regioes' && <RegioesScreen />}
       {active === 'ascs' && <ASCsScreen />}

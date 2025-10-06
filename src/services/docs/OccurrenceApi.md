@@ -27,7 +27,7 @@ const configuration = new Configuration();
 const apiInstance = new OccurrenceApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let page: number; //Page number (optional) (default to undefined)
+let page: number; //Page number (-1 returns all) (optional) (default to undefined)
 let pageSize: number; //Page size (optional) (default to undefined)
 let orderBy: string; //Order by (optional) (default to 'data_facto')
 let orderDirection: string; //asc|desc (optional) (default to 'asc')
@@ -37,6 +37,8 @@ let formaConhecimentoId: string; //Filter by forma_conhecimento (optional) (defa
 let dataInicio: string; //Start date (RFC3339) (optional) (default to undefined)
 let dataFim: string; //End date (RFC3339) (optional) (default to undefined)
 let texto: string; //Free text search (optional) (default to undefined)
+let lat: number; //Latitude (uses QUERY_RADIUS_KM when lat/long provided) (optional) (default to undefined)
+let _long: number; //Longitude (uses QUERY_RADIUS_KM when lat/long provided) (optional) (default to undefined)
 
 const { status, data } = await apiInstance.privateOccurrencesGet(
     authorization,
@@ -49,7 +51,9 @@ const { status, data } = await apiInstance.privateOccurrencesGet(
     formaConhecimentoId,
     dataInicio,
     dataFim,
-    texto
+    texto,
+    lat,
+    _long
 );
 ```
 
@@ -58,7 +62,7 @@ const { status, data } = await apiInstance.privateOccurrencesGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **page** | [**number**] | Page number | (optional) defaults to undefined|
+| **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
 | **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
 | **orderBy** | [**string**] | Order by | (optional) defaults to 'data_facto'|
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|
@@ -68,6 +72,8 @@ const { status, data } = await apiInstance.privateOccurrencesGet(
 | **dataInicio** | [**string**] | Start date (RFC3339) | (optional) defaults to undefined|
 | **dataFim** | [**string**] | End date (RFC3339) | (optional) defaults to undefined|
 | **texto** | [**string**] | Free text search | (optional) defaults to undefined|
+| **lat** | [**number**] | Latitude (uses QUERY_RADIUS_KM when lat/long provided) | (optional) defaults to undefined|
+| **_long** | [**number**] | Longitude (uses QUERY_RADIUS_KM when lat/long provided) | (optional) defaults to undefined|
 
 
 ### Return type
