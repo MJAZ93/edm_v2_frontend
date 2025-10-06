@@ -28,13 +28,19 @@ import InfractionEditScreen from './InfractionEditScreen'
 import InfractorsScreen from './InfractorsScreen'
 import InfractorDetailScreen from './InfractorDetailScreen'
 import InfractorEditScreen from './InfractorEditScreen'
+import ReportsScreen from './ReportsScreen'
+import AccoesScreen from './AccoesScreen'
+import AccaoDetailScreen from './AccaoDetailScreen'
+import AccaoEditScreen from './AccaoEditScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'ocorrencias', label: 'Ocorrências' },
   { key: 'infracoes', label: 'Infrações' },
   { key: 'infractores', label: 'Infractores' },
+  { key: 'accoes', label: 'Ações' },
   { key: 'sucatarias', label: 'Sucatarias' },
+  { key: 'relatorios', label: 'Relatórios' },
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'config', label: 'Configurações' }
 ]
@@ -45,6 +51,7 @@ export default function DashboardScreen() {
     ocorrencias: '/ocorrencias',
     infracoes: '/infracoes',
     infractores: '/infractores',
+    accoes: '/accoes',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -54,7 +61,8 @@ export default function DashboardScreen() {
     formasConhecimento: '/formas-conhecimento',
     materiais: '/materiais',
     setoresInfracao: '/setores-infracao',
-    tiposInfracao: '/tipos-infracao'
+    tiposInfracao: '/tipos-infracao',
+    relatorios: '/relatorios'
   } as const), [])
 
   const PATH_TO_KEY = useMemo(() => Object.fromEntries(Object.entries(KEY_TO_PATH).map(([k, v]) => [v, k])), [KEY_TO_PATH]) as Record<string, keyof typeof KEY_TO_PATH>
@@ -134,6 +142,13 @@ export default function DashboardScreen() {
     if (/^\/infractores\/[^/]+$/.test(path)) return 'detail'
     return 'list'
   }, [path]) as 'edit' | 'detail' | 'list'
+
+  const accaoRoute = useMemo(() => {
+    if (path.startsWith('/accoes/novo')) return 'create'
+    if (/^\/accoes\/[^/]+\/editar$/.test(path)) return 'edit'
+    if (/^\/accoes\/[^/]+$/.test(path)) return 'detail'
+    return 'list'
+  }, [path]) as 'create' | 'edit' | 'detail' | 'list'
 
   return (
     <AppShell
@@ -236,6 +251,18 @@ export default function DashboardScreen() {
       {active === 'materiais' && <MateriaisScreen />}
       {active === 'setoresInfracao' && <SetoresInfracaoScreen />}
       {active === 'tiposInfracao' && <TiposInfracaoScreen />}
+      {active === 'relatorios' && <ReportsScreen />}
+      {active === 'accoes' && (
+        accaoRoute === 'create' ? (
+          <AccaoEditScreen />
+        ) : accaoRoute === 'edit' ? (
+          <AccaoEditScreen />
+        ) : accaoRoute === 'detail' ? (
+          <AccaoDetailScreen />
+        ) : (
+          <AccoesScreen />
+        )
+      )}
     </AppShell>
   )
 }

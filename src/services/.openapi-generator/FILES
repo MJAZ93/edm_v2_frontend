@@ -5,6 +5,7 @@ base.ts
 common.ts
 configuration.ts
 docs/ASCApi.md
+docs/AccoesAccoesDetailResponse.md
 docs/AccoesAccoesEffectivenessItem.md
 docs/AccoesAccoesEffectivenessListResponse.md
 docs/AccoesAccoesListResponse.md

@@ -26,6 +26,43 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
+ * @interface AccoesAccoesDetailResponse
+ */
+export interface AccoesAccoesDetailResponse {
+    /**
+     * 
+     * @type {ModelAccoes}
+     * @memberof AccoesAccoesDetailResponse
+     */
+    'accoes'?: ModelAccoes;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccoesAccoesDetailResponse
+     */
+    'after_amount'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccoesAccoesDetailResponse
+     */
+    'after_count'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccoesAccoesDetailResponse
+     */
+    'before_amount'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccoesAccoesDetailResponse
+     */
+    'before_count'?: number;
+}
+/**
+ * 
+ * @export
  * @interface AccoesAccoesEffectivenessItem
  */
 export interface AccoesAccoesEffectivenessItem {
@@ -3975,7 +4012,7 @@ export const AccoesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async privateAccoesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelAccoes>> {
+        async privateAccoesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccoesAccoesDetailResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.privateAccoesIdGet(id, authorization, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AccoesApi.privateAccoesIdGet']?.[localVarOperationServerIndex]?.url;
@@ -4069,7 +4106,7 @@ export const AccoesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateAccoesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<ModelAccoes> {
+        privateAccoesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<AccoesAccoesDetailResponse> {
             return localVarFp.privateAccoesIdGet(id, authorization, options).then((request) => request(axios, basePath));
         },
         /**
