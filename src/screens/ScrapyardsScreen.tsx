@@ -76,6 +76,8 @@ export default function ScrapyardsScreen() {
     }
   }
 
+  const formatPercent = (v?: number) => (typeof v === 'number' && !Number.isNaN(v)) ? `${(v * 100).toFixed(1)} %` : '—'
+
   async function handleCreateSubmit(values: ScrapyardFormValues) {
     setSubmitting(true)
     setSubmitError(null)
@@ -228,7 +230,7 @@ export default function ScrapyardsScreen() {
                   <tr key={s.id}>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{s.nome}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{(s as any).asc_name || '—'}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{s.nivel_confianca ?? '—'}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatPercent(s.nivel_confianca as any)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', maxWidth: 420 }}
                         title={(Array.isArray((s as any).materiais) && (s as any).materiais.length) ? (s as any).materiais.map((m: any) => m?.name).filter(Boolean).join(', ') : undefined}>
                       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -242,6 +244,7 @@ export default function ScrapyardsScreen() {
                       </div>
                     </td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
+                      <Button variant="secondary" onClick={() => { if ((s as any).id) { window.history.pushState({}, '', `/sucatarias/${(s as any).id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>
                       <Button variant="secondary" onClick={() => setEditing(s)}>Editar</Button>
                       <Button variant="danger" onClick={() => handleDelete(s)}>Eliminar</Button>
                     </td>

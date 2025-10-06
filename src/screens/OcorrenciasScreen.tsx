@@ -224,7 +224,6 @@ export default function OcorrenciasScreen() {
                 <Th label="Local" active={orderBy === 'local'} direction={orderDirection} onClick={() => toggleSort('local')} />
                 <Th label="Região" active={false} />
                 <Th label="ASC" active={false} />
-                <Th label="Forma de conhecimento" active={false} />
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
                 <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 260 }}>Ações</th>
               </tr>
@@ -241,7 +240,6 @@ export default function OcorrenciasScreen() {
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{o.local || '-'}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(regioes, o.regiao_id)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(ascs, o.asc_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(formas, o.forma_conhecimento_id)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(o.created_at)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
                       <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>

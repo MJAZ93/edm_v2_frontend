@@ -16,6 +16,7 @@ import MateriaisScreen from './MateriaisScreen'
 import SetoresInfracaoScreen from './SetoresInfracaoScreen'
 import TiposInfracaoScreen from './TiposInfracaoScreen'
 import ScrapyardsScreen from './ScrapyardsScreen'
+import ScrapyardDetailScreen from './ScrapyardDetailScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
@@ -184,7 +185,13 @@ export default function DashboardScreen() {
           <OcorrenciasScreen />
         )
       )}
-      {active === 'sucatarias' && <ScrapyardsScreen />}
+      {active === 'sucatarias' && (
+        /^\/sucatarias\/[^/]+$/.test(path) ? (
+          <ScrapyardDetailScreen />
+        ) : (
+          <ScrapyardsScreen />
+        )
+      )}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       {active === 'config' && <ConfigScreen />}
       {active === 'regioes' && <RegioesScreen />}

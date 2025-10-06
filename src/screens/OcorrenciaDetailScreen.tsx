@@ -32,6 +32,9 @@ export default function OcorrenciaDetailScreen() {
   const [scrapyards, setScrapyards] = useState<ModelScrapyard[]>([])
   const [scrapyardsLoading, setScrapyardsLoading] = useState(false)
   const [scrapyardsError, setScrapyardsError] = useState<string | null>(null)
+  const [nearOccurrences, setNearOccurrences] = useState<ModelOccurrence[]>([])
+  const [nearOccLoading, setNearOccLoading] = useState(false)
+  const [nearOccError, setNearOccError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const apiBase = (import.meta as any).env?.VITE_API_BASE_URL || '/api'
@@ -89,6 +92,35 @@ export default function OcorrenciaDetailScreen() {
       } finally { setScrapyardsLoading(false) }
     })()
   }, [scrapyardApi, authHeader, item?.lat, item?.long])
+
+  // Carrega ocorrências próximas quando item com lat/long está disponível
+  useEffect(() => {
+    (async () => {
+      if (!item || item.lat == null || item.long == null) return
+      setNearOccLoading(true); setNearOccError(null)
+      try {
+        const { data } = await api.privateOccurrencesGet(
+          authHeader,
+          1,
+          10,
+          'created_at',
+          'desc',
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Number(item.lat),
+          Number(item.long)
+        )
+        setNearOccurrences(((data as any).items ?? []) as ModelOccurrence[])
+      } catch (err: any) {
+        const status = err?.response?.status
+        setNearOccError(!status ? 'Sem ligação ao servidor.' : 'Falha a obter ocorrências próximas.')
+      } finally { setNearOccLoading(false) }
+    })()
+  }, [api, authHeader, item?.lat, item?.long])
 
   useEffect(() => { load() }, [load])
 
@@ -180,15 +212,28 @@ export default function OcorrenciaDetailScreen() {
                 onChange={() => {}}
                 height={360}
                 disabled
-                extraMarkers={scrapyards
-                  .filter((s) => s.lat != null && s.long != null)
-                  .map((s) => ({
-                    lat: Number(s.lat),
-                    lng: Number(s.long),
-                    title: s.nome || s.id || 'Sucataria',
-                    color: '#2563eb',
-                    infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${(s.nome || s.id || 'Sucataria').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">ASC: ${(s.asc_name || s.asc_id || '-').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Coord.: ${s.lat != null && s.long != null ? `${Number(s.lat).toFixed(5)}, ${Number(s.long).toFixed(5)}` : '-'}</div></div>`
-                  }))}
+                extraMarkers={[
+                  // sucatarias (azul)
+                  ...scrapyards
+                    .filter((s) => s.lat != null && s.long != null)
+                    .map((s) => ({
+                      lat: Number(s.lat),
+                      lng: Number(s.long),
+                      title: s.nome || s.id || 'Sucataria',
+                      color: '#2563eb',
+                      infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${(s.nome || s.id || 'Sucataria').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">ASC: ${(s.asc_name || s.asc_id || '-').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Coord.: ${s.lat != null && s.long != null ? `${Number(s.lat).toFixed(5)}, ${Number(s.long).toFixed(5)}` : '-'}</div></div>`
+                    })),
+                  // ocorrências próximas (verde), exceto a atual
+                  ...nearOccurrences
+                    .filter((o) => o.id !== id && o.lat != null && o.long != null)
+                    .map((o) => ({
+                      lat: Number(o.lat),
+                      lng: Number(o.long),
+                      title: (o.local || o.id || 'Ocorrência') as string,
+                      color: '#16a34a',
+                      infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${((o.local || o.id || 'Ocorrência') as string).toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Data: ${formatDateTime(o.data_facto)}</div></div>`
+                    })),
+                ]}
               />
             ) : (
               <div style={{ color: '#6b7280' }}>Sem coordenadas da ocorrência.</div>
