@@ -22,6 +22,9 @@ import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
 import OcorrenciaDetailScreen from './OcorrenciaDetailScreen'
 import OcorrenciaEditScreen from './OcorrenciaEditScreen'
+import InfractionsScreen from './InfractionsScreen'
+import InfractionDetailScreen from './InfractionDetailScreen'
+import InfractionEditScreen from './InfractionEditScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -117,6 +120,12 @@ export default function DashboardScreen() {
     return 'list'
   }, [path]) as 'create' | 'edit' | 'detail' | 'list'
 
+  const infraRoute = useMemo(() => {
+    if (/^\/infracoes\/[^/]+\/editar$/.test(path)) return 'edit'
+    if (/^\/infracoes\/[^/]+$/.test(path)) return 'detail'
+    return 'list'
+  }, [path]) as 'edit' | 'detail' | 'list'
+
   return (
     <AppShell
       sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
@@ -183,6 +192,15 @@ export default function DashboardScreen() {
           <OcorrenciaDetailScreen />
         ) : (
           <OcorrenciasScreen />
+        )
+      )}
+      {active === 'infracoes' && (
+        infraRoute === 'edit' ? (
+          <InfractionEditScreen />
+        ) : infraRoute === 'detail' ? (
+          <InfractionDetailScreen />
+        ) : (
+          <InfractionsScreen />
         )
       )}
       {active === 'sucatarias' && (
