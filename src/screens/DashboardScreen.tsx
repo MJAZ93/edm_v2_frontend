@@ -25,6 +25,9 @@ import OcorrenciaEditScreen from './OcorrenciaEditScreen'
 import InfractionsScreen from './InfractionsScreen'
 import InfractionDetailScreen from './InfractionDetailScreen'
 import InfractionEditScreen from './InfractionEditScreen'
+import InfractorsScreen from './InfractorsScreen'
+import InfractorDetailScreen from './InfractorDetailScreen'
+import InfractorEditScreen from './InfractorEditScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -126,6 +129,12 @@ export default function DashboardScreen() {
     return 'list'
   }, [path]) as 'edit' | 'detail' | 'list'
 
+  const infractorRoute = useMemo(() => {
+    if (/^\/infractores\/[^/]+\/editar$/.test(path)) return 'edit'
+    if (/^\/infractores\/[^/]+$/.test(path)) return 'detail'
+    return 'list'
+  }, [path]) as 'edit' | 'detail' | 'list'
+
   return (
     <AppShell
       sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
@@ -201,6 +210,15 @@ export default function DashboardScreen() {
           <InfractionDetailScreen />
         ) : (
           <InfractionsScreen />
+        )
+      )}
+      {active === 'infractores' && (
+        infractorRoute === 'edit' ? (
+          <InfractorEditScreen />
+        ) : infractorRoute === 'detail' ? (
+          <InfractorDetailScreen />
+        ) : (
+          <InfractorsScreen />
         )
       )}
       {active === 'sucatarias' && (
