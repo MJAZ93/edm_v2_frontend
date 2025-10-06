@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
 export function isUnauthorizedBody(data: any): boolean {
@@ -15,19 +16,18 @@ export function isUnauthorizedBody(data: any): boolean {
 
 export function useUnauthorizedHandlers() {
   const { logout } = useAuth()
-  function ensureAuthorizedResponse(data: any) {
+  const ensureAuthorizedResponse = useCallback((data: any) => {
     if (isUnauthorizedBody(data)) {
       logout('Sessão expirada. Inicie sessão novamente.')
       throw new Error('UNAUTHORIZED')
     }
-  }
-  function ensureAuthorizedError(err: any) {
+  }, [logout])
+  const ensureAuthorizedError = useCallback((err: any) => {
     const status = err?.response?.status
     if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
       logout('Sessão expirada. Inicie sessão novamente.')
       throw err
     }
-  }
+  }, [logout])
   return { ensureAuthorizedResponse, ensureAuthorizedError }
 }
-
