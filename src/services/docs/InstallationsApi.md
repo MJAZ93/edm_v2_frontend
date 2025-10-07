@@ -95,6 +95,8 @@ let ptId: string; //Filter by PT ID (optional) (default to undefined)
 let semAccaoCorrente: boolean; //Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses) (optional) (default to undefined)
 let nome: string; //Filter by Nome (optional) (default to undefined)
 let tendenciaCompras: string; //Filter by Tendencia Compras (optional) (default to undefined)
+let lat: number; //Reference latitude for proximity filter (optional) (default to undefined)
+let lng: number; //Reference longitude for proximity filter (optional) (default to undefined)
 let minScore: number; //Minimum Score (optional) (default to undefined)
 let maxScore: number; //Maximum Score (optional) (default to undefined)
 let minAiScore: number; //Minimum AI Score (optional) (default to undefined)
@@ -115,6 +117,8 @@ const { status, data } = await apiInstance.privateInstallationsGet(
     semAccaoCorrente,
     nome,
     tendenciaCompras,
+    lat,
+    lng,
     minScore,
     maxScore,
     minAiScore,
@@ -140,6 +144,8 @@ const { status, data } = await apiInstance.privateInstallationsGet(
 | **semAccaoCorrente** | [**boolean**] | Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses) | (optional) defaults to undefined|
 | **nome** | [**string**] | Filter by Nome | (optional) defaults to undefined|
 | **tendenciaCompras** | [**string**] | Filter by Tendencia Compras | (optional) defaults to undefined|
+| **lat** | [**number**] | Reference latitude for proximity filter | (optional) defaults to undefined|
+| **lng** | [**number**] | Reference longitude for proximity filter | (optional) defaults to undefined|
 | **minScore** | [**number**] | Minimum Score | (optional) defaults to undefined|
 | **maxScore** | [**number**] | Maximum Score | (optional) defaults to undefined|
 | **minAiScore** | [**number**] | Minimum AI Score | (optional) defaults to undefined|

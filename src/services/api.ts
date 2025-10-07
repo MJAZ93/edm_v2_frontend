@@ -1477,6 +1477,12 @@ export interface InstallationInstallationCreateRequest {
     'ai_score'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof InstallationInstallationCreateRequest
+     */
+    'asc_id'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof InstallationInstallationCreateRequest
      */
@@ -9542,6 +9548,8 @@ export const InstallationsApiAxiosParamCreator = function (configuration?: Confi
          * @param {boolean} [semAccaoCorrente] Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses)
          * @param {string} [nome] Filter by Nome
          * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [lat] Reference latitude for proximity filter
+         * @param {number} [lng] Reference longitude for proximity filter
          * @param {number} [minScore] Minimum Score
          * @param {number} [maxScore] Maximum Score
          * @param {number} [minAiScore] Minimum AI Score
@@ -9551,7 +9559,7 @@ export const InstallationsApiAxiosParamCreator = function (configuration?: Confi
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateInstallationsGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        privateInstallationsGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, lat?: number, lng?: number, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('privateInstallationsGet', 'authorization', authorization)
             const localVarPath = `/private/installations`;
@@ -9611,6 +9619,14 @@ export const InstallationsApiAxiosParamCreator = function (configuration?: Confi
 
             if (tendenciaCompras !== undefined) {
                 localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (lat !== undefined) {
+                localVarQueryParameter['lat'] = lat;
+            }
+
+            if (lng !== undefined) {
+                localVarQueryParameter['lng'] = lng;
             }
 
             if (minScore !== undefined) {
@@ -9884,6 +9900,8 @@ export const InstallationsApiFp = function(configuration?: Configuration) {
          * @param {boolean} [semAccaoCorrente] Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses)
          * @param {string} [nome] Filter by Nome
          * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [lat] Reference latitude for proximity filter
+         * @param {number} [lng] Reference longitude for proximity filter
          * @param {number} [minScore] Minimum Score
          * @param {number} [maxScore] Maximum Score
          * @param {number} [minAiScore] Minimum AI Score
@@ -9893,8 +9911,8 @@ export const InstallationsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InstallationInstallationListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options);
+        async privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, lat?: number, lng?: number, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InstallationInstallationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, lat, lng, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['InstallationsApi.privateInstallationsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -9994,6 +10012,8 @@ export const InstallationsApiFactory = function (configuration?: Configuration, 
          * @param {boolean} [semAccaoCorrente] Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses)
          * @param {string} [nome] Filter by Nome
          * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+         * @param {number} [lat] Reference latitude for proximity filter
+         * @param {number} [lng] Reference longitude for proximity filter
          * @param {number} [minScore] Minimum Score
          * @param {number} [maxScore] Maximum Score
          * @param {number} [minAiScore] Minimum AI Score
@@ -10003,8 +10023,8 @@ export const InstallationsApiFactory = function (configuration?: Configuration, 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): AxiosPromise<InstallationInstallationListResponse> {
-            return localVarFp.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(axios, basePath));
+        privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, lat?: number, lng?: number, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig): AxiosPromise<InstallationInstallationListResponse> {
+            return localVarFp.privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, lat, lng, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -10091,6 +10111,8 @@ export class InstallationsApi extends BaseAPI {
      * @param {boolean} [semAccaoCorrente] Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses)
      * @param {string} [nome] Filter by Nome
      * @param {string} [tendenciaCompras] Filter by Tendencia Compras
+     * @param {number} [lat] Reference latitude for proximity filter
+     * @param {number} [lng] Reference longitude for proximity filter
      * @param {number} [minScore] Minimum Score
      * @param {number} [maxScore] Maximum Score
      * @param {number} [minAiScore] Minimum AI Score
@@ -10101,8 +10123,8 @@ export class InstallationsApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof InstallationsApi
      */
-    public privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig) {
-        return InstallationsApiFp(this.configuration).privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(this.axios, this.basePath));
+    public privateInstallationsGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, regiaoId?: string, ascId?: string, ptId?: string, semAccaoCorrente?: boolean, nome?: string, tendenciaCompras?: string, lat?: number, lng?: number, minScore?: number, maxScore?: number, minAiScore?: number, maxAiScore?: number, dateFrom?: string, dateTo?: string, options?: RawAxiosRequestConfig) {
+        return InstallationsApiFp(this.configuration).privateInstallationsGet(authorization, page, pageSize, orderBy, orderDirection, pf, regiaoId, ascId, ptId, semAccaoCorrente, nome, tendenciaCompras, lat, lng, minScore, maxScore, minAiScore, maxAiScore, dateFrom, dateTo, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

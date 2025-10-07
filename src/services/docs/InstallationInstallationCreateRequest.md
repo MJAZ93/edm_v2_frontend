@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ai_score** | **number** |  | [optional] [default to undefined]
+**asc_id** | **string** |  | [optional] [default to undefined]
 **compras_6_meses** | **number** |  | [optional] [default to undefined]
 **compras_vizinhos_6_meses** | **number** |  | [optional] [default to undefined]
 **equipamentos_6_meses** | **number** |  | [optional] [default to undefined]
@@ -34,6 +35,7 @@ import { InstallationInstallationCreateRequest } from './api';
 
 const instance: InstallationInstallationCreateRequest = {
     ai_score,
+    asc_id,
     compras_6_meses,
     compras_vizinhos_6_meses,
     equipamentos_6_meses,
