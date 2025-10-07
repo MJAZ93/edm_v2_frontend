@@ -3,6 +3,7 @@ import { AppShell } from '../components/layout/AppShell'
 // Navbar removido conforme pedido (sem dropdown "Sucatarias")
 import ScrapyardsMapScreen from './ScrapyardsMapScreen'
 import { Sidebar } from '../components/layout/Sidebar'
+import { SidebarGroups } from '../components/layout/SidebarGroups'
 import { Card } from '../components/ui/Card'
 import { Heading } from '../components/ui/Heading'
 import { Grid } from '../components/layout/Grid'
@@ -34,6 +35,8 @@ import InfractorEditScreen from './InfractorEditScreen'
 import ReportsScreen from './ReportsScreen'
 import AccoesScreen from './AccoesScreen'
 import AccaoDetailScreen from './AccaoDetailScreen'
+import InstallationsScreen from './InstallationsScreen'
+import InstallationDetailScreen from './InstallationDetailScreen'
 import AccaoEditScreen from './AccaoEditScreen'
 
 const MENU = [
@@ -59,6 +62,7 @@ export default function DashboardScreen() {
     infracoes: '/infracoes',
     infractores: '/infractores',
     accoes: '/accoes',
+    instalacoes: '/instalacoes',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -210,15 +214,46 @@ export default function DashboardScreen() {
     return 'list'
   }, [path]) as 'create' | 'edit' | 'detail' | 'list'
 
+  const TITLE_MAP: Record<string, string> = {
+    dashboard: 'Dashboard',
+    ocorrencias: 'Ocorrências',
+    infracoes: 'Infrações',
+    infractores: 'Infractores',
+    accoes: 'Ações',
+    sucatarias: 'Sucatarias',
+    sucatariasMapa: 'Sucatarias (Mapa)',
+    utilizadores: 'Utilizadores',
+    config: 'Configurações',
+    regioes: 'Regiões',
+    ascs: 'ASCs',
+    formasConhecimento: 'Formas de Conhecimento',
+    materiais: 'Materiais',
+    setoresInfracao: 'Setores de Infração',
+    tiposInfracao: 'Tipos de Infração',
+    relatorios: 'Relatórios',
+    instalacoes: 'Instalações',
+  }
+  const headerTitle = TITLE_MAP[active] || '—'
+  const showHeaderTitle = active !== 'instalacoes'
+
   return (
     <AppShell
-      sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
-      header={(
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'sticky', top: 0, zIndex: 5 }}>
-          <Heading level={2}>Dashboard</Heading>
-        </div>
+      sidebar={(
+        <SidebarGroups
+          groups={[
+            { label: 'Vandalizações', items: MENU.filter((i) => i.key !== 'instalacoes') },
+            { label: 'Instalações', items: [{ key: 'instalacoes', label: 'Lista' }] },
+          ]}
+          activeKey={active}
+          onSelect={handleSelect}
+        />
       )}
-    >
+      header={showHeaderTitle ? (
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'sticky', top: 0, zIndex: 5 }}>
+          <Heading level={2}>{headerTitle}</Heading>
+        </div>
+      ) : undefined}
+      >
       {active === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {dashError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{dashError}</div> : null}
@@ -448,6 +483,13 @@ export default function DashboardScreen() {
           <ScrapyardDetailScreen />
         ) : (
           <ScrapyardsScreen />
+        )
+      )}
+      {active === 'instalacoes' && (
+        /^\/instalacoes\/[^/]+$/.test(path) ? (
+          <InstallationDetailScreen />
+        ) : (
+          <InstallationsScreen />
         )
       )}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}

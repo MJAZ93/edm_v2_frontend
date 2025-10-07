@@ -90,7 +90,9 @@ let orderBy: string; //Order by (optional) (default to 'mes')
 let orderDirection: string; //asc|desc (optional) (default to 'desc')
 let pf: string; //Filter by PF (optional) (default to undefined)
 let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ascId: string; //Filter by ASC ID (optional) (default to undefined)
 let ptId: string; //Filter by PT ID (optional) (default to undefined)
+let semAccaoCorrente: boolean; //Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses) (optional) (default to undefined)
 let nome: string; //Filter by Nome (optional) (default to undefined)
 let tendenciaCompras: string; //Filter by Tendencia Compras (optional) (default to undefined)
 let minScore: number; //Minimum Score (optional) (default to undefined)
@@ -108,7 +110,9 @@ const { status, data } = await apiInstance.privateInstallationsGet(
     orderDirection,
     pf,
     regiaoId,
+    ascId,
     ptId,
+    semAccaoCorrente,
     nome,
     tendenciaCompras,
     minScore,
@@ -131,7 +135,9 @@ const { status, data } = await apiInstance.privateInstallationsGet(
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'desc'|
 | **pf** | [**string**] | Filter by PF | (optional) defaults to undefined|
 | **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ascId** | [**string**] | Filter by ASC ID | (optional) defaults to undefined|
 | **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+| **semAccaoCorrente** | [**boolean**] | Apenas instalações sem ação corrente (EM_ANALISE no período de 6 meses) | (optional) defaults to undefined|
 | **nome** | [**string**] | Filter by Nome | (optional) defaults to undefined|
 | **tendenciaCompras** | [**string**] | Filter by Tendencia Compras | (optional) defaults to undefined|
 | **minScore** | [**number**] | Minimum Score | (optional) defaults to undefined|

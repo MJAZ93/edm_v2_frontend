@@ -6,9 +6,12 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ai_score** | **number** |  | [optional] [default to undefined]
+**asc_id** | **string** |  | [optional] [default to undefined]
+**asc_name** | **string** |  | [optional] [default to undefined]
 **compras_6_meses** | **number** |  | [optional] [default to undefined]
 **compras_vizinhos_6_meses** | **number** |  | [optional] [default to undefined]
 **equipamentos_6_meses** | **number** |  | [optional] [default to undefined]
+**has_current_accao** | **boolean** |  | [optional] [default to undefined]
 **ignore** | **string** |  | [optional] [default to undefined]
 **ignore_user** | **string** |  | [optional] [default to undefined]
 **inspecao_date** | **string** |  | [optional] [default to undefined]
@@ -35,9 +38,12 @@ import { ModelInstallation } from './api';
 
 const instance: ModelInstallation = {
     ai_score,
+    asc_id,
+    asc_name,
     compras_6_meses,
     compras_vizinhos_6_meses,
     equipamentos_6_meses,
+    has_current_accao,
     ignore,
     ignore_user,
     inspecao_date,

@@ -9,11 +9,10 @@ All URIs are relative to */api*
 |[**privateDashboardFinanceTopGet**](#privatedashboardfinancetopget) | **GET** /private/dashboard/finance/top | Finance top ASCs|
 |[**privateDashboardFinanceTotalsGet**](#privatedashboardfinancetotalsget) | **GET** /private/dashboard/finance/totals | Finance totals|
 |[**privateDashboardGroupedGet**](#privatedashboardgroupedget) | **GET** /private/dashboard/grouped | Grouped counts|
-|[**privateDashboardGroupedGet_0**](#privatedashboardgroupedget_0) | **GET** /private/dashboard/grouped | Grouped counts|
 |[**privateDashboardInfractionsValueTimeseriesGet**](#privatedashboardinfractionsvaluetimeseriesget) | **GET** /private/dashboard/infractions/value/timeseries | Infractions value timeseries|
 |[**privateDashboardKpisOverviewGet**](#privatedashboardkpisoverviewget) | **GET** /private/dashboard/kpis/overview | Overview KPIs|
-|[**privateDashboardOccurrencesByAscGet**](#privatedashboardoccurrencesbyascget) | **GET** /private/dashboard/occurrences/by_asc | Grouped counts|
-|[**privateDashboardOccurrencesByAscGet_0**](#privatedashboardoccurrencesbyascget_0) | **GET** /private/dashboard/occurrences/by_asc | Grouped counts|
+|[**privateDashboardOccurrencesByAscGet**](#privatedashboardoccurrencesbyascget) | **GET** /private/dashboard/occurrences/by_asc | Occurrences by ASC|
+|[**privateDashboardOccurrencesByRegiaoGet**](#privatedashboardoccurrencesbyregiaoget) | **GET** /private/dashboard/occurrences/by_regiao | Occurrences by Regiao|
 |[**privateDashboardScrapyardsRiskTopGet**](#privatedashboardscrapyardsrisktopget) | **GET** /private/dashboard/scrapyards/risk/top | Top risky scrapyards|
 
 # **privateDashboardFinanceCompareGet**
@@ -291,20 +290,18 @@ import {
 const configuration = new Configuration();
 const apiInstance = new DashboardApi(configuration);
 
-let authorization: string; //Bearer token (default to undefined)
 let entity: string; //occurrences|infractions (default to undefined)
 let groupBy: string; //For occurrences: asc|regiao. For infractions: tipo (default to undefined)
-let authorization2: string; //Bearer token (default to undefined)
+let authorization: string; //Bearer token (default to undefined)
 let dateStart: string; //RFC3339 start date (optional) (default to undefined)
 let dateEnd: string; //RFC3339 end date (optional) (default to undefined)
 let regiaoId: string; //Filter by Regiao (optional) (default to undefined)
 let ascId: string; //Filter by ASC (optional) (default to undefined)
 
 const { status, data } = await apiInstance.privateDashboardGroupedGet(
-    authorization,
     entity,
     groupBy,
-    authorization2,
+    authorization,
     dateStart,
     dateEnd,
     regiaoId,
@@ -316,84 +313,9 @@ const { status, data } = await apiInstance.privateDashboardGroupedGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **authorization** | [**string**] | Bearer token | defaults to undefined|
 | **entity** | [**string**] | occurrences|infractions | defaults to undefined|
 | **groupBy** | [**string**] | For occurrences: asc|regiao. For infractions: tipo | defaults to undefined|
-| **authorization2** | [**string**] | Bearer token | defaults to undefined|
-| **dateStart** | [**string**] | RFC3339 start date | (optional) defaults to undefined|
-| **dateEnd** | [**string**] | RFC3339 end date | (optional) defaults to undefined|
-| **regiaoId** | [**string**] | Filter by Regiao | (optional) defaults to undefined|
-| **ascId** | [**string**] | Filter by ASC | (optional) defaults to undefined|
-
-
-### Return type
-
-**DashboardGroupedCountList**
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**401** | Unauthorized |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **privateDashboardGroupedGet_0**
-> DashboardGroupedCountList privateDashboardGroupedGet_0()
-
-Grouped counts for supported entities
-
-### Example
-
-```typescript
-import {
-    DashboardApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new DashboardApi(configuration);
-
-let authorization: string; //Bearer token (default to undefined)
-let entity: string; //occurrences|infractions (default to undefined)
-let groupBy: string; //For occurrences: asc|regiao. For infractions: tipo (default to undefined)
-let authorization2: string; //Bearer token (default to undefined)
-let dateStart: string; //RFC3339 start date (optional) (default to undefined)
-let dateEnd: string; //RFC3339 end date (optional) (default to undefined)
-let regiaoId: string; //Filter by Regiao (optional) (default to undefined)
-let ascId: string; //Filter by ASC (optional) (default to undefined)
-
-const { status, data } = await apiInstance.privateDashboardGroupedGet_0(
-    authorization,
-    entity,
-    groupBy,
-    authorization2,
-    dateStart,
-    dateEnd,
-    regiaoId,
-    ascId
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **entity** | [**string**] | occurrences|infractions | defaults to undefined|
-| **groupBy** | [**string**] | For occurrences: asc|regiao. For infractions: tipo | defaults to undefined|
-| **authorization2** | [**string**] | Bearer token | defaults to undefined|
 | **dateStart** | [**string**] | RFC3339 start date | (optional) defaults to undefined|
 | **dateEnd** | [**string**] | RFC3339 end date | (optional) defaults to undefined|
 | **regiaoId** | [**string**] | Filter by Regiao | (optional) defaults to undefined|
@@ -544,7 +466,6 @@ const { status, data } = await apiInstance.privateDashboardKpisOverviewGet(
 # **privateDashboardOccurrencesByAscGet**
 > DashboardGroupedCountList privateDashboardOccurrencesByAscGet()
 
-Grouped counts for supported entities
 
 ### Example
 
@@ -558,23 +479,9 @@ const configuration = new Configuration();
 const apiInstance = new DashboardApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let entity: string; //occurrences|infractions (default to undefined)
-let groupBy: string; //For occurrences: asc|regiao. For infractions: tipo (default to undefined)
-let authorization2: string; //Bearer token (default to undefined)
-let dateStart: string; //RFC3339 start date (optional) (default to undefined)
-let dateEnd: string; //RFC3339 end date (optional) (default to undefined)
-let regiaoId: string; //Filter by Regiao (optional) (default to undefined)
-let ascId: string; //Filter by ASC (optional) (default to undefined)
 
 const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet(
-    authorization,
-    entity,
-    groupBy,
-    authorization2,
-    dateStart,
-    dateEnd,
-    regiaoId,
-    ascId
+    authorization
 );
 ```
 
@@ -583,13 +490,6 @@ const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **entity** | [**string**] | occurrences|infractions | defaults to undefined|
-| **groupBy** | [**string**] | For occurrences: asc|regiao. For infractions: tipo | defaults to undefined|
-| **authorization2** | [**string**] | Bearer token | defaults to undefined|
-| **dateStart** | [**string**] | RFC3339 start date | (optional) defaults to undefined|
-| **dateEnd** | [**string**] | RFC3339 end date | (optional) defaults to undefined|
-| **regiaoId** | [**string**] | Filter by Regiao | (optional) defaults to undefined|
-| **ascId** | [**string**] | Filter by ASC | (optional) defaults to undefined|
 
 
 ### Return type
@@ -610,15 +510,13 @@ const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | OK |  -  |
-|**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **privateDashboardOccurrencesByAscGet_0**
-> DashboardGroupedCountList privateDashboardOccurrencesByAscGet_0()
+# **privateDashboardOccurrencesByRegiaoGet**
+> DashboardGroupedCountList privateDashboardOccurrencesByRegiaoGet()
 
-Grouped counts for supported entities
 
 ### Example
 
@@ -632,23 +530,9 @@ const configuration = new Configuration();
 const apiInstance = new DashboardApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let entity: string; //occurrences|infractions (default to undefined)
-let groupBy: string; //For occurrences: asc|regiao. For infractions: tipo (default to undefined)
-let authorization2: string; //Bearer token (default to undefined)
-let dateStart: string; //RFC3339 start date (optional) (default to undefined)
-let dateEnd: string; //RFC3339 end date (optional) (default to undefined)
-let regiaoId: string; //Filter by Regiao (optional) (default to undefined)
-let ascId: string; //Filter by ASC (optional) (default to undefined)
 
-const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet_0(
-    authorization,
-    entity,
-    groupBy,
-    authorization2,
-    dateStart,
-    dateEnd,
-    regiaoId,
-    ascId
+const { status, data } = await apiInstance.privateDashboardOccurrencesByRegiaoGet(
+    authorization
 );
 ```
 
@@ -657,13 +541,6 @@ const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet_0
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **entity** | [**string**] | occurrences|infractions | defaults to undefined|
-| **groupBy** | [**string**] | For occurrences: asc|regiao. For infractions: tipo | defaults to undefined|
-| **authorization2** | [**string**] | Bearer token | defaults to undefined|
-| **dateStart** | [**string**] | RFC3339 start date | (optional) defaults to undefined|
-| **dateEnd** | [**string**] | RFC3339 end date | (optional) defaults to undefined|
-| **regiaoId** | [**string**] | Filter by Regiao | (optional) defaults to undefined|
-| **ascId** | [**string**] | Filter by ASC | (optional) defaults to undefined|
 
 
 ### Return type
@@ -684,7 +561,6 @@ const { status, data } = await apiInstance.privateDashboardOccurrencesByAscGet_0
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | OK |  -  |
-|**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
