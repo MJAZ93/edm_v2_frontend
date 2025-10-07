@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Card, Heading } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { InstallationsApi, RegiaoApi, ComprasApi, EquipamentosApi, type ModelInstallation, type ModelCompras, type ModelEquipamentos } from '../services'
+import { InstallationsApi, RegiaoApi, ComprasApi, EquipamentosApi, InstalacaoAccoesApi, type ModelInstallation, type ModelCompras, type ModelEquipamentos, type ModelInstalacaoAccoes } from '../services'
 
 export default function InstallationDetailScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
@@ -25,6 +25,8 @@ export default function InstallationDetailScreen() {
   const [equipamentos, setEquipamentos] = useState<ModelEquipamentos[]>([])
   const [comprasError, setComprasError] = useState<string | null>(null)
   const [equipError, setEquipError] = useState<string | null>(null)
+  const [acoes, setAcoes] = useState<ModelInstalacaoAccoes[]>([])
+  const [acoesError, setAcoesError] = useState<string | null>(null)
 
   const mapRef = useRef<HTMLDivElement | null>(null)
   const gmapRef = useRef<any>(null)
@@ -203,6 +205,15 @@ export default function InstallationDetailScreen() {
           setEquipamentos(((data as any)?.items) ?? [])
         } else setEquipamentos([])
       } catch { setEquipError('Falha ao carregar equipamentos.'); setEquipamentos([]) }
+      try {
+        setAcoesError(null)
+        const pf2 = item?.pf
+        if (pf2) {
+          const accApi = new InstalacaoAccoesApi((api as any).configuration)
+          const { data } = await accApi.privateInstalacaoAccoesGet(authHeader, -1, undefined, 'created_at', 'desc', pf2)
+          setAcoes(((data as any)?.items) ?? [])
+        } else setAcoes([])
+      } catch { setAcoesError('Falha ao carregar ações desta instalação.'); setAcoes([]) }
     })()
   }, [item?.pf, (item as any)?.inspecao_id, api, authHeader])
 
@@ -254,6 +265,7 @@ export default function InstallationDetailScreen() {
         <Heading level={2}>Detalhes da instalação</Heading>
         <div style={{ display: 'flex', gap: 8 }}>
           <Button variant="secondary" onClick={voltar}>Voltar</Button>
+          <Button onClick={() => { const sp = new URLSearchParams(); sp.set('pf', pf); sp.set('novo', '1'); window.history.pushState({}, '', `/instalacoes/accoes?${sp.toString()}`); window.dispatchEvent(new Event('locationchange')) }}>Adicionar ação</Button>
         </div>
       </div>
 
@@ -289,6 +301,44 @@ export default function InstallationDetailScreen() {
 
           <Card title="Localização">
             <div ref={mapRef} style={{ width: '100%', height: 320, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+          </Card>
+
+          <Card title="Histórico de ações">
+            {acoesError ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>{acoesError}</div> : null}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ color: '#6b7280' }}>Total: {acoes.length}</div>
+              <Button variant="secondary" onClick={() => { const sp = new URLSearchParams(); if (item?.pf) sp.set('pf', item.pf); window.history.pushState({}, '', `/instalacoes/accoes?${sp.toString()}`); window.dispatchEvent(new Event('locationchange')) }}>Gerir ações</Button>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Criado em</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Execução</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tipo</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Marcação</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Análise</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
+                    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {acoes.length === 0 ? (
+                    <tr><td colSpan={7} style={{ padding: 12, color: '#6b7280' }}>Sem ações registadas para esta instalação.</td></tr>
+                  ) : acoes.map((a, i) => (
+                    <tr key={a.id ?? i}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(a.created_at)}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(a.data_execucao)}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{(a as any).accao_tipo?.nome || (a as any).accao_tipo_id || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.marcacao_status || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.analise_status || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatTendencia(a.tendencia_compras)}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(a.valor_recuperado)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
 
           <Card title="Equipamentos (inspeção)">
@@ -410,6 +460,7 @@ function formatNumber(n?: number) { return typeof n === 'number' && !Number.isNa
 function formatKwh(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '-'; try { return `${n.toLocaleString('pt-PT')} kWh` } catch { return `${n} kWh` } }
 function formatPercent(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '-'; const v = n * 100; try { return `${v.toLocaleString('pt-PT', { maximumFractionDigits: 1 })}%` } catch { return `${v.toFixed(1)}%` } }
 function formatMoney(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '-'; try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` } }
+function formatDate(iso?: string) { if (!iso) return '-'; try { const d = new Date(iso as any); if (Number.isNaN(d.getTime())) return '-'; return d.toLocaleDateString('pt-PT') } catch { return '-' } }
 function fmtInt(n?: number) { return typeof n === 'number' && Number.isFinite(n) ? String(Math.round(n)) : '-' }
 function fmtNum(n?: number) { return typeof n === 'number' && Number.isFinite(n) ? String(n) : '-' }
 function formatMonth(iso?: string) { if (!iso) return '-'; try { const d = new Date(iso as any); if (Number.isNaN(d.getTime())) return '-'; return d.toLocaleDateString('pt-PT', { year: 'numeric', month: '2-digit' }) } catch { return '-' } }

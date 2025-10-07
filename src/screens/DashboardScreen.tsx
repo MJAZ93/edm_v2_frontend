@@ -37,6 +37,8 @@ import AccoesScreen from './AccoesScreen'
 import AccaoDetailScreen from './AccaoDetailScreen'
 import InstallationsScreen from './InstallationsScreen'
 import InstallationDetailScreen from './InstallationDetailScreen'
+import InstalacaoAccoesScreen from './InstalacaoAccoesScreen'
+import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
 import AccaoEditScreen from './AccaoEditScreen'
 
 const MENU = [
@@ -63,6 +65,7 @@ export default function DashboardScreen() {
     infractores: '/infractores',
     accoes: '/accoes',
     instalacoes: '/instalacoes',
+    instalacaoAccoes: '/instalacoes/accoes',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -241,8 +244,18 @@ export default function DashboardScreen() {
       sidebar={(
         <SidebarGroups
           groups={[
-            { label: 'Vandalizações', items: MENU.filter((i) => i.key !== 'instalacoes') },
-            { label: 'Instalações', items: [{ key: 'instalacoes', label: 'Lista' }] },
+            {
+              label: 'Vandalizações',
+              items: MENU.filter((i) => !['instalacoes', 'utilizadores', 'config'].includes(i.key))
+            },
+            { label: 'Instalações', items: [
+              { key: 'instalacoes', label: 'Lista' },
+              { key: 'instalacaoAccoes', label: 'Ações' },
+            ] },
+            { label: 'Configurações', items: [
+              { key: 'utilizadores', label: 'Utilizadores' },
+              { key: 'config', label: 'Configurações' },
+            ] },
           ]}
           activeKey={active}
           onSelect={handleSelect}
@@ -492,8 +505,9 @@ export default function DashboardScreen() {
           <InstallationsScreen />
         )
       )}
+      {active === 'instalacaoAccoes' && <InstalacaoAccoesScreen />}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
-      {active === 'config' && <ConfigScreen />}
+      
       {active === 'regioes' && <RegioesScreen />}
       {active === 'ascs' && <ASCsScreen />}
       {active === 'formasConhecimento' && <FormasConhecimentoScreen />}
@@ -510,6 +524,13 @@ export default function DashboardScreen() {
           <AccaoDetailScreen />
         ) : (
           <AccoesScreen />
+        )
+      )}
+      {active === 'config' && (
+        path.startsWith('/config/tipos-accao') ? (
+          <InstalacaoAccaoTiposScreen />
+        ) : (
+          <ConfigScreen />
         )
       )}
     </AppShell>
