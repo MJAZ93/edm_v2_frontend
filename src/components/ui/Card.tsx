@@ -10,7 +10,7 @@ type Props = React.PropsWithChildren<{
 
 export function Card({ title, subtitle, extra, style, children }: Props) {
   return (
-    <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: RADIUS, padding: 20, boxShadow: SHADOW_SM, width: '100%', background: '#fff', ...style }}>
+    <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: RADIUS, padding: 20, boxShadow: SHADOW_SM, width: '100%', background: '#fff', overflow: 'hidden', ...style }}>
       {(title || extra) && (
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>

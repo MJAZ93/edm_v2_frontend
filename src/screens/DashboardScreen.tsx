@@ -19,7 +19,7 @@ import ScrapyardsScreen from './ScrapyardsScreen'
 import ScrapyardDetailScreen from './ScrapyardDetailScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 import { useAuth } from '../contexts/AuthContext'
-import { DashboardApi } from '../services'
+import { DashboardApi, ScrapyardApi, InfractionApi } from '../services'
 import { useUnauthorizedHandlers } from '../utils/auth'
 import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
@@ -103,10 +103,12 @@ export default function DashboardScreen() {
   const [financeCompare, setFinanceCompare] = useState<any | null>(null)
   const [riskScrapyards, setRiskScrapyards] = useState<any[]>([])
   const [occByAsc, setOccByAsc] = useState<any[]>([])
+  const [occByRegiao, setOccByRegiao] = useState<any[]>([])
   const [financeTop, setFinanceTop] = useState<any[]>([])
   const [financeLoss, setFinanceLoss] = useState<any[]>([])
   const [financeSpend, setFinanceSpend] = useState<any[]>([])
   const [infractionsSeries, setInfractionsSeries] = useState<any[]>([])
+  const [infractionsByTipo, setInfractionsByTipo] = useState<any[]>([])
   const [loadingDash, setLoadingDash] = useState(false)
   const [dashError, setDashError] = useState<string | null>(null)
 
@@ -157,7 +159,7 @@ export default function DashboardScreen() {
     (async () => {
       setLoadingDash(true); setDashError(null)
       try {
-        const [ov, tot, cmp, risky, byAsc, topAsc, finTs, infTs] = await Promise.all([
+        const [ov, tot, cmp, risky, byAsc, topAsc, finTs, infTs, byTipo, byRegiao] = await Promise.all([
           dashApi.privateDashboardKpisOverviewGet(authHeader),
           dashApi.privateDashboardFinanceTotalsGet(authHeader),
           dashApi.privateDashboardFinanceCompareGet(authHeader, 3),
@@ -165,9 +167,11 @@ export default function DashboardScreen() {
           dashApi.privateDashboardOccurrencesByAscGet(authHeader, 'occurrences', 'asc', authHeader, undefined, undefined, undefined, undefined),
           dashApi.privateDashboardFinanceTopGet(authHeader, undefined, undefined, undefined, 'loss', 5),
           dashApi.privateDashboardFinanceTimeseriesGet(authHeader, undefined, undefined, undefined, undefined, 'month'),
-          dashApi.privateDashboardInfractionsValueTimeseriesGet(authHeader, 'month')
+          dashApi.privateDashboardInfractionsValueTimeseriesGet(authHeader, 'month'),
+          dashApi.privateDashboardGroupedGet(authHeader, 'infractions', 'tipo', authHeader),
+          dashApi.privateDashboardGroupedGet(authHeader, 'occurrences', 'regiao', authHeader)
         ])
-        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(byAsc.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data)
+        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(byAsc.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data)
         setKpis(ov.data)
         setFinanceTotals(tot.data)
         setFinanceCompare(cmp.data)
@@ -177,6 +181,8 @@ export default function DashboardScreen() {
         setFinanceLoss(((finTs.data as any)?.loss) ?? [])
         setFinanceSpend(((finTs.data as any)?.spend) ?? [])
         setInfractionsSeries(((infTs.data as any)?.buckets) ?? [])
+        setInfractionsByTipo(((byTipo.data as any)?.items) ?? [])
+        setOccByRegiao(((byRegiao.data as any)?.items) ?? [])
       } catch (err: any) {
         try { ensureAuthorizedError(err) } catch {}
         const status = err?.response?.status
@@ -207,17 +213,33 @@ export default function DashboardScreen() {
   return (
     <AppShell
       sidebar={<Sidebar groupLabel="Vandalizações" items={MENU} activeKey={active} onSelect={handleSelect} />}
-      header={undefined}
+      header={(
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'sticky', top: 0, zIndex: 5 }}>
+          <Heading level={2}>Dashboard</Heading>
+        </div>
+      )}
     >
       {active === 'dashboard' && (
-        <>
-          {dashError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginBottom: 12 }}>{dashError}</div> : null}
-          <Grid columns={4} gap={20}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {dashError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{dashError}</div> : null}
+
+          {/* Mapa primeiro */}
+          <Card title="Mapa: Sucatarias e Infrações">
+            <div style={{ width: '100%' }}>
+              <DashboardMap height={420} />
+              <div style={{ display: 'flex', gap: 16, marginTop: 8, color: '#6b7280', fontSize: 12 }}>
+                <div><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 10, background: '#1d4ed8', marginRight: 6 }} /> Sucatarias</div>
+                <div><span style={{ color: '#ef4444' }}>●</span> Infrações</div>
+              </div>
+            </div>
+          </Card>
+
+          <Grid minColumnWidth={260} gap={20}>
             <Card title="KPIs">
               {loadingDash ? (
                 <div style={{ color: '#6b7280' }}>A carregar…</div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(140px,1fr))', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <Metric label="Regiões" value={(kpis as any)?.nr_regioes ?? '—'} color="#7c3aed" />
                   <Metric label="ASCs" value={(kpis as any)?.nr_ascs ?? '—'} color="#1d4ed8" />
                   <Metric label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} color="#0ea5e9" />
@@ -284,13 +306,13 @@ export default function DashboardScreen() {
             </Card>
           </Grid>
 
-          <Grid columns={2} gap={20}>
+          <Grid minColumnWidth={360} gap={20}>
             <Card title="Ocorrências por ASC (top)">
               {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {occByAsc.slice(0, 6).map((it, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e5e7eb', paddingBottom: 6 }}>
-                      <span>{it?.asc_name || it?.asc_id || '—'}</span>
+                      <span style={{ wordBreak: 'break-word' }}>{it?.asc_name || it?.asc_id || '—'}</span>
                       <strong>{it?.count ?? '—'}</strong>
                     </div>
                   ))}
@@ -307,11 +329,11 @@ export default function DashboardScreen() {
                     const barBg = '#fde68a'
                     return (
                       <div key={i} style={{ padding: 12, borderRadius: 12, border: `1px solid ${col}33`, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ fontWeight: 800 }}>{s?.nome || s?.scrapyard_id || '—'}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                          <div style={{ fontWeight: 800, wordBreak: 'break-word' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
                           <span style={{ fontSize: 12, background: `${col}1A`, color: col, padding: '4px 8px', borderRadius: 999 }}>Risco {pct.toFixed(1)}%</span>
                         </div>
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>ASC: {s?.asc_name || s?.asc_id || '—'}</div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, wordBreak: 'break-word' }}>ASC: {s?.asc_name || s?.asc_id || '—'}</div>
                         <div style={{ marginTop: 8 }}>
                           <div style={{ height: 8, background: barBg, borderRadius: 6, overflow: 'hidden' }}>
                             <div style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: '100%', background: col, transition: 'width .3s ease' }} />
@@ -329,7 +351,37 @@ export default function DashboardScreen() {
             </Card>
           </Grid>
 
-          <Grid columns={2} gap={20}>
+          <Grid minColumnWidth={360} gap={20}>
+            <Card title="Infrações por tipo — Distribuição">
+              {loadingDash ? (
+                <div style={{ color: '#6b7280' }}>A carregar…</div>
+              ) : (
+                <DonutChart
+                  data={(infractionsByTipo || []).map((it: any) => ({ label: it?.key_name || it?.key_id || '—', value: Number(it?.count || 0) }))}
+                />
+              )}
+            </Card>
+            <Card title="Ocorrências por região — Distribuição">
+              {loadingDash ? (
+                <div style={{ color: '#6b7280' }}>A carregar…</div>
+              ) : (
+                <DonutChart
+                  data={(occByRegiao || []).map((it: any) => ({ label: it?.key_name || it?.key_id || '—', value: Number(it?.count || 0) }))}
+                />
+              )}
+            </Card>
+            <Card title="Ocorrências por ASC — Distribuição">
+              {loadingDash ? (
+                <div style={{ color: '#6b7280' }}>A carregar…</div>
+              ) : (
+                <DonutChart
+                  data={(occByAsc || []).map((it: any) => ({ label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', value: Number(it?.count || it?.value || 0) }))}
+                />
+              )}
+            </Card>
+          </Grid>
+
+          <Grid minColumnWidth={360} gap={20}>
             <Card title="Perdas (infrações) — Série temporal">
               {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
                 <Sparkline data={infractionsSeries} valueKey="total_valor" labelKey="ts" color="#ef4444" />
@@ -347,7 +399,7 @@ export default function DashboardScreen() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: 12 }}>
                 {financeTop.map((it, i) => (
                   <div key={i} style={{ padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff7f7' }}>
-                    <div style={{ fontWeight: 700 }}>{it?.asc_name || it?.asc_id || '—'}</div>
+                    <div style={{ fontWeight: 700, wordBreak: 'break-word' }}>{it?.asc_name || it?.asc_id || '—'}</div>
                     <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Perdas</div>
                     <div style={{ fontWeight: 800 }}>{formatMoney(it?.value)}</div>
                   </div>
@@ -356,7 +408,7 @@ export default function DashboardScreen() {
               </div>
             )}
           </Card>
-        </>
+        </div>
       )}
 
       {/* Placeholder removido a pedido: não mostrar conteúdo a implementar */}
@@ -424,7 +476,7 @@ export default function DashboardScreen() {
 
 function Metric({ label, value, color = '#111827' }: { label: string; value: string | number; color?: string }) {
   return (
-    <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+    <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, width: '100%' }}>
       <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
       <div style={{ fontWeight: 800, fontSize: 22, color }}>{value as any}</div>
     </div>
@@ -523,6 +575,17 @@ function riskColor(pct: number) {
 }
 
 function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string; total: number }>; spend?: Array<{ ts: string; total: number }> }) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const [width, setWidth] = React.useState<number>(520)
+  const H = 180
+  React.useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth))
+    setWidth(el.clientWidth)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   // merge x-domain from both series
   const all = [...(loss || []), ...(spend || [])]
   const pts = all.map((d) => ({ x: new Date(d.ts).getTime(), y: Number(d.total || 0) })).filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
@@ -531,7 +594,7 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
   const maxX = Math.max(...pts.map((p) => p.x))
   const maxY = Math.max(1, ...pts.map((p) => p.y))
   const pad = 24
-  const W = 520, H = 180
+  const W = Math.max(280, width)
   const sx = (x: number) => pad + ((x - minX) / Math.max(1, (maxX - minX))) * (W - pad * 2)
   const sy = (y: number) => H - pad - (y / maxY) * (H - pad * 2)
   const toPath = (arr: Array<{ ts: string; total: number }>) => {
@@ -545,32 +608,283 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
   const pathSpend = toPath(spend)
   const ticks = 4
   return (
-    <svg width={W} height={H} role="img" aria-label="Financeiro série temporal">
-      {/* axes */}
-      <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#e5e7eb" />
-      <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#e5e7eb" />
-      {/* y ticks */}
-      {Array.from({ length: ticks + 1 }).map((_, i) => {
-        const yv = (i / ticks) * maxY
-        const y = sy(yv)
-        return (
-          <g key={i}>
-            <line x1={pad - 4} y1={y} x2={pad} y2={y} stroke="#e5e7eb" />
-            <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatMoney(yv)}</text>
-          </g>
-        )
-      })}
-      {/* series */}
-      {pathSpend && <path d={pathSpend} fill="none" stroke="#0ea5e9" strokeWidth={2} />}
-      {pathLoss && <path d={pathLoss} fill="none" stroke="#ef4444" strokeWidth={2} />}
-      {/* legend */}
-      <g transform={`translate(${W - pad - 140}, ${pad})`}>
-        <rect x={0} y={-10} width={140} height={24} fill="#fff" stroke="#e5e7eb" rx={6} />
-        <circle cx={12} cy={2} r={4} fill="#ef4444" />
-        <text x={22} y={6} fontSize={12} fill="#374151">Perdas</text>
-        <circle cx={82} cy={2} r={4} fill="#0ea5e9" />
-        <text x={92} y={6} fontSize={12} fill="#374151">Gastos</text>
-      </g>
-    </svg>
+    <div ref={containerRef} style={{ width: '100%' }}>
+      <svg width={W} height={H} role="img" aria-label="Financeiro série temporal">
+        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#e5e7eb" />
+        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#e5e7eb" />
+        {Array.from({ length: ticks + 1 }).map((_, i) => {
+          const yv = (i / ticks) * maxY
+          const y = sy(yv)
+          return (
+            <g key={i}>
+              <line x1={pad - 4} y1={y} x2={pad} y2={y} stroke="#e5e7eb" />
+              <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatMoney(yv)}</text>
+            </g>
+          )
+        })}
+        {pathSpend && <path d={pathSpend} fill="none" stroke="#0ea5e9" strokeWidth={2} />}
+        {pathLoss && <path d={pathLoss} fill="none" stroke="#ef4444" strokeWidth={2} />}
+        <g transform={`translate(${W - pad - 140}, ${pad})`}>
+          <rect x={0} y={-10} width={140} height={24} fill="#fff" stroke="#e5e7eb" rx={6} />
+          <circle cx={12} cy={2} r={4} fill="#ef4444" />
+          <text x={22} y={6} fontSize={12} fill="#374151">Perdas</text>
+          <circle cx={82} cy={2} r={4} fill="#0ea5e9" />
+          <text x={92} y={6} fontSize={12} fill="#374151">Gastos</text>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+function DonutChart({ data }: { data: Array<{ label: string; value: number }> }) {
+  const clean = Array.isArray(data) ? data.filter(d => Number.isFinite(d.value) && d.value > 0) : []
+  const total = clean.reduce((s, d) => s + d.value, 0)
+  const W = 240
+  const H = 240
+  const cx = W / 2
+  const cy = H / 2
+  const rOuter = 100
+  const rInner = 60
+  const palette = ['#ef4444', '#0ea5e9', '#10b981', '#f59e0b', '#6366f1', '#14b8a6', '#f97316', '#84cc16']
+  let angle = -Math.PI / 2
+
+  const toXY = (r: number, a: number) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]
+  const arcPath = (start: number, end: number) => {
+    const [sx, sy] = toXY(rOuter, start)
+    const [ex, ey] = toXY(rOuter, end)
+    const [isx, isy] = toXY(rInner, end)
+    const [iex, iey] = toXY(rInner, start)
+    const large = end - start > Math.PI ? 1 : 0
+    return [
+      `M ${sx} ${sy}`,
+      `A ${rOuter} ${rOuter} 0 ${large} 1 ${ex} ${ey}`,
+      `L ${isx} ${isy}`,
+      `A ${rInner} ${rInner} 0 ${large} 0 ${iex} ${iey}`,
+      'Z'
+    ].join(' ')
+  }
+
+  const segments = clean.map((d, i) => {
+    const frac = total === 0 ? 0 : d.value / total
+    const start = angle
+    const end = start + frac * Math.PI * 2
+    angle = end
+    return { label: d.label, value: d.value, start, end, color: palette[i % palette.length], pct: frac * 100 }
+  })
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'center' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
+        <circle cx={cx} cy={cy} r={rOuter} fill="#f3f4f6" />
+        <circle cx={cx} cy={cy} r={rInner} fill="#fff" />
+        {segments.map((s, i) => (
+          <path key={i} d={arcPath(s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} />
+        ))}
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={18} fill="#111827" fontWeight={800}>
+          {total}
+        </text>
+        <text x={cx} y={cy + 18} textAnchor="middle" dominantBaseline="hanging" fontSize={11} fill="#6b7280">
+          total
+        </text>
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        {segments.length === 0 && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
+        {segments.map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: 'inline-block' }} />
+              <span style={{ color: '#374151', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <strong>{s.value}</strong>
+              <span style={{ color: '#6b7280', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DashboardMap({ height = 420 }: { height?: number }) {
+  const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
+  const scrapyardApi = React.useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
+  const infractionApi = React.useMemo(() => new InfractionApi(getApiConfig()), [getApiConfig])
+  const authHeader = React.useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  const [error, setError] = React.useState<string | null>(null)
+  const [scrapyards, setScrapyards] = React.useState<any[]>([])
+  const [infractions, setInfractions] = React.useState<any[]>([])
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const mapRef = React.useRef<any>(null)
+  const markersRef = React.useRef<any[]>([])
+
+  function injectScriptOnce(apiKey: string): Promise<void> {
+    if ((window as any).google && (window as any).google.maps) return Promise.resolve()
+    if ((window as any).__gmapsLoadingPromise) return (window as any).__gmapsLoadingPromise
+    const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`
+    ;(window as any).__gmapsLoadingPromise = new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`)
+      if (existing) {
+        existing.addEventListener('load', () => resolve())
+        existing.addEventListener('error', () => reject(new Error('Falha ao carregar Google Maps')))
+        return
+      }
+      const script = document.createElement('script')
+      script.src = src
+      script.async = true
+      script.defer = true
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Falha ao carregar Google Maps'))
+      document.head.appendChild(script)
+    })
+    return (window as any).__gmapsLoadingPromise
+  }
+
+  const isUnauthorizedBody = (data: any) => {
+    try {
+      const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code
+      if (raw === undefined || raw === null) return false
+      const num = Number(raw)
+      if (!Number.isNaN(num) && num === 401) return true
+      const code = String(raw).toUpperCase()
+      return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
+    } catch { return false }
+  }
+
+  React.useEffect(() => {
+    let cancelled = false
+    async function loadData() {
+      try {
+        const [scr, inf] = await Promise.all([
+          scrapyardApi.privateScrapyardsGet(authHeader, -1),
+          infractionApi.privateInfractionsGet(authHeader, -1)
+        ])
+        if (!cancelled) {
+          const sitems = scr.data?.items ?? []
+          const iitems = inf.data?.items ?? []
+          if (isUnauthorizedBody(scr.data) || isUnauthorizedBody(inf.data)) {
+            logout('Sessão expirada. Inicie sessão novamente.')
+            return
+          }
+          setScrapyards(sitems)
+          setInfractions(iitems)
+        }
+      } catch (err: any) {
+        if (err?.response?.status === 401 || isUnauthorizedBody(err?.response?.data)) {
+          logout('Sessão expirada. Inicie sessão novamente.')
+          return
+        }
+        if (!cancelled) setError('Falha a obter dados para o mapa.')
+      }
+    }
+    loadData()
+    return () => { cancelled = true }
+  }, [scrapyardApi, infractionApi, authHeader])
+
+  React.useEffect(() => {
+    async function init() {
+      const key = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY
+      if (!key) { setError('Google Maps não está configurado (VITE_GOOGLE_MAPS_API_KEY ausente).'); return }
+      try { await injectScriptOnce(key) } catch (e: any) { setError(e?.message || 'Falha ao inicializar o mapa.'); return }
+      const g = (window as any).google?.maps
+      const center = { lat: -25.965, lng: 32.571 }
+      mapRef.current = new g.Map(containerRef.current, { center, zoom: 11, mapTypeControl: false, fullscreenControl: false, streetViewControl: false })
+    }
+    init()
+  }, [])
+
+  React.useEffect(() => {
+    const g = (window as any).google?.maps
+    if (!g || !mapRef.current) return
+    // limpar marcadores
+    markersRef.current.forEach((m) => m.setMap(null))
+    markersRef.current = []
+
+    const info = new g.InfoWindow()
+
+    const scrapyardIcon: any = {
+      path: g.SymbolPath.CIRCLE,
+      scale: 7,
+      fillColor: '#1d4ed8', // azul
+      fillOpacity: 0.95,
+      strokeColor: '#ffffff',
+      strokeWeight: 1,
+    }
+    const infractionIcon: any = {
+      path: g.SymbolPath.CIRCLE,
+      scale: 7,
+      fillColor: '#ef4444', // vermelho
+      fillOpacity: 0.95,
+      strokeColor: '#ffffff',
+      strokeWeight: 1,
+    }
+
+    // sucatarias (azul)
+    ;(scrapyards || [])
+      .map((s: any) => ({ ...s, __lat: Number((s as any).lat), __lng: Number((s as any).long) }))
+      .filter((s: any) => Number.isFinite(s.__lat) && Number.isFinite(s.__lng))
+      .forEach((s: any) => {
+        const position = { lat: s.__lat, lng: s.__lng }
+        const marker = new g.Marker({ position, map: mapRef.current, title: s.nome || 'Sucataria', icon: scrapyardIcon })
+        marker.addListener('click', () => {
+          const asc = (s as any).asc_name || '—'
+          const materiais = Array.isArray(s.materiais) && s.materiais.length
+            ? (s.materiais.map((m: any) => m?.name).filter(Boolean).join(', '))
+            : '—'
+          const html = `<div style="max-width:260px">
+            <strong>${s.nome || 'Sucataria'}</strong><br/>
+            ASC: ${asc}<br/>
+            Materiais: ${materiais}
+          </div>`
+          info.setContent(html)
+          info.open({ anchor: marker, map: mapRef.current })
+        })
+        markersRef.current.push(marker)
+      })
+
+    // infrações (vermelho)
+    ;(infractions || [])
+      .map((i: any) => ({ ...i, __lat: Number((i as any).lat), __lng: Number((i as any)._long) }))
+      .filter((i: any) => Number.isFinite(i.__lat) && Number.isFinite(i.__lng))
+      .forEach((i: any) => {
+        const position = { lat: i.__lat, lng: i.__lng }
+        const marker = new g.Marker({ position, map: mapRef.current, title: i?.tipo_infracao?.name || 'Infração', icon: infractionIcon })
+        marker.addListener('click', () => {
+          const tipo = i?.tipo_infracao?.name || 'Infração'
+          const val = typeof i?.valor === 'number' ? `${i.valor.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` : '—'
+          const html = `<div style="max-width:240px">
+            <strong>${tipo}</strong><br/>
+            Valor: ${val}
+          </div>`
+          info.setContent(html)
+          info.open({ anchor: marker, map: mapRef.current })
+        })
+        markersRef.current.push(marker)
+      })
+
+    // ajustar centro se houver dados
+    const positions: Array<{ lat: number; lng: number }> = []
+    scrapyards.forEach((s: any) => {
+      const la = Number((s as any).lat)
+      const ln = Number((s as any).long)
+      if (Number.isFinite(la) && Number.isFinite(ln)) positions.push({ lat: la, lng: ln })
+    })
+    infractions.forEach((i: any) => {
+      const la = Number((i as any).lat)
+      const ln = Number((i as any)._long)
+      if (Number.isFinite(la) && Number.isFinite(ln)) positions.push({ lat: la, lng: ln })
+    })
+    if (positions.length) {
+      const bounds = new (window as any).google.maps.LatLngBounds()
+      positions.forEach((p) => bounds.extend(p))
+      mapRef.current.fitBounds(bounds)
+    }
+  }, [scrapyards, infractions])
+
+  return (
+    <div>
+      {error ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8, marginBottom: 8 }}>{error}</div> : null}
+      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+    </div>
   )
 }
