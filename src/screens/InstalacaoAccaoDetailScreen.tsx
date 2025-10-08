@@ -133,11 +133,11 @@ export default function InstalacaoAccaoDetailScreen() {
 
       <Card title="Resumo do mês da ação" subtitle="Indicadores da instalação nesse mês">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          <Metric label="Compras (últ. 6m) (kWh)" value={formatNumber(inst?.compras_6_meses)} color="#0ea5e9" />
-          <Metric label="Compras vizinhos (6m) (kWh)" value={formatNumber(inst?.compras_vizinhos_6_meses)} color="#6366f1" />
-          <Metric label="Equipamentos (6m)" value={formatNumber(inst?.equipamentos_6_meses)} color="#10b981" />
-          <Metric label="Score" value={formatNumber(inst?.score)} color="#f59e0b" />
-          <Metric label="AI Score" value={formatNumber(inst?.ai_score)} color="#ef4444" />
+          <Metric label="Compras (últ. 6m)" value={formatKwh(inst?.compras_6_meses)} color="#0ea5e9" />
+          <Metric label="Compras vizinhos (6m)" value={formatKwh(inst?.compras_vizinhos_6_meses)} color="#6366f1" />
+          <Metric label="Consumo estimado" value={formatKwh(inst?.equipamentos_6_meses)} color="#10b981" />
+          <Metric label="Score" value={formatPercentage(inst?.score)} color="#f59e0b" />
+          <Metric label="AI Score" value={formatPercentage(inst?.ai_score)} color="#ef4444" />
         </div>
       </Card>
     </div>
@@ -290,6 +290,7 @@ function formatMonth(d: Date) { try { return d.toLocaleDateString('pt-PT', { mon
 function formatNumber(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return n.toLocaleString('pt-PT') } catch { return String(n) } }
 function formatMoney(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` } }
 function formatKwh(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return `${n.toLocaleString('pt-PT')} kWh` } catch { return `${n} kWh` } }
+function formatPercentage(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { const pct = n * 100; return `${pct.toLocaleString('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}%` } catch { return `${(n * 100).toFixed(1)}%` } }
 function formatTendencia(t?: any) {
   const v = String(t || '')
   switch (v) {

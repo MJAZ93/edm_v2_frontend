@@ -365,50 +365,35 @@ export default function DashboardScreen() {
             
           </Grid>
 
-          <Grid minColumnWidth={360} gap={20}>
-            <Card title="Ocorrências por ASC (top)">
-              {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {occByAsc.slice(0, 6).map((it, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e5e7eb', paddingBottom: 6 }}>
-                      <span style={{ wordBreak: 'break-word' }}>{it?.asc_name || it?.asc_id || '—'}</span>
-                      <strong>{it?.count ?? '—'}</strong>
-                    </div>
-                  ))}
-                  {!occByAsc.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
-                </div>
-              )}
-            </Card>
-            <Card title="Sucatarias de maior risco">
-              {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px,1fr))', gap: 12 }}>
-                  {riskScrapyards.map((s, i) => {
-                    const pct = riskPercent(s?.nivel_confianca)
-                    const col = riskColor(pct)
-                    const barBg = '#fde68a'
-                    return (
-                      <div key={i} style={{ padding: 12, borderRadius: 12, border: `1px solid ${col}33`, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                          <div style={{ fontWeight: 800, wordBreak: 'break-word' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
-                          <span style={{ fontSize: 12, background: `${col}1A`, color: col, padding: '4px 8px', borderRadius: 999 }}>Risco {pct.toFixed(1)}%</span>
-                        </div>
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, wordBreak: 'break-word' }}>ASC: {s?.asc_name || s?.asc_id || '—'}</div>
-                        <div style={{ marginTop: 8 }}>
-                          <div style={{ height: 8, background: barBg, borderRadius: 6, overflow: 'hidden' }}>
-                            <div style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: '100%', background: col, transition: 'width .3s ease' }} />
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                          <button type="button" onClick={() => { if (s?.scrapyard_id) { window.history.pushState({}, '', `/sucatarias/${s.scrapyard_id}`); window.dispatchEvent(new Event('locationchange')) } }} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${col}`, background: '#fff', color: col, cursor: 'pointer' }}>Ver detalhes</button>
+          <Card title="Sucatarias de maior risco">
+            {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px,1fr))', gap: 12 }}>
+                {riskScrapyards.map((s, i) => {
+                  const pct = riskPercent(s?.nivel_confianca)
+                  const col = riskColor(pct)
+                  const barBg = '#fde68a'
+                  return (
+                    <div key={i} style={{ padding: 12, borderRadius: 12, border: `1px solid ${col}33`, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontWeight: 800, wordBreak: 'break-word' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
+                        <span style={{ fontSize: 12, background: `${col}1A`, color: col, padding: '4px 8px', borderRadius: 999 }}>Risco {pct.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, wordBreak: 'break-word' }}>ASC: {s?.asc_name || s?.asc_id || '—'}</div>
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ height: 8, background: barBg, borderRadius: 6, overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: '100%', background: col, transition: 'width .3s ease' }} />
                         </div>
                       </div>
-                    )
-                  })}
-                  {!riskScrapyards.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
-                </div>
-              )}
-            </Card>
-          </Grid>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                        <button type="button" onClick={() => { if (s?.scrapyard_id) { window.history.pushState({}, '', `/sucatarias/${s.scrapyard_id}`); window.dispatchEvent(new Event('locationchange')) } }} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${col}`, background: '#fff', color: col, cursor: 'pointer' }}>Ver detalhes</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                {!riskScrapyards.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
+              </div>
+            )}
+          </Card>
 
           <Grid minColumnWidth={360} gap={20}>
             <Card title="Infrações por tipo — Distribuição">
@@ -417,15 +402,6 @@ export default function DashboardScreen() {
               ) : (
                 <DonutChart
                   data={(infractionsByTipo || []).map((it: any) => ({ label: it?.key_name || it?.key_id || '—', value: Number(it?.count || 0) }))}
-                />
-              )}
-            </Card>
-            <Card title="Ocorrências por região — Distribuição">
-              {loadingDash ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
-              ) : (
-                <DonutChart
-                  data={(occByRegiao || []).map((it: any) => ({ label: it?.key_name || it?.key_id || '—', value: Number(it?.count || 0) }))}
                 />
               )}
             </Card>
@@ -440,18 +416,11 @@ export default function DashboardScreen() {
             </Card>
           </Grid>
 
-          <Grid minColumnWidth={360} gap={20}>
-            <Card title="Perdas (infrações) — Série temporal">
-              {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-                <Sparkline data={infractionsSeries} valueKey="total_valor" labelKey="ts" color="#ef4444" />
-              )}
-            </Card>
-            <Card title="Financeiro — Série temporal (perdas vs. gastos)">
-              {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-                <TimeSeriesChart loss={financeLoss} spend={financeSpend} />
-              )}
-            </Card>
-          </Grid>
+          <Card title="Financeiro — Série temporal (perdas vs. gastos)">
+            {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
+              <TimeSeriesChart loss={financeLoss} spend={financeSpend} />
+            )}
+          </Card>
 
           <Card title="Top ASCs por perdas">
             {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
