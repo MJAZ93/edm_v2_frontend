@@ -422,14 +422,34 @@ export default function DashboardScreen() {
             )}
           </Card>
 
-          <Card title="Top ASCs por perdas">
+          <Card title="Top ASCs por perdas e gastos">
             {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 12 }}>
                 {financeTop.map((it, i) => (
-                  <div key={i} style={{ padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff7f7' }}>
-                    <div style={{ fontWeight: 700, wordBreak: 'break-word' }}>{it?.asc_name || it?.asc_id || '—'}</div>
-                    <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Perdas</div>
-                    <div style={{ fontWeight: 800 }}>{formatMoney(it?.value)}</div>
+                  <div key={i} style={{ padding: 16, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, wordBreak: 'break-word', marginBottom: 8 }}>{it?.asc_name || it?.asc_id || '—'}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#6b7280', fontSize: 12 }}>Perdas</div>
+                        <div style={{ fontWeight: 800, color: '#ef4444', fontSize: 18 }}>{formatMoney(it?.loss_total)}</div>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#6b7280', fontSize: 12 }}>Gastos</div>
+                        <div style={{ fontWeight: 800, color: '#0ea5e9', fontSize: 18 }}>{formatMoney(it?.spend_total)}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+                      <div style={{ color: '#6b7280', fontSize: 12 }}>Ocorrências: <strong>{it?.count_occurrences || 0}</strong></div>
+                      <div style={{ 
+                        fontSize: 11, 
+                        padding: '2px 8px', 
+                        borderRadius: 12, 
+                        background: (it?.loss_total || 0) > (it?.spend_total || 0) ? '#fee2e2' : '#dcfce7',
+                        color: (it?.loss_total || 0) > (it?.spend_total || 0) ? '#991b1b' : '#166534'
+                      }}>
+                        {(it?.loss_total || 0) > (it?.spend_total || 0) ? 'Perdas > Gastos' : 'Gastos ≥ Perdas'}
+                      </div>
+                    </div>
                   </div>
                 ))}
                 {!financeTop.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
