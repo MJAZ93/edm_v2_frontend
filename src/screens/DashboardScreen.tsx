@@ -647,8 +647,11 @@ function riskColor(pct: number) {
 
 function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string; total: number }>; spend?: Array<{ ts: string; total: number }> }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null)
-  const [width, setWidth] = React.useState<number>(520)
-  const H = 180
+  const [width, setWidth] = React.useState<number>(800)
+  const [hoveredPoint, setHoveredPoint] = React.useState<{ x: number; y: number; loss?: number; spend?: number; date?: string } | null>(null)
+  const H = 300 // Aumentar altura para melhor visualização
+  const pad = 50 // Aumentar padding para labels melhores
+  
   React.useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -657,52 +660,262 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
-  // merge x-domain from both series
-  const all = [...(loss || []), ...(spend || [])]
-  const pts = all.map((d) => ({ x: new Date(d.ts).getTime(), y: Number(d.total || 0) })).filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
-  if (!pts.length) return <div style={{ color: '#6b7280' }}>Sem dados</div>
-  const minX = Math.min(...pts.map((p) => p.x))
-  const maxX = Math.max(...pts.map((p) => p.x))
-  const maxY = Math.max(1, ...pts.map((p) => p.y))
-  const pad = 24
-  const W = Math.max(280, width)
-  const sx = (x: number) => pad + ((x - minX) / Math.max(1, (maxX - minX))) * (W - pad * 2)
-  const sy = (y: number) => H - pad - (y / maxY) * (H - pad * 2)
-  const toPath = (arr: Array<{ ts: string; total: number }>) => {
-    const series = arr.map((d) => ({ x: new Date(d.ts).getTime(), y: Number(d.total || 0) }))
-      .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
-      .sort((a, b) => a.x - b.x)
-    if (!series.length) return ''
-    return series.map((p, i) => `${i === 0 ? 'M' : 'L'} ${sx(p.x)} ${sy(p.y)}`).join(' ')
+
+  // Preparar dados das séries
+  const lossData = (loss || []).map((d) => ({ x: new Date(d.ts).getTime(), y: Number(d.total || 0), ts: d.ts }))
+    .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+    .sort((a, b) => a.x - b.x)
+  
+  const spendData = (spend || []).map((d) => ({ x: new Date(d.ts).getTime(), y: Number(d.total || 0), ts: d.ts }))
+    .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+    .sort((a, b) => a.x - b.x)
+
+  if (!lossData.length && !spendData.length) return <div style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>Sem dados financeiros disponíveis</div>
+
+  // Calcular domínios
+  const allData = [...lossData, ...spendData]
+  const minX = Math.min(...allData.map((p) => p.x))
+  const maxX = Math.max(...allData.map((p) => p.x))
+  const maxY = Math.max(1, ...allData.map((p) => p.y))
+  
+  const W = Math.max(400, width)
+  const chartWidth = W - pad * 2
+  const chartHeight = H - pad * 2
+
+  // Funções de escala
+  const sx = (x: number) => pad + ((x - minX) / Math.max(1, (maxX - minX))) * chartWidth
+  const sy = (y: number) => H - pad - (y / maxY) * chartHeight
+
+  // Criar paths das linhas
+  const createPath = (data: Array<{ x: number; y: number }>) => {
+    if (!data.length) return ''
+    return data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${sx(p.x)} ${sy(p.y)}`).join(' ')
   }
-  const pathLoss = toPath(loss)
-  const pathSpend = toPath(spend)
-  const ticks = 4
+
+  const pathLoss = createPath(lossData)
+  const pathSpend = createPath(spendData)
+
+  // Criar áreas preenchidas
+  const createArea = (data: Array<{ x: number; y: number }>) => {
+    if (!data.length) return ''
+    const path = data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${sx(p.x)} ${sy(p.y)}`).join(' ')
+    const baseline = `L ${sx(data[data.length - 1].x)} ${sy(0)} L ${sx(data[0].x)} ${sy(0)} Z`
+    return path + ' ' + baseline
+  }
+
+  const areaLoss = createArea(lossData)
+  const areaSpend = createArea(spendData)
+
+  // Ticks do eixo Y
+  const yTicks = 6
+  const xTicks = Math.min(8, Math.max(4, Math.floor(chartWidth / 120)))
+
+  // Datas para eixo X
+  const timeSpan = maxX - minX
+  const xTickValues = Array.from({ length: xTicks }, (_, i) => {
+    return minX + (timeSpan / (xTicks - 1)) * i
+  })
+
+  // Tooltip handler
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    
+    if (mouseX < pad || mouseX > W - pad || mouseY < pad || mouseY > H - pad) {
+      setHoveredPoint(null)
+      return
+    }
+
+    // Encontrar ponto mais próximo no tempo
+    const timeAtMouse = minX + ((mouseX - pad) / chartWidth) * (maxX - minX)
+    
+    // Encontrar valores nas séries para este tempo
+    const findClosestValue = (data: Array<{ x: number; y: number; ts: string }>) => {
+      if (!data.length) return null
+      const closest = data.reduce((prev, curr) => 
+        Math.abs(curr.x - timeAtMouse) < Math.abs(prev.x - timeAtMouse) ? curr : prev
+      )
+      return closest
+    }
+
+    const closestLoss = findClosestValue(lossData)
+    const closestSpend = findClosestValue(spendData)
+    
+    if (closestLoss || closestSpend) {
+      const refPoint = closestLoss || closestSpend!
+      setHoveredPoint({
+        x: sx(refPoint.x),
+        y: mouseY,
+        loss: closestLoss?.y,
+        spend: closestSpend?.y,
+        date: new Date(refPoint.x).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' })
+      })
+    }
+  }
+
+  const handleMouseLeave = () => setHoveredPoint(null)
+
   return (
-    <div ref={containerRef} style={{ width: '100%' }}>
-      <svg width={W} height={H} role="img" aria-label="Financeiro série temporal">
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#e5e7eb" />
-        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#e5e7eb" />
-        {Array.from({ length: ticks + 1 }).map((_, i) => {
-          const yv = (i / ticks) * maxY
+    <div ref={containerRef} style={{ width: '100%', position: 'relative' }}>
+      <svg 
+        width={W} 
+        height={H} 
+        role="img" 
+        aria-label="Série temporal financeira"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{ cursor: 'crosshair' }}
+      >
+        {/* Definir gradientes */}
+        <defs>
+          <linearGradient id="lossGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
+          </linearGradient>
+          <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid de fundo */}
+        {Array.from({ length: yTicks + 1 }).map((_, i) => {
+          const yv = (i / yTicks) * maxY
           const y = sy(yv)
           return (
-            <g key={i}>
-              <line x1={pad - 4} y1={y} x2={pad} y2={y} stroke="#e5e7eb" />
-              <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatMoney(yv)}</text>
+            <line key={`y-grid-${i}`} x1={pad} y1={y} x2={W - pad} y2={y} stroke="#f3f4f6" strokeDasharray="2,2" />
+          )
+        })}
+        
+        {xTickValues.map((xv, i) => {
+          const x = sx(xv)
+          return (
+            <line key={`x-grid-${i}`} x1={x} y1={pad} x2={x} y2={H - pad} stroke="#f3f4f6" strokeDasharray="2,2" />
+          )
+        })}
+
+        {/* Eixos principais */}
+        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#d1d5db" strokeWidth="2" />
+        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#d1d5db" strokeWidth="2" />
+
+        {/* Áreas preenchidas */}
+        {areaSpend && <path d={areaSpend} fill="url(#spendGradient)" />}
+        {areaLoss && <path d={areaLoss} fill="url(#lossGradient)" />}
+
+        {/* Linhas das séries */}
+        {pathSpend && <path d={pathSpend} fill="none" stroke="#0ea5e9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {pathLoss && <path d={pathLoss} fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+
+        {/* Pontos de dados */}
+        {lossData.map((point, i) => (
+          <circle key={`loss-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#ef4444" stroke="#fff" strokeWidth="2" />
+        ))}
+        {spendData.map((point, i) => (
+          <circle key={`spend-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#0ea5e9" stroke="#fff" strokeWidth="2" />
+        ))}
+
+        {/* Labels do eixo Y */}
+        {Array.from({ length: yTicks + 1 }).map((_, i) => {
+          const yv = (i / yTicks) * maxY
+          const y = sy(yv)
+          return (
+            <g key={`y-label-${i}`}>
+              <line x1={pad - 6} y1={y} x2={pad} y2={y} stroke="#9ca3af" />
+              <text x={pad - 10} y={y + 4} fontSize={11} fill="#6b7280" textAnchor="end">
+                {yv === 0 ? '0' : `${(yv / 1000000).toFixed(1)}M`}
+              </text>
             </g>
           )
         })}
-        {pathSpend && <path d={pathSpend} fill="none" stroke="#0ea5e9" strokeWidth={2} />}
-        {pathLoss && <path d={pathLoss} fill="none" stroke="#ef4444" strokeWidth={2} />}
-        <g transform={`translate(${W - pad - 140}, ${pad})`}>
-          <rect x={0} y={-10} width={140} height={24} fill="#fff" stroke="#e5e7eb" rx={6} />
-          <circle cx={12} cy={2} r={4} fill="#ef4444" />
-          <text x={22} y={6} fontSize={12} fill="#374151">Perdas</text>
-          <circle cx={82} cy={2} r={4} fill="#0ea5e9" />
-          <text x={92} y={6} fontSize={12} fill="#374151">Gastos</text>
+
+        {/* Labels do eixo X */}
+        {xTickValues.map((xv, i) => {
+          const x = sx(xv)
+          const date = new Date(xv)
+          return (
+            <g key={`x-label-${i}`}>
+              <line x1={x} y1={H - pad} x2={x} y2={H - pad + 6} stroke="#9ca3af" />
+              <text x={x} y={H - pad + 18} fontSize={11} fill="#6b7280" textAnchor="middle">
+                {date.toLocaleDateString('pt-PT', { month: 'short', year: '2-digit' })}
+              </text>
+            </g>
+          )
+        })}
+
+        {/* Linha vertical do hover */}
+        {hoveredPoint && (
+          <>
+            <line 
+              x1={hoveredPoint.x} 
+              y1={pad} 
+              x2={hoveredPoint.x} 
+              y2={H - pad} 
+              stroke="#374151" 
+              strokeWidth="1" 
+              strokeDasharray="4,4"
+            />
+            <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="6" fill="#374151" fillOpacity="0.1" />
+          </>
+        )}
+
+        {/* Legenda melhorada */}
+        <g transform={`translate(${W - 200}, ${pad + 10})`}>
+          <rect x={0} y={-15} width={190} height={50} fill="#fff" stroke="#e5e7eb" rx="8" fillOpacity="0.95" />
+          <g transform="translate(15, 5)">
+            <circle cx={8} cy={0} r={6} fill="#ef4444" />
+            <text x={20} y={4} fontSize={13} fill="#374151" fontWeight="600">Perdas</text>
+            <circle cx={8} cy={20} r={6} fill="#0ea5e9" />
+            <text x={20} y={24} fontSize={13} fill="#374151" fontWeight="600">Gastos</text>
+          </g>
         </g>
+
+        {/* Título do eixo Y */}
+        <text x={15} y={pad - 15} fontSize={12} fill="#6b7280" fontWeight="600">MT (Milhões)</text>
       </svg>
+
+      {/* Tooltip */}
+      {hoveredPoint && (
+        <div
+          style={{
+            position: 'absolute',
+            left: Math.min(hoveredPoint.x + 10, W - 200),
+            top: Math.max(hoveredPoint.y - 80, 10),
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontSize: '13px',
+            minWidth: '160px',
+            zIndex: 10
+          }}
+        >
+          <div style={{ fontWeight: '600', marginBottom: '8px', color: '#374151' }}>
+            {hoveredPoint.date}
+          </div>
+          {hoveredPoint.loss !== undefined && (
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444', marginRight: '8px' }} />
+              <span style={{ color: '#6b7280' }}>Perdas:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#ef4444' }}>
+                {formatMoney(hoveredPoint.loss)}
+              </span>
+            </div>
+          )}
+          {hoveredPoint.spend !== undefined && (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#0ea5e9', marginRight: '8px' }} />
+              <span style={{ color: '#6b7280' }}>Gastos:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#0ea5e9' }}>
+                {formatMoney(hoveredPoint.spend)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
