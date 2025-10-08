@@ -38,6 +38,7 @@ import AccaoDetailScreen from './AccaoDetailScreen'
 import InstallationsScreen from './InstallationsScreen'
 import InstallationDetailScreen from './InstallationDetailScreen'
 import InstalacaoAccoesScreen from './InstalacaoAccoesScreen'
+import InstalacaoAccaoDetailScreen from './InstalacaoAccaoDetailScreen'
 import InstalacoesDashboardScreen from './InstalacoesDashboardScreen'
 import InspeccoesDashboardScreen from './InspeccoesDashboardScreen'
 import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
@@ -98,9 +99,12 @@ export default function DashboardScreen() {
     const p = normalizePath(path)
     const direct = PATH_TO_KEY[p]
     if (direct) return direct
-    // tenta por prefixo (ex.: /ascs/123)
-    const entry = Object.entries(KEY_TO_PATH).find(([, v]) => p.startsWith(v))
-    if (entry) return entry[0] as keyof typeof KEY_TO_PATH
+    // tenta por prefixo mais específico (ex.: /instalacoes/accoes/123 deve bater em /instalacoes/accoes)
+    const matches = Object.entries(KEY_TO_PATH).filter(([, v]) => p.startsWith(v))
+    if (matches.length) {
+      matches.sort((a, b) => (b[1] as string).length - (a[1] as string).length)
+      return matches[0][0] as keyof typeof KEY_TO_PATH
+    }
     return 'dashboard'
   }
 
@@ -133,8 +137,15 @@ export default function DashboardScreen() {
     }
     window.addEventListener('popstate', onPopState)
     window.addEventListener('locationchange', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
+    return () => { window.removeEventListener('popstate', onPopState); window.removeEventListener('locationchange', onPopState) }
   }, [])
+
+  // Salvaguarda: paths de ações de instalações devem ativar a secção correta
+  useEffect(() => {
+    if (path.startsWith('/instalacoes/accoes')) {
+      if (active !== 'instalacaoAccoes') setActive('instalacaoAccoes')
+    }
+  }, [path])
 
   const handleSelect = (key: string) => {
     const k = key as keyof typeof KEY_TO_PATH
@@ -239,11 +250,17 @@ export default function DashboardScreen() {
     tiposInfracao: 'Tipos de Infração',
     relatorios: 'Relatórios',
     instalacoes: 'Instalações',
+    instalacaoAccoes: 'Ações (Instalações)',
     instalacoesDashboard: 'Dashboard',
     inspeccoesDashboard: 'Dashboard',
   }
   const headerTitle = TITLE_MAP[active] || '—'
   const showHeaderTitle = active !== 'instalacoes'
+
+  const instalacaoAccoesRoute = useMemo(() => {
+    if (/^\/instalacoes\/accoes\/[^/]+$/.test(path)) return 'detail'
+    return 'list'
+  }, [path]) as 'detail' | 'list'
 
   return (
     <AppShell
@@ -504,7 +521,13 @@ export default function DashboardScreen() {
       )}
       {active === 'instalacoesDashboard' && <InstalacoesDashboardScreen />}
       {active === 'inspeccoesDashboard' && <InspeccoesDashboardScreen />}
-      {active === 'instalacaoAccoes' && <InstalacaoAccoesScreen />}
+      {active === 'instalacaoAccoes' && (
+        instalacaoAccoesRoute === 'detail' ? (
+          <InstalacaoAccaoDetailScreen />
+        ) : (
+          <InstalacaoAccoesScreen />
+        )
+      )}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       
       {active === 'regioes' && <RegioesScreen />}

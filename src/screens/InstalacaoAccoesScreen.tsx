@@ -34,6 +34,7 @@ export default function InstalacaoAccoesScreen() {
 
   const [showCreate, setShowCreate] = useState(() => new URLSearchParams(window.location.search).get('novo') === '1')
   const [editing, setEditing] = useState<ModelInstalacaoAccoes | null>(null)
+  const [viewing, setViewing] = useState<ModelInstalacaoAccoes | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -206,6 +207,12 @@ export default function InstalacaoAccoesScreen() {
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatTendencia(it.tendencia_compras)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.valor_recuperado)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
+                      <Button
+                        variant="secondary"
+                        onClick={() => { if (it.id) { window.history.pushState({}, '', `/instalacoes/accoes/${it.id}`); window.dispatchEvent(new Event('locationchange')) } }}
+                      >
+                        Ver detalhes
+                      </Button>
                       <Button variant="secondary" onClick={() => setEditing(it)}>Editar</Button>
                       <Button variant="danger" onClick={() => handleDelete(it.id)}>Eliminar</Button>
                     </td>
@@ -248,6 +255,30 @@ export default function InstalacaoAccoesScreen() {
               onCancel={() => { setShowCreate(false); setEditing(null); setSubmitError(null) }}
               onSubmit={(vals) => editing?.id ? handleUpdate(editing.id, vals as InstalacaoAccoesUpdateInstalacaoAccoesRequest) : handleCreate(vals as InstalacaoAccoesCreateInstalacaoAccoesRequest)}
             />
+          </div>
+        </div>
+      )}
+
+      {viewing && (
+        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setViewing(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: '100%', maxWidth: 560 }}>
+            <h3 style={{ marginTop: 0 }}>Detalhes da ação</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <Field label="Criado em" value={formatDate(viewing.created_at)} />
+              <Field label="Execução" value={formatDate(viewing.data_execucao)} />
+              <Field label="PF" value={viewing.pf || '-'} />
+              <Field label="Tipo" value={(viewing as any).accao_tipo?.nome || (viewing as any).accao_tipo_id || '-'} />
+              <Field label="Marcação" value={viewing.marcacao_status || '-'} />
+              <Field label="Análise" value={viewing.analise_status || '-'} />
+              <Field label="Tendência" value={formatTendencia(viewing.tendencia_compras)} />
+              <Field label="Valor recuperado" value={formatMoney(viewing.valor_recuperado)} />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <Field label="Comentário" value={viewing.comentario || '-'} fullWidth />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setViewing(null)}>Fechar</Button>
+            </div>
           </div>
         </div>
       )}
@@ -347,4 +378,13 @@ function formatTendencia(t?: any) {
     case 'SEM_COMPRAS': return 'Sem compras'
     default: return '-'
   }
+}
+
+function Field({ label, value, fullWidth }: { label: string; value: React.ReactNode; fullWidth?: boolean }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: fullWidth ? '1 / -1' : undefined }}>
+      <span style={{ fontSize: 13, color: '#374151' }}>{label}</span>
+      <div style={{ padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb' }}>{value as any}</div>
+    </div>
+  )
 }
