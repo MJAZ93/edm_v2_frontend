@@ -3489,6 +3489,12 @@ export interface ReportInstalacaoAccoesValueItem {
     'group_id'?: string;
     /**
      * 
+     * @type {string}
+     * @memberof ReportInstalacaoAccoesValueItem
+     */
+    'group_name'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof ReportInstalacaoAccoesValueItem
      */
@@ -3525,6 +3531,12 @@ export interface ReportInstalacoesCountsItem {
      * @memberof ReportInstalacoesCountsItem
      */
     'group_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReportInstalacoesCountsItem
+     */
+    'group_name'?: string;
     /**
      * 
      * @type {number}
@@ -8402,6 +8414,379 @@ export class InfractorApi extends BaseAPI {
 
 
 /**
+ * InspeccoesApi - axios parameter creator
+ * @export
+ */
+export const InspeccoesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
+         * @summary Contagens de inspeções
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesContagensGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInspeccoesContagensGet', 'authorization', authorization)
+            const localVarPath = `/private/inspeccoes/contagens`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (groupBy !== undefined) {
+                localVarQueryParameter['group_by'] = groupBy;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (minScore !== undefined) {
+                localVarQueryParameter['min_score'] = minScore;
+            }
+
+            if (maxScore !== undefined) {
+                localVarQueryParameter['max_score'] = maxScore;
+            }
+
+            if (zeroComprasLast6 !== undefined) {
+                localVarQueryParameter['zero_compras_last6'] = zeroComprasLast6;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros por tendência e score.
+         * @summary Défice total
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesDeficitGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInspeccoesDeficitGet', 'authorization', authorization)
+            const localVarPath = `/private/inspeccoes/deficit`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (groupBy !== undefined) {
+                localVarQueryParameter['group_by'] = groupBy;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (minScore !== undefined) {
+                localVarQueryParameter['min_score'] = minScore;
+            }
+
+            if (maxScore !== undefined) {
+                localVarQueryParameter['max_score'] = maxScore;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Contagem e défice por mês nos últimos X meses. Filtros por tendência, score e zero compras 6 meses.
+         * @summary Análise temporal
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesTemporalGet: async (authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInspeccoesTemporalGet', 'authorization', authorization)
+            const localVarPath = `/private/inspeccoes/temporal`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (months !== undefined) {
+                localVarQueryParameter['months'] = months;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (minScore !== undefined) {
+                localVarQueryParameter['min_score'] = minScore;
+            }
+
+            if (maxScore !== undefined) {
+                localVarQueryParameter['max_score'] = maxScore;
+            }
+
+            if (zeroComprasLast6 !== undefined) {
+                localVarQueryParameter['zero_compras_last6'] = zeroComprasLast6;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * InspeccoesApi - functional programming interface
+ * @export
+ */
+export const InspeccoesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = InspeccoesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
+         * @summary Contagens de inspeções
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInspeccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesCountsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInspeccoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InspeccoesApi.privateInspeccoesContagensGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros por tendência e score.
+         * @summary Défice total
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInspeccoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesDeficitResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInspeccoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InspeccoesApi.privateInspeccoesDeficitGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Contagem e défice por mês nos últimos X meses. Filtros por tendência, score e zero compras 6 meses.
+         * @summary Análise temporal
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInspeccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesTemporalResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInspeccoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InspeccoesApi.privateInspeccoesTemporalGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * InspeccoesApi - factory interface
+ * @export
+ */
+export const InspeccoesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = InspeccoesApiFp(configuration)
+    return {
+        /**
+         * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
+         * @summary Contagens de inspeções
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesCountsResponse> {
+            return localVarFp.privateInspeccoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros por tendência e score.
+         * @summary Défice total
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesDeficitResponse> {
+            return localVarFp.privateInspeccoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Contagem e défice por mês nos últimos X meses. Filtros por tendência, score e zero compras 6 meses.
+         * @summary Análise temporal
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {number} [minScore] Score mínimo
+         * @param {number} [maxScore] Score máximo
+         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInspeccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesTemporalResponse> {
+            return localVarFp.privateInspeccoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * InspeccoesApi - object-oriented interface
+ * @export
+ * @class InspeccoesApi
+ * @extends {BaseAPI}
+ */
+export class InspeccoesApi extends BaseAPI {
+    /**
+     * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
+     * @summary Contagens de inspeções
+     * @param {string} authorization Bearer token
+     * @param {string} [groupBy] regiao|pt
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {number} [minScore] Score mínimo
+     * @param {number} [maxScore] Score máximo
+     * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InspeccoesApi
+     */
+    public privateInspeccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig) {
+        return InspeccoesApiFp(this.configuration).privateInspeccoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros por tendência e score.
+     * @summary Défice total
+     * @param {string} authorization Bearer token
+     * @param {string} [groupBy] regiao|pt
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {number} [minScore] Score mínimo
+     * @param {number} [maxScore] Score máximo
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InspeccoesApi
+     */
+    public privateInspeccoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig) {
+        return InspeccoesApiFp(this.configuration).privateInspeccoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Contagem e défice por mês nos últimos X meses. Filtros por tendência, score e zero compras 6 meses.
+     * @summary Análise temporal
+     * @param {string} authorization Bearer token
+     * @param {number} [months] Número de meses anteriores
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {number} [minScore] Score mínimo
+     * @param {number} [maxScore] Score máximo
+     * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InspeccoesApi
+     */
+    public privateInspeccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig) {
+        return InspeccoesApiFp(this.configuration).privateInspeccoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * InstalacaoAccaoTipoApi - axios parameter creator
  * @export
  */
@@ -8896,6 +9281,75 @@ export class InstalacaoAccaoTipoApi extends BaseAPI {
 export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
+         * @summary Contagens de ações por instalação
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesContagensGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesContagensGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/contagens`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (groupBy !== undefined) {
+                localVarQueryParameter['group_by'] = groupBy;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -9154,6 +9608,80 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
             };
         },
         /**
+         * Top grupos (regiao|pt) por valor recuperado.
+         * @summary Melhores grupos por valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {number} [limit] Número máximo de grupos
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesMelhoresGet: async (authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesMelhoresGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/melhores`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (groupBy !== undefined) {
+                localVarQueryParameter['group_by'] = groupBy;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Create a new installation action. MarcacaoStatus: EXECUTADO, MARCADO. AnaliseStatus: EM_ANALISE, ANALISADO. TendenciaCompras: CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS
          * @summary Create InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -9198,6 +9726,144 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
+         * @summary Análise temporal de ações
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesTemporalGet: async (authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesTemporalGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/temporal`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (months !== undefined) {
+                localVarQueryParameter['months'] = months;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
+         * @summary Valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesValorRecuperadoGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesValorRecuperadoGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/valor_recuperado`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (groupBy !== undefined) {
+                localVarQueryParameter['group_by'] = groupBy;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -9208,6 +9874,25 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
 export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = InstalacaoAccoesApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
+         * @summary Contagens de ações por instalação
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesCountsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesContagensGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
@@ -9287,6 +9972,26 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Top grupos (regiao|pt) por valor recuperado.
+         * @summary Melhores grupos por valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {number} [limit] Número máximo de grupos
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesValueResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesMelhoresGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Create a new installation action. MarcacaoStatus: EXECUTADO, MARCADO. AnaliseStatus: EM_ANALISE, ANALISADO. TendenciaCompras: CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS
          * @summary Create InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -9300,6 +10005,44 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
+         * @summary Análise temporal de ações
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesTemporalResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesTemporalGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
+         * @summary Valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesValueResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesValorRecuperadoGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -9310,6 +10053,22 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
 export const InstalacaoAccoesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = InstalacaoAccoesApiFp(configuration)
     return {
+        /**
+         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
+         * @summary Contagens de ações por instalação
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesCountsResponse> {
+            return localVarFp.privateInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
+        },
         /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
@@ -9374,6 +10133,23 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
             return localVarFp.privateInstalacaoAccoesIdPut(id, authorization, payload, options).then((request) => request(axios, basePath));
         },
         /**
+         * Top grupos (regiao|pt) por valor recuperado.
+         * @summary Melhores grupos por valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {number} [limit] Número máximo de grupos
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesValueResponse> {
+            return localVarFp.privateInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Create a new installation action. MarcacaoStatus: EXECUTADO, MARCADO. AnaliseStatus: EM_ANALISE, ANALISADO. TendenciaCompras: CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS
          * @summary Create InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -9383,6 +10159,38 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
          */
         privateInstalacaoAccoesPost(authorization: string, payload: InstalacaoAccoesCreateInstalacaoAccoesRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelInstalacaoAccoes> {
             return localVarFp.privateInstalacaoAccoesPost(authorization, payload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
+         * @summary Análise temporal de ações
+         * @param {string} authorization Bearer token
+         * @param {number} [months] Número de meses anteriores
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesTemporalResponse> {
+            return localVarFp.privateInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
+         * @summary Valor recuperado
+         * @param {string} authorization Bearer token
+         * @param {string} [groupBy] regiao|pt
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesValueResponse> {
+            return localVarFp.privateInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -9394,6 +10202,24 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
  * @extends {BaseAPI}
  */
 export class InstalacaoAccoesApi extends BaseAPI {
+    /**
+     * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
+     * @summary Contagens de ações por instalação
+     * @param {string} authorization Bearer token
+     * @param {string} [groupBy] regiao|pt
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
      * @summary Execute monthly analysis for running InstalacaoAccoes
@@ -9468,6 +10294,25 @@ export class InstalacaoAccoesApi extends BaseAPI {
     }
 
     /**
+     * Top grupos (regiao|pt) por valor recuperado.
+     * @summary Melhores grupos por valor recuperado
+     * @param {string} authorization Bearer token
+     * @param {string} [groupBy] regiao|pt
+     * @param {number} [limit] Número máximo de grupos
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Create a new installation action. MarcacaoStatus: EXECUTADO, MARCADO. AnaliseStatus: EM_ANALISE, ANALISADO. TendenciaCompras: CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS
      * @summary Create InstalacaoAccoes
      * @param {string} authorization Bearer token
@@ -9478,6 +10323,42 @@ export class InstalacaoAccoesApi extends BaseAPI {
      */
     public privateInstalacaoAccoesPost(authorization: string, payload: InstalacaoAccoesCreateInstalacaoAccoesRequest, options?: RawAxiosRequestConfig) {
         return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
+     * @summary Análise temporal de ações
+     * @param {string} authorization Bearer token
+     * @param {number} [months] Número de meses anteriores
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
+     * @summary Valor recuperado
+     * @param {string} authorization Bearer token
+     * @param {string} [groupBy] regiao|pt
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -11716,1065 +12597,6 @@ export class RegiaoApi extends BaseAPI {
      */
     public privateRegioesPost(authorization: string, payload: RegiaoCreateRegiaoRequest, options?: RawAxiosRequestConfig) {
         return RegiaoApiFp(this.configuration).privateRegioesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
- * ReportsApi - axios parameter creator
- * @export
- */
-export const ReportsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Dispara o envio do relatório mensal de vandalizações para todos os utilizadores conforme o seu âmbito
-         * @summary Executar relatório mensal
-         * @param {string} authorization Bearer token
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsExecutePost: async (authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsExecutePost', 'authorization', authorization)
-            const localVarPath = `/private/reports/execute`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Exporta dados em CSV para as entidades suportadas
-         * @summary Exportar relatório CSV
-         * @param {string} entity asc|regiao|occurrences|infractions|infractors|accoes|installations|instalacao_accoes
-         * @param {string} authorization Bearer token
-         * @param {string} [dateStart] RFC3339 start date
-         * @param {string} [dateEnd] RFC3339 end date
-         * @param {string} [regiaoId] Filter by Regiao
-         * @param {string} [ascId] Filter by ASC
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsExportGet: async (entity: string, authorization: string, dateStart?: string, dateEnd?: string, regiaoId?: string, ascId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'entity' is not null or undefined
-            assertParamExists('privateReportsExportGet', 'entity', entity)
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsExportGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/export`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (entity !== undefined) {
-                localVarQueryParameter['entity'] = entity;
-            }
-
-            if (dateStart !== undefined) {
-                localVarQueryParameter['date_start'] = dateStart;
-            }
-
-            if (dateEnd !== undefined) {
-                localVarQueryParameter['date_end'] = dateEnd;
-            }
-
-            if (regiaoId !== undefined) {
-                localVarQueryParameter['regiao_id'] = regiaoId;
-            }
-
-            if (ascId !== undefined) {
-                localVarQueryParameter['asc_id'] = ascId;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
-         * @summary Contagens de ações por instalação
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesContagensGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacaoAccoesContagensGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacao-accoes/contagens`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (groupBy !== undefined) {
-                localVarQueryParameter['group_by'] = groupBy;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (marcacaoStatus !== undefined) {
-                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
-            }
-
-            if (analiseStatus !== undefined) {
-                localVarQueryParameter['analise_status'] = analiseStatus;
-            }
-
-            if (regiaoId !== undefined) {
-                localVarQueryParameter['regiao_id'] = regiaoId;
-            }
-
-            if (ptId !== undefined) {
-                localVarQueryParameter['pt_id'] = ptId;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Top grupos (regiao|pt) por valor recuperado.
-         * @summary Melhores grupos por valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {number} [limit] Número máximo de grupos
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesMelhoresGet: async (authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacaoAccoesMelhoresGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacao-accoes/melhores`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (groupBy !== undefined) {
-                localVarQueryParameter['group_by'] = groupBy;
-            }
-
-            if (limit !== undefined) {
-                localVarQueryParameter['limit'] = limit;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (marcacaoStatus !== undefined) {
-                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
-            }
-
-            if (analiseStatus !== undefined) {
-                localVarQueryParameter['analise_status'] = analiseStatus;
-            }
-
-            if (regiaoId !== undefined) {
-                localVarQueryParameter['regiao_id'] = regiaoId;
-            }
-
-            if (ptId !== undefined) {
-                localVarQueryParameter['pt_id'] = ptId;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
-         * @summary Análise temporal de ações
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesTemporalGet: async (authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacaoAccoesTemporalGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacao-accoes/temporal`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (months !== undefined) {
-                localVarQueryParameter['months'] = months;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (marcacaoStatus !== undefined) {
-                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
-            }
-
-            if (analiseStatus !== undefined) {
-                localVarQueryParameter['analise_status'] = analiseStatus;
-            }
-
-            if (regiaoId !== undefined) {
-                localVarQueryParameter['regiao_id'] = regiaoId;
-            }
-
-            if (ptId !== undefined) {
-                localVarQueryParameter['pt_id'] = ptId;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
-         * @summary Valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesValorRecuperadoGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacaoAccoesValorRecuperadoGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacao-accoes/valor_recuperado`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (groupBy !== undefined) {
-                localVarQueryParameter['group_by'] = groupBy;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (marcacaoStatus !== undefined) {
-                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
-            }
-
-            if (analiseStatus !== undefined) {
-                localVarQueryParameter['analise_status'] = analiseStatus;
-            }
-
-            if (regiaoId !== undefined) {
-                localVarQueryParameter['regiao_id'] = regiaoId;
-            }
-
-            if (ptId !== undefined) {
-                localVarQueryParameter['pt_id'] = ptId;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Totais de inspeções por grupo (regiao|pt). Filtros opcionais.
-         * @summary Contagens de instalações
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesContagensGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacoesContagensGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacoes/contagens`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (groupBy !== undefined) {
-                localVarQueryParameter['group_by'] = groupBy;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (minScore !== undefined) {
-                localVarQueryParameter['min_score'] = minScore;
-            }
-
-            if (maxScore !== undefined) {
-                localVarQueryParameter['max_score'] = maxScore;
-            }
-
-            if (zeroComprasLast6 !== undefined) {
-                localVarQueryParameter['zero_compras_last6'] = zeroComprasLast6;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros opcionais.
-         * @summary Défice total
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesDeficitGet: async (authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacoesDeficitGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacoes/deficit`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (groupBy !== undefined) {
-                localVarQueryParameter['group_by'] = groupBy;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (minScore !== undefined) {
-                localVarQueryParameter['min_score'] = minScore;
-            }
-
-            if (maxScore !== undefined) {
-                localVarQueryParameter['max_score'] = maxScore;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Contagem e défice por mês nos últimos X meses. Filtros opcionais.
-         * @summary Análise temporal
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesTemporalGet: async (authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authorization' is not null or undefined
-            assertParamExists('privateReportsInstalacoesTemporalGet', 'authorization', authorization)
-            const localVarPath = `/private/reports/instalacoes/temporal`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            if (months !== undefined) {
-                localVarQueryParameter['months'] = months;
-            }
-
-            if (tendenciaCompras !== undefined) {
-                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
-            }
-
-            if (minScore !== undefined) {
-                localVarQueryParameter['min_score'] = minScore;
-            }
-
-            if (maxScore !== undefined) {
-                localVarQueryParameter['max_score'] = maxScore;
-            }
-
-            if (zeroComprasLast6 !== undefined) {
-                localVarQueryParameter['zero_compras_last6'] = zeroComprasLast6;
-            }
-
-
-    
-            if (authorization != null) {
-                localVarHeaderParameter['Authorization'] = String(authorization);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * ReportsApi - functional programming interface
- * @export
- */
-export const ReportsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ReportsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Dispara o envio do relatório mensal de vandalizações para todos os utilizadores conforme o seu âmbito
-         * @summary Executar relatório mensal
-         * @param {string} authorization Bearer token
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsExecutePost(authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InoutOkResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsExecutePost(authorization, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsExecutePost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Exporta dados em CSV para as entidades suportadas
-         * @summary Exportar relatório CSV
-         * @param {string} entity asc|regiao|occurrences|infractions|infractors|accoes|installations|instalacao_accoes
-         * @param {string} authorization Bearer token
-         * @param {string} [dateStart] RFC3339 start date
-         * @param {string} [dateEnd] RFC3339 end date
-         * @param {string} [regiaoId] Filter by Regiao
-         * @param {string} [ascId] Filter by ASC
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsExportGet(entity: string, authorization: string, dateStart?: string, dateEnd?: string, regiaoId?: string, ascId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsExportGet(entity, authorization, dateStart, dateEnd, regiaoId, ascId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsExportGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
-         * @summary Contagens de ações por instalação
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesCountsResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacaoAccoesContagensGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Top grupos (regiao|pt) por valor recuperado.
-         * @summary Melhores grupos por valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {number} [limit] Número máximo de grupos
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesValueResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacaoAccoesMelhoresGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
-         * @summary Análise temporal de ações
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesTemporalResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacaoAccoesTemporalGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
-         * @summary Valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesValueResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacaoAccoesValorRecuperadoGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Totais de inspeções por grupo (regiao|pt). Filtros opcionais.
-         * @summary Contagens de instalações
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesCountsResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacoesContagensGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros opcionais.
-         * @summary Défice total
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesDeficitResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacoesDeficitGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Contagem e défice por mês nos últimos X meses. Filtros opcionais.
-         * @summary Análise temporal
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async privateReportsInstalacoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacoesTemporalResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateReportsInstalacoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReportsApi.privateReportsInstalacoesTemporalGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * ReportsApi - factory interface
- * @export
- */
-export const ReportsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ReportsApiFp(configuration)
-    return {
-        /**
-         * Dispara o envio do relatório mensal de vandalizações para todos os utilizadores conforme o seu âmbito
-         * @summary Executar relatório mensal
-         * @param {string} authorization Bearer token
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsExecutePost(authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<InoutOkResponse> {
-            return localVarFp.privateReportsExecutePost(authorization, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Exporta dados em CSV para as entidades suportadas
-         * @summary Exportar relatório CSV
-         * @param {string} entity asc|regiao|occurrences|infractions|infractors|accoes|installations|instalacao_accoes
-         * @param {string} authorization Bearer token
-         * @param {string} [dateStart] RFC3339 start date
-         * @param {string} [dateEnd] RFC3339 end date
-         * @param {string} [regiaoId] Filter by Regiao
-         * @param {string} [ascId] Filter by ASC
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsExportGet(entity: string, authorization: string, dateStart?: string, dateEnd?: string, regiaoId?: string, ascId?: string, options?: RawAxiosRequestConfig): AxiosPromise<File> {
-            return localVarFp.privateReportsExportGet(entity, authorization, dateStart, dateEnd, regiaoId, ascId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
-         * @summary Contagens de ações por instalação
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesCountsResponse> {
-            return localVarFp.privateReportsInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Top grupos (regiao|pt) por valor recuperado.
-         * @summary Melhores grupos por valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {number} [limit] Número máximo de grupos
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesValueResponse> {
-            return localVarFp.privateReportsInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
-         * @summary Análise temporal de ações
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesTemporalResponse> {
-            return localVarFp.privateReportsInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
-         * @summary Valor recuperado
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-         * @param {string} [regiaoId] Filter by Regiao ID
-         * @param {string} [ptId] Filter by PT ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesValueResponse> {
-            return localVarFp.privateReportsInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Totais de inspeções por grupo (regiao|pt). Filtros opcionais.
-         * @summary Contagens de instalações
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesCountsResponse> {
-            return localVarFp.privateReportsInstalacoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros opcionais.
-         * @summary Défice total
-         * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesDeficitResponse> {
-            return localVarFp.privateReportsInstalacoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Contagem e défice por mês nos últimos X meses. Filtros opcionais.
-         * @summary Análise temporal
-         * @param {string} authorization Bearer token
-         * @param {number} [months] Número de meses anteriores
-         * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-         * @param {number} [minScore] Score mínimo
-         * @param {number} [maxScore] Score máximo
-         * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        privateReportsInstalacoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacoesTemporalResponse> {
-            return localVarFp.privateReportsInstalacoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * ReportsApi - object-oriented interface
- * @export
- * @class ReportsApi
- * @extends {BaseAPI}
- */
-export class ReportsApi extends BaseAPI {
-    /**
-     * Dispara o envio do relatório mensal de vandalizações para todos os utilizadores conforme o seu âmbito
-     * @summary Executar relatório mensal
-     * @param {string} authorization Bearer token
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsExecutePost(authorization: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsExecutePost(authorization, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Exporta dados em CSV para as entidades suportadas
-     * @summary Exportar relatório CSV
-     * @param {string} entity asc|regiao|occurrences|infractions|infractors|accoes|installations|instalacao_accoes
-     * @param {string} authorization Bearer token
-     * @param {string} [dateStart] RFC3339 start date
-     * @param {string} [dateEnd] RFC3339 end date
-     * @param {string} [regiaoId] Filter by Regiao
-     * @param {string} [ascId] Filter by ASC
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsExportGet(entity: string, authorization: string, dateStart?: string, dateEnd?: string, regiaoId?: string, ascId?: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsExportGet(entity, authorization, dateStart, dateEnd, regiaoId, ascId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
-     * @summary Contagens de ações por instalação
-     * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
-     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-     * @param {string} [regiaoId] Filter by Regiao ID
-     * @param {string} [ptId] Filter by PT ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Top grupos (regiao|pt) por valor recuperado.
-     * @summary Melhores grupos por valor recuperado
-     * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
-     * @param {number} [limit] Número máximo de grupos
-     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-     * @param {string} [regiaoId] Filter by Regiao ID
-     * @param {string} [ptId] Filter by PT ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacaoAccoesMelhoresGet(authorization: string, groupBy?: string, limit?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacaoAccoesMelhoresGet(authorization, groupBy, limit, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
-     * @summary Análise temporal de ações
-     * @param {string} authorization Bearer token
-     * @param {number} [months] Número de meses anteriores
-     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-     * @param {string} [regiaoId] Filter by Regiao ID
-     * @param {string} [ptId] Filter by PT ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacaoAccoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacaoAccoesTemporalGet(authorization, months, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
-     * @summary Valor recuperado
-     * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
-     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
-     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
-     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
-     * @param {string} [regiaoId] Filter by Regiao ID
-     * @param {string} [ptId] Filter by PT ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacaoAccoesValorRecuperadoGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacaoAccoesValorRecuperadoGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Totais de inspeções por grupo (regiao|pt). Filtros opcionais.
-     * @summary Contagens de instalações
-     * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
-     * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-     * @param {number} [minScore] Score mínimo
-     * @param {number} [maxScore] Score máximo
-     * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacoesContagensGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Diferença entre compras e equipamentos por grupo (regiao|pt). Filtros opcionais.
-     * @summary Défice total
-     * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
-     * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-     * @param {number} [minScore] Score mínimo
-     * @param {number} [maxScore] Score máximo
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacoesDeficitGet(authorization: string, groupBy?: string, tendenciaCompras?: string, minScore?: number, maxScore?: number, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacoesDeficitGet(authorization, groupBy, tendenciaCompras, minScore, maxScore, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Contagem e défice por mês nos últimos X meses. Filtros opcionais.
-     * @summary Análise temporal
-     * @param {string} authorization Bearer token
-     * @param {number} [months] Número de meses anteriores
-     * @param {string} [tendenciaCompras] Filtrar por tendência (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
-     * @param {number} [minScore] Score mínimo
-     * @param {number} [maxScore] Score máximo
-     * @param {boolean} [zeroComprasLast6] Apenas com compras_6_meses &#x3D; 0
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ReportsApi
-     */
-    public privateReportsInstalacoesTemporalGet(authorization: string, months?: number, tendenciaCompras?: string, minScore?: number, maxScore?: number, zeroComprasLast6?: boolean, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).privateReportsInstalacoesTemporalGet(authorization, months, tendenciaCompras, minScore, maxScore, zeroComprasLast6, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -55,6 +55,7 @@ docs/InfractorInfractorListResponse.md
 docs/InfractorUpdateInfractorRequest.md
 docs/InoutBaseResponse.md
 docs/InoutOkResponse.md
+docs/InspeccoesApi.md
 docs/InstalacaoAccaoTipoApi.md
 docs/InstalacaoAccaoTipoCreateInstalacaoAccaoTipoRequest.md
 docs/InstalacaoAccaoTipoInstalacaoAccaoTipoListResponse.md
@@ -117,7 +118,6 @@ docs/ReportInstalacoesDeficitItem.md
 docs/ReportInstalacoesDeficitResponse.md
 docs/ReportInstalacoesTemporalItem.md
 docs/ReportInstalacoesTemporalResponse.md
-docs/ReportsApi.md
 docs/ScrapyardApi.md
 docs/ScrapyardCreateScrapyardRequest.md
 docs/ScrapyardScrapyardListResponse.md

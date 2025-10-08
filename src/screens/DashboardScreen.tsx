@@ -38,6 +38,8 @@ import AccaoDetailScreen from './AccaoDetailScreen'
 import InstallationsScreen from './InstallationsScreen'
 import InstallationDetailScreen from './InstallationDetailScreen'
 import InstalacaoAccoesScreen from './InstalacaoAccoesScreen'
+import InstalacoesDashboardScreen from './InstalacoesDashboardScreen'
+import InspeccoesDashboardScreen from './InspeccoesDashboardScreen'
 import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
 import AccaoEditScreen from './AccaoEditScreen'
 
@@ -66,6 +68,8 @@ export default function DashboardScreen() {
     accoes: '/accoes',
     instalacoes: '/instalacoes',
     instalacaoAccoes: '/instalacoes/accoes',
+    instalacoesDashboard: '/instalacoes/dashboard',
+    inspeccoesDashboard: '/inspeccoes/dashboard',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -249,8 +253,12 @@ export default function DashboardScreen() {
               items: MENU.filter((i) => !['instalacoes', 'utilizadores', 'config'].includes(i.key))
             },
             { label: 'Instalações', items: [
+              { key: 'instalacoesDashboard', label: 'Dashboard' },
               { key: 'instalacoes', label: 'Lista' },
               { key: 'instalacaoAccoes', label: 'Ações' },
+            ] },
+            { label: 'Inspeções', items: [
+              { key: 'inspeccoesDashboard', label: 'Dashboard' },
             ] },
             { label: 'Configurações', items: [
               { key: 'utilizadores', label: 'Utilizadores' },
@@ -505,6 +513,8 @@ export default function DashboardScreen() {
           <InstallationsScreen />
         )
       )}
+      {active === 'instalacoesDashboard' && <InstalacoesDashboardScreen />}
+      {active === 'inspeccoesDashboard' && <InspeccoesDashboardScreen />}
       {active === 'instalacaoAccoes' && <InstalacaoAccoesScreen />}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       

@@ -4,12 +4,88 @@ All URIs are relative to */api*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**privateInstalacaoAccoesContagensGet**](#privateinstalacaoaccoescontagensget) | **GET** /private/instalacao-accoes/contagens | Contagens de ações por instalação|
 |[**privateInstalacaoAccoesExecuteMonthlyAnalisysPost**](#privateinstalacaoaccoesexecutemonthlyanalisyspost) | **POST** /private/instalacao-accoes/execute_monthly_analisys | Execute monthly analysis for running InstalacaoAccoes|
 |[**privateInstalacaoAccoesGet**](#privateinstalacaoaccoesget) | **GET** /private/instalacao-accoes | List InstalacaoAccoes|
 |[**privateInstalacaoAccoesIdDelete**](#privateinstalacaoaccoesiddelete) | **DELETE** /private/instalacao-accoes/{id} | Delete InstalacaoAccoes|
 |[**privateInstalacaoAccoesIdGet**](#privateinstalacaoaccoesidget) | **GET** /private/instalacao-accoes/{id} | Get InstalacaoAccoes|
 |[**privateInstalacaoAccoesIdPut**](#privateinstalacaoaccoesidput) | **PUT** /private/instalacao-accoes/{id} | Update InstalacaoAccoes|
+|[**privateInstalacaoAccoesMelhoresGet**](#privateinstalacaoaccoesmelhoresget) | **GET** /private/instalacao-accoes/melhores | Melhores grupos por valor recuperado|
 |[**privateInstalacaoAccoesPost**](#privateinstalacaoaccoespost) | **POST** /private/instalacao-accoes | Create InstalacaoAccoes|
+|[**privateInstalacaoAccoesTemporalGet**](#privateinstalacaoaccoestemporalget) | **GET** /private/instalacao-accoes/temporal | Análise temporal de ações|
+|[**privateInstalacaoAccoesValorRecuperadoGet**](#privateinstalacaoaccoesvalorrecuperadoget) | **GET** /private/instalacao-accoes/valor_recuperado | Valor recuperado|
+
+# **privateInstalacaoAccoesContagensGet**
+> ReportInstalacaoAccoesCountsResponse privateInstalacaoAccoesContagensGet()
+
+Totais de ações por grupo (regiao|pt). Filtros por tendência, marcação e análise.
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let groupBy: string; //regiao|pt (optional) (default to 'regiao')
+let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
+let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
+let analiseStatus: string; //EM_ANALISE|ANALISADO (optional) (default to undefined)
+let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ptId: string; //Filter by PT ID (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesContagensGet(
+    authorization,
+    groupBy,
+    tendenciaCompras,
+    marcacaoStatus,
+    analiseStatus,
+    regiaoId,
+    ptId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **groupBy** | [**string**] | regiao|pt | (optional) defaults to 'regiao'|
+| **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | EM_ANALISE|ANALISADO | (optional) defaults to undefined|
+| **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+
+
+### Return type
+
+**ReportInstalacaoAccoesCountsResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **privateInstalacaoAccoesExecuteMonthlyAnalisysPost**
 > InstalacaoAccoesExecuteMonthlyAnalysisResponse privateInstalacaoAccoesExecuteMonthlyAnalisysPost()
@@ -314,6 +390,81 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesIdPut(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **privateInstalacaoAccoesMelhoresGet**
+> ReportInstalacaoAccoesValueResponse privateInstalacaoAccoesMelhoresGet()
+
+Top grupos (regiao|pt) por valor recuperado.
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let groupBy: string; //regiao|pt (optional) (default to 'regiao')
+let limit: number; //Número máximo de grupos (optional) (default to 5)
+let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
+let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
+let analiseStatus: string; //EM_ANALISE|ANALISADO (optional) (default to undefined)
+let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ptId: string; //Filter by PT ID (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesMelhoresGet(
+    authorization,
+    groupBy,
+    limit,
+    tendenciaCompras,
+    marcacaoStatus,
+    analiseStatus,
+    regiaoId,
+    ptId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **groupBy** | [**string**] | regiao|pt | (optional) defaults to 'regiao'|
+| **limit** | [**number**] | Número máximo de grupos | (optional) defaults to 5|
+| **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | EM_ANALISE|ANALISADO | (optional) defaults to undefined|
+| **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+
+
+### Return type
+
+**ReportInstalacaoAccoesValueResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **privateInstalacaoAccoesPost**
 > ModelInstalacaoAccoes privateInstalacaoAccoesPost(payload)
 
@@ -369,6 +520,150 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesPost(
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 |**409** | Conflict |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **privateInstalacaoAccoesTemporalGet**
+> ReportInstalacaoAccoesTemporalResponse privateInstalacaoAccoesTemporalGet()
+
+Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let months: number; //Número de meses anteriores (optional) (default to 6)
+let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
+let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
+let analiseStatus: string; //EM_ANALISE|ANALISADO (optional) (default to undefined)
+let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ptId: string; //Filter by PT ID (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesTemporalGet(
+    authorization,
+    months,
+    tendenciaCompras,
+    marcacaoStatus,
+    analiseStatus,
+    regiaoId,
+    ptId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **months** | [**number**] | Número de meses anteriores | (optional) defaults to 6|
+| **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | EM_ANALISE|ANALISADO | (optional) defaults to undefined|
+| **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+
+
+### Return type
+
+**ReportInstalacaoAccoesTemporalResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **privateInstalacaoAccoesValorRecuperadoGet**
+> ReportInstalacaoAccoesValueResponse privateInstalacaoAccoesValorRecuperadoGet()
+
+Soma de (compras_6_antes - compras_6_depois) para ações finalizadas, agrupado por regiao|pt. Filtros por tendência, marcação e análise.
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let groupBy: string; //regiao|pt (optional) (default to 'regiao')
+let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
+let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
+let analiseStatus: string; //EM_ANALISE|ANALISADO (optional) (default to undefined)
+let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ptId: string; //Filter by PT ID (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesValorRecuperadoGet(
+    authorization,
+    groupBy,
+    tendenciaCompras,
+    marcacaoStatus,
+    analiseStatus,
+    regiaoId,
+    ptId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **groupBy** | [**string**] | regiao|pt | (optional) defaults to 'regiao'|
+| **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | EM_ANALISE|ANALISADO | (optional) defaults to undefined|
+| **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+
+
+### Return type
+
+**ReportInstalacaoAccoesValueResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

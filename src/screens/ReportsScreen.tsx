@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Button, Card, Heading } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { ReportsApi, RegiaoApi, ASCApi, type ModelRegiao, type ModelASC } from '../services'
+import { RegiaoApi, ASCApi, type ModelRegiao, type ModelASC } from '../services'
 
 export default function ReportsScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
-  const reportsApi = useMemo(() => new ReportsApi(getApiConfig()), [getApiConfig])
+  const basePath = useMemo(() => (getApiConfig() as any)?.basePath || '/api', [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
   const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
@@ -41,8 +41,8 @@ export default function ReportsScreen() {
   async function runMonthly() {
     setExecMsg(null); setExecuting(true)
     try {
-      const { data } = await reportsApi.privateReportsExecutePost(authHeader)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      const resp = await fetch(`${basePath}/private/reports/execute`, { method: 'POST', headers: { Authorization: authHeader } })
+      if (resp.status === 401) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setExecMsg('Relatório mensal executado com sucesso.')
     } catch (err: any) {
       const status = err?.response?.status
@@ -62,17 +62,15 @@ export default function ReportsScreen() {
   async function exportCsv() {
     setDownloadMsg(null); setDownloading(true)
     try {
-      const resp = await reportsApi.privateReportsExportGet(
-        entity,
-        authHeader,
-        toRfc3339(dateStart),
-        toRfc3339End(dateEnd),
-        regiaoId || undefined,
-        ascId || undefined,
-        { responseType: 'blob' }
-      )
-      const data: any = resp.data as any
-      const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/csv;charset=utf-8' })
+      const qs = new URLSearchParams()
+      if (dateStart) qs.set('date_start', String(toRfc3339(dateStart)))
+      if (dateEnd) qs.set('date_end', String(toRfc3339End(dateEnd)))
+      if (regiaoId) qs.set('regiao_id', regiaoId)
+      if (ascId) qs.set('asc_id', ascId)
+      const urlReq = `${basePath}/private/reports/export?entity=${encodeURIComponent(entity)}${qs.toString() ? `&${qs.toString()}` : ''}`
+      const resp = await fetch(urlReq, { headers: { Authorization: authHeader } })
+      if (resp.status === 401) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      const blob = await resp.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **group_id** | **string** |  | [optional] [default to undefined]
+**group_name** | **string** |  | [optional] [default to undefined]
 **valor** | **number** |  | [optional] [default to undefined]
 
 ## Example
@@ -15,6 +16,7 @@ import { ReportInstalacaoAccoesValueItem } from './api';
 
 const instance: ReportInstalacaoAccoesValueItem = {
     group_id,
+    group_name,
     valor,
 };
 ```
