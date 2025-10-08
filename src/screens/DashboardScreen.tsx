@@ -239,6 +239,8 @@ export default function DashboardScreen() {
     tiposInfracao: 'Tipos de Infração',
     relatorios: 'Relatórios',
     instalacoes: 'Instalações',
+    instalacoesDashboard: 'Dashboard',
+    inspeccoesDashboard: 'Dashboard',
   }
   const headerTitle = TITLE_MAP[active] || '—'
   const showHeaderTitle = active !== 'instalacoes'
