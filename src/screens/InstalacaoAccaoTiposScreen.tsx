@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import {
   InstalacaoAccaoTipoApi,
@@ -114,8 +114,6 @@ export default function InstalacaoAccaoTiposScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Tipo de Ações</Heading>
-
       <Card title="Filtros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <input value={filterName} onChange={(e) => setFilterName(e.target.value)} placeholder="Pesquisar por nome" style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', flex: '1 1 240px' }} />
@@ -211,4 +209,3 @@ function TipoAccaoForm({ defaultValues, submitting, onSubmit, onCancel }: { defa
     </form>
   )
 }
-

@@ -175,12 +175,12 @@ export default function DashboardScreen() {
           dashApi.privateDashboardFinanceTotalsGet(authHeader),
           dashApi.privateDashboardFinanceCompareGet(authHeader, 3),
           dashApi.privateDashboardScrapyardsRiskTopGet(authHeader, 5),
-          dashApi.privateDashboardOccurrencesByAscGet(authHeader, 'occurrences', 'asc', authHeader, undefined, undefined, undefined, undefined),
+          dashApi.privateDashboardOccurrencesByAscGet(authHeader),
           dashApi.privateDashboardFinanceTopGet(authHeader, undefined, undefined, undefined, 'loss', 5),
           dashApi.privateDashboardFinanceTimeseriesGet(authHeader, undefined, undefined, undefined, undefined, 'month'),
           dashApi.privateDashboardInfractionsValueTimeseriesGet(authHeader, 'month'),
-          dashApi.privateDashboardGroupedGet(authHeader, 'infractions', 'tipo', authHeader),
-          dashApi.privateDashboardGroupedGet(authHeader, 'occurrences', 'regiao', authHeader)
+          dashApi.privateDashboardGroupedGet('infractions', 'tipo', authHeader),
+          dashApi.privateDashboardGroupedGet('occurrences', 'regiao', authHeader)
         ])
         ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(byAsc.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data)
         setKpis(ov.data)
@@ -863,7 +863,14 @@ function DashboardMap({ height = 420 }: { height?: number }) {
       try { await injectScriptOnce(key) } catch (e: any) { setError(e?.message || 'Falha ao inicializar o mapa.'); return }
       const g = (window as any).google?.maps
       const center = { lat: -25.965, lng: 32.571 }
-      mapRef.current = new g.Map(containerRef.current, { center, zoom: 11, mapTypeControl: false, fullscreenControl: false, streetViewControl: false })
+      mapRef.current = new g.Map(containerRef.current, {
+        center,
+        zoom: 10, // ligeiramente mais afastado por defeito
+        maxZoom: 12, // limitar zoom máximo automático
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false,
+      })
     }
     init()
   }, [])
@@ -953,6 +960,14 @@ function DashboardMap({ height = 420 }: { height?: number }) {
       const bounds = new (window as any).google.maps.LatLngBounds()
       positions.forEach((p) => bounds.extend(p))
       mapRef.current.fitBounds(bounds)
+      // reduzir ligeiramente o zoom automático (caso aproxime demasiado)
+      const gEvent = (window as any).google.maps.event
+      gEvent.addListenerOnce(mapRef.current, 'idle', () => {
+        try {
+          const z = mapRef.current.getZoom()
+          if (typeof z === 'number' && z > 12) mapRef.current.setZoom(12)
+        } catch {}
+      })
     }
   }, [scrapyards, infractions])
 

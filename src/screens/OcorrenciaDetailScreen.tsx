@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card, Text } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
 import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, MaterialApi, ScrapyardApi, type ModelOccurrence, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelMaterial, type ModelScrapyard } from '../services'
 import { useAuth } from '../contexts/AuthContext'
@@ -159,7 +159,7 @@ export default function OcorrenciaDetailScreen() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Detalhes da ocorrência</Heading>
+      {/* Título removido para evitar duplicação com o header */}
         <div style={{ display: 'flex', gap: 8 }}>
           <Button variant="secondary" onClick={voltar}>Voltar</Button>
           <Button onClick={editar}>Editar</Button>

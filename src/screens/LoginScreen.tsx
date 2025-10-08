@@ -94,13 +94,28 @@ export default function LoginScreen() {
       <div
         aria-hidden
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${loginPhoto})`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(${loginPhoto})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          minHeight: '100vh'
+          minHeight: '100vh',
+          position: 'relative'
         }}
         className="login-bg"
-      />
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: 'clamp(24px, 6vw, 64px)',
+            bottom: 'clamp(32px, 8vh, 96px)',
+            color: '#f9fafb',
+            textShadow: '0 2px 8px rgba(0,0,0,.4)',
+            maxWidth: 560,
+            lineHeight: 1.1
+          }}
+        >
+          <div style={{ fontSize: 'clamp(24px, 4vw, 46px)', fontWeight: 800 }}>com energia construímos futuro</div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InfractorApi, type ModelInfractor } from '../services'
 
@@ -60,8 +60,6 @@ export default function InfractorsScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Infractores</Heading>
-
       <Card title="Filtros">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome" style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', minWidth: 180 }} />
@@ -137,4 +135,3 @@ function Th({ label, active, direction, onClick }: { label: string; active?: boo
 }
 
 function formatDate(iso?: string) { if (!iso) return '-'; try { const d = new Date(iso); if (Number.isNaN(d.getTime())) return '-'; return d.toLocaleString('pt-PT') } catch { return '-' } }
-

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Heading, Text } from '../components'
+import { Card, Button, Text } from '../components'
 import { TipoInfracaoApi, type TipoInfracaoCreateTipoInfracaoRequest, type TipoInfracaoUpdateTipoInfracaoRequest, type ModelTipoInfracao } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -111,8 +111,7 @@ export default function TiposInfracaoScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Tipos de Infração</Heading>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input value={filterName} onChange={(e) => setFilterName(e.target.value)} placeholder="Filtrar por nome" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
           <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>

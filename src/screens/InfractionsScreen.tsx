@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InfractionApi, SectorInfracaoApi, TipoInfracaoApi, type ModelInfraction, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
 
@@ -104,8 +104,6 @@ export default function InfractionsScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Infrações</Heading>
-
       <Card title="Filtros">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <select value={sectorId} onChange={(e) => setSectorId(e.target.value)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>

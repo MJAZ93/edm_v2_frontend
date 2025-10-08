@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { AccoesApi, ASCApi, MaterialApi, type ModelAccoes, type ModelASC, type ModelMaterial } from '../services'
 
@@ -88,8 +88,6 @@ export default function AccoesScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Ações</Heading>
-
       <Card title="Filtros">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Pesquisar por termo…" style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', minWidth: 220 }} />

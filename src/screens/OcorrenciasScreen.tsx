@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Heading, Text } from '../components'
+import { Card, Button, Text } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
 import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, type ModelOccurrence, type OccurrenceCreateOccurrenceRequest, type OccurrenceUpdateOccurrenceRequest, type OccurrenceCreateOccurrenceInfraction, type OccurrenceCreateOccurrenceInfractor, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
 import { useAuth } from '../contexts/AuthContext'
@@ -166,8 +166,6 @@ export default function OcorrenciasScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Ocorrências</Heading>
-
       <Card title="Filtros">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <input

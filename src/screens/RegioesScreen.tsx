@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Heading, Text } from '../components'
+import { Card, Button, Text } from '../components'
 import { RegiaoApi, type ModelRegiao, type RegiaoCreateRegiaoRequest, type RegiaoUpdateRegiaoRequest } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -113,8 +113,7 @@ export default function RegioesScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Regiões</Heading>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             value={filterName}
