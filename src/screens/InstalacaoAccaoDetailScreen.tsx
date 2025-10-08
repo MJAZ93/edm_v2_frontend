@@ -120,17 +120,21 @@ export default function InstalacaoAccaoDetailScreen() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
         <Card title="Compras (últimos períodos)">
-          <ComprasChart data={compras} />
+          <ComprasChart data={compras} actionDate={accao?.data_execucao} />
         </Card>
-        <Card title="Equipamentos Eléctricos">
+        <Card title="Consumo calculado" subtitle="Estimativa por equipamentos (kWh)">
           <EquipamentosList items={equipamentos} emptyHint={!inst?.inspecao_id ? 'Sem inspeção associada para este mês.' : 'Sem equipamentos registados.'} />
         </Card>
       </div>
 
+      <Card title="Antes vs Depois (kWh)" subtitle="Totais nos 6 meses antes e depois da ação">
+        <BeforeAfterPurchases data={compras} actionDate={accao?.data_execucao} months={6} />
+      </Card>
+
       <Card title="Resumo do mês da ação" subtitle="Indicadores da instalação nesse mês">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          <Metric label="Compras (últ. 6m)" value={formatNumber(inst?.compras_6_meses)} color="#0ea5e9" />
-          <Metric label="Compras vizinhos (6m)" value={formatNumber(inst?.compras_vizinhos_6_meses)} color="#6366f1" />
+          <Metric label="Compras (últ. 6m) (kWh)" value={formatNumber(inst?.compras_6_meses)} color="#0ea5e9" />
+          <Metric label="Compras vizinhos (6m) (kWh)" value={formatNumber(inst?.compras_vizinhos_6_meses)} color="#6366f1" />
           <Metric label="Equipamentos (6m)" value={formatNumber(inst?.equipamentos_6_meses)} color="#10b981" />
           <Metric label="Score" value={formatNumber(inst?.score)} color="#f59e0b" />
           <Metric label="AI Score" value={formatNumber(inst?.ai_score)} color="#ef4444" />
@@ -168,7 +172,7 @@ function Metric({ label, value, color = '#111827' }: { label: string; value: str
   )
 }
 
-function ComprasChart({ data = [] as ModelCompras[] }) {
+function ComprasChart({ data = [] as ModelCompras[], actionDate }: { data?: ModelCompras[]; actionDate?: string }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const [width, setWidth] = React.useState<number>(520)
   const H = 200
@@ -195,12 +199,28 @@ function ComprasChart({ data = [] as ModelCompras[] }) {
   const gap = barW / 2
   const x0 = pad + gap
   const sy = (y: number) => H - pad - (y / maxY) * (H - pad * 2)
+  const tsAction = toDateMs(actionDate)
+  // Calcula posição da linha de ação alinhada às barras (limite esquerdo do mês de execução)
+  const idxAction = Number.isFinite(tsAction) ? clean.findIndex((p) => p.ts >= tsAction) : -1
+  let xLine: number | null = null
+  if (Number.isFinite(tsAction)) {
+    if (!clean.length) xLine = null
+    else if (idxAction === -1) xLine = Math.min(W - pad, (pad + (W - pad)) - 1)
+    else if (tsAction < clean[0].ts) xLine = pad
+    else xLine = (pad + (gap)) + idxAction * (barW + gap)
+  }
 
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
       <svg width={W} height={H} role="img" aria-label="Compras (barras)">
         <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#e5e7eb" />
         <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#e5e7eb" />
+        {xLine != null && xLine >= pad && xLine <= (W - pad) && (
+          <g>
+            <line x1={xLine} y1={pad - 6} x2={xLine} y2={H - pad + 6} stroke="#ef4444" strokeDasharray="4 2" strokeWidth={3} />
+            <text x={Math.min(W - pad - 4, Math.max(pad + 4, xLine + 8))} y={pad + 10} fontSize={10} fill="#ef4444">Início da ação</text>
+          </g>
+        )}
         {clean.map((p, i) => {
           const h = (H - pad * 2) * (p.total / maxY)
           const x = x0 + i * (barW + gap)
@@ -217,7 +237,7 @@ function ComprasChart({ data = [] as ModelCompras[] }) {
           return (
             <g key={i}>
               <line x1={pad - 4} y1={y} x2={pad} y2={y} stroke="#e5e7eb" />
-              <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatNumber(yv)}</text>
+              <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatKwh(yv)}</text>
             </g>
           )
         })}
@@ -238,7 +258,7 @@ function EquipamentosList({ items = [], emptyHint = 'Sem equipamentos.' }: { ite
             <Th label="Quantidade" />
             <Th label="Horas" />
             <Th label="Dias" />
-            <Th label="Consumo estimado" />
+            <Th label="Consumo estimado (kWh)" />
           </tr>
         </thead>
         <tbody>
@@ -249,7 +269,7 @@ function EquipamentosList({ items = [], emptyHint = 'Sem equipamentos.' }: { ite
               <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.quantidade)}</td>
               <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.horas)}</td>
               <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.dias)}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.consumo_estimado)}</td>
+              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatKwh(e.consumo_estimado)}</td>
             </tr>
           ))}
         </tbody>
@@ -269,6 +289,7 @@ function formatDate(iso?: string) { if (!iso) return '—'; try { const d = new 
 function formatMonth(d: Date) { try { return d.toLocaleDateString('pt-PT', { month: 'short' }) } catch { return '' } }
 function formatNumber(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return n.toLocaleString('pt-PT') } catch { return String(n) } }
 function formatMoney(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` } }
+function formatKwh(n?: number) { if (typeof n !== 'number' || Number.isNaN(n)) return '—'; try { return `${n.toLocaleString('pt-PT')} kWh` } catch { return `${n} kWh` } }
 function formatTendencia(t?: any) {
   const v = String(t || '')
   switch (v) {
@@ -280,4 +301,43 @@ function formatTendencia(t?: any) {
     case 'SEM_COMPRAS': return 'Sem compras'
     default: return '—'
   }
+}
+
+function BeforeAfterPurchases({ data = [], actionDate, months = 6 }: { data?: ModelCompras[]; actionDate?: string; months?: number }) {
+  const tsAction = toDateMs(actionDate)
+  const series = (Array.isArray(data) ? data : [])
+    .map((d) => ({ ts: toDateMs(d.periodo), total: Number((d as any).trn_units || 0) }))
+    .filter((p) => Number.isFinite(p.ts))
+    .sort((a, b) => a.ts - b.ts)
+  if (!Number.isFinite(tsAction) || !series.length) return <div style={{ color: '#6b7280' }}>Sem dados suficientes.</div>
+  const before = series.filter((p) => p.ts < tsAction).slice(-months)
+  const after = series.filter((p) => p.ts >= tsAction).slice(0, months)
+  const sum = (arr: typeof series) => arr.reduce((s, p) => s + (Number.isFinite(p.total) ? p.total : 0), 0)
+  const bSum = sum(before)
+  const aSum = sum(after)
+  const delta = aSum - bSum
+  const pct = bSum !== 0 ? (delta / bSum) * 100 : null
+  const badge = (better: boolean | null) => ({ background: better == null ? '#f3f4f6' : better ? '#dcfce7' : '#fee2e2', border: `1px solid ${better == null ? '#e5e7eb' : better ? '#86efac' : '#fecaca'}` })
+  const isBetter = bSum > 0 ? aSum < bSum : null
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+      <div style={{ padding: 12, borderRadius: 10, ...badge(null) }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>Antes da ação ({months} meses)</div>
+        <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{formatKwh(bSum)}</div>
+      </div>
+      <div style={{ padding: 12, borderRadius: 10, ...badge(isBetter) }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>Depois da ação ({months} meses)</div>
+        <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{formatKwh(aSum)}</div>
+      </div>
+      <div style={{ padding: 12, borderRadius: 10, ...badge(isBetter) }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>Variação</div>
+        <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <div style={{ fontWeight: 700 }}>{formatKwh(bSum)}</div>
+          <span>→</span>
+          <div style={{ fontWeight: 800, fontSize: 18 }}>{formatKwh(aSum)}</div>
+          <div style={{ marginLeft: 'auto', fontWeight: 700 }}>{pct != null ? `${pct.toFixed(1)}%` : '—'}</div>
+        </div>
+      </div>
+    </div>
+  )
 }

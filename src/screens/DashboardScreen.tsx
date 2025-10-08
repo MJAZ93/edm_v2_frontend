@@ -276,9 +276,6 @@ export default function DashboardScreen() {
               { key: 'instalacoes', label: 'Lista' },
               { key: 'instalacaoAccoes', label: 'Ações' },
             ] },
-            { label: 'Inspeções', items: [
-              { key: 'inspeccoesDashboard', label: 'Dashboard' },
-            ] },
             { label: 'Configurações', items: [
               { key: 'utilizadores', label: 'Utilizadores' },
               { key: 'config', label: 'Configurações' },
