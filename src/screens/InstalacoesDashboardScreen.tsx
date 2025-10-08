@@ -18,6 +18,7 @@ export default function InstalacoesDashboardScreen() {
   const [regiaoId, setRegiaoId] = useState('')
   const [ascId, setAscId] = useState('')
   const [tendencia, setTendencia] = useState('')
+  const [ascCounts, setAscCounts] = useState<CountItem[]>([])
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -52,6 +53,19 @@ export default function InstalacoesDashboardScreen() {
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
   useEffect(() => { (async () => { try { const { data } = await regiaoApi.privateRegioesGet(auth, 1, 200, 'name', 'asc'); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setRegioes(((data as any)?.items) ?? []) } catch {} })() }, [regiaoApi, auth])
   useEffect(() => { (async () => { try { const { data } = await ascApi.privateAscsGet(auth, 1, 200, 'name', 'asc', undefined, regiaoId || undefined); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setAscs(((data as any)?.items) ?? []) } catch {} })() }, [ascApi, auth, regiaoId])
+  // Carregar contagens por ASC apenas quando houver Região selecionada
+  useEffect(() => {
+    (async () => {
+      if (!regiaoId) { setAscCounts([]); return }
+      try {
+        const { data } = await api.privateInspeccoesContagensGet(auth, 'asc' as any, tendencia || undefined)
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped: CountItem[] = raw.map((it: any) => ({ id: it?.group_id, label: it?.group_name, count: it?.total }))
+        setAscCounts(mapped)
+      } catch {}
+    })()
+  }, [api, auth, tendencia, regiaoId])
 
   // Aplicar filtros localmente (agrupado por Região)
   const ascRegiaoId = useMemo(() => (ascs.find(a => a.id === ascId)?.regiao_id) || '', [ascs, ascId])
@@ -96,46 +110,89 @@ export default function InstalacoesDashboardScreen() {
         </label>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 1fr', gap: 16, alignItems: 'stretch' }}>
-        <Card title="Inspeções — Contagens">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (filtered || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                ) : (
-                  filtered.map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{error}</div> : null}
-        </Card>
+      {!regiaoId && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 1fr', gap: 16, alignItems: 'stretch' }}>
+          <Card title="Inspeções — Contagens">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  ) : (filtered || []).length === 0 ? (
+                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  ) : (
+                    filtered.map((it, i) => (
+                      <tr key={i}>
+                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{error}</div> : null}
+          </Card>
 
-        <Card title="Inspeções — Distribuição">
-          <div style={{ maxWidth: 320 }}>
-            <DonutChart data={donutData} />
-          </div>
-        </Card>
-      </div>
+          <Card title="Inspeções — Distribuição">
+            <div style={{ maxWidth: 320 }}>
+              <DonutChart data={donutData} />
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {regiaoId && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 1fr', gap: 16, alignItems: 'stretch' }}>
+          <Card title="Inspeções — ASCs da região">
+            <div style={{ overflowY: 'auto', maxHeight: 260 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
+                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(ascs || []).length === 0 ? (
+                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem ASCs para mostrar.</td></tr>
+                  ) : (
+                    (ascs || []).map((a, i) => {
+                      const c = (ascCounts.find(x => x.id === a.id)?.count) ?? 0
+                      return (
+                      <tr key={i}>
+                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
+                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
+                      </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card title="Inspeções — Distribuição por ASC">
+            <div style={{ maxWidth: 420 }}>
+              <DonutChart
+                data={(ascs || []).map((a) => ({ label: a.name || a.id || '—', value: Number((ascCounts.find(x => x.id === a.id)?.count) ?? 0) }))}
+                legendMaxHeight={220}
+              />
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
 
-function DonutChart({ data }: { data: Array<{ label: string; value: number }> }) {
+function DonutChart({ data, legendMaxHeight }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number }) {
   const total = data.reduce((s, d) => s + (Number.isFinite(d.value) ? d.value : 0), 0)
   const R = 60
   const W = 200
@@ -175,7 +232,7 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number }> })
           {total}
         </text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, maxHeight: legendMaxHeight, overflowY: legendMaxHeight ? 'auto' : undefined }}>
         {data.slice(0, 6).map((d, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: colors[i % colors.length], display: 'inline-block' }} />
