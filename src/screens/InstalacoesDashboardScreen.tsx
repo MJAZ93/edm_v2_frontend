@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Card } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { InspeccoesApi, ASCApi, RegiaoApi, type ModelASC, type ModelRegiao } from '../services'
+import { InspeccoesApi, ASCApi, RegiaoApi, InstalacaoAccoesApi, type ModelASC, type ModelRegiao } from '../services'
 
 type CountItem = { id?: string; label?: string; count?: number }
 
@@ -18,6 +18,8 @@ export default function InstalacoesDashboardScreen() {
   const [regiaoId, setRegiaoId] = useState('')
   const [ascId, setAscId] = useState('')
   const [tendencia, setTendencia] = useState('')
+  const [marcacaoStatus, setMarcacaoStatus] = useState('')
+  const [analiseStatus, setAnaliseStatus] = useState('')
   const [ascCounts, setAscCounts] = useState<CountItem[]>([])
   const [deficitItems, setDeficitItems] = useState<Array<{ group_id?: string; deficit?: number }>>([])
   const [deficitLoading, setDeficitLoading] = useState(false)
@@ -66,6 +68,7 @@ export default function InstalacoesDashboardScreen() {
   // Carregar filtros (Regiões e ASCs)
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
+  const accoesApi = useMemo(() => new InstalacaoAccoesApi(getApiConfig()), [getApiConfig])
   useEffect(() => { (async () => { try { const { data } = await regiaoApi.privateRegioesGet(auth, 1, 200, 'name', 'asc'); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setRegioes(((data as any)?.items) ?? []) } catch {} })() }, [regiaoApi, auth])
   useEffect(() => { (async () => { try { const { data } = await ascApi.privateAscsGet(auth, 1, 200, 'name', 'asc', undefined, regiaoId || undefined); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setAscs(((data as any)?.items) ?? []) } catch {} })() }, [ascApi, auth, regiaoId])
   // Carregar contagens por ASC apenas quando houver Região selecionada
@@ -160,6 +163,124 @@ export default function InstalacoesDashboardScreen() {
     })()
   }, [api, auth])
 
+  // Contagens de ações por instalação (por região)
+  const [accoesCounts, setAccoesCounts] = useState<CountItem[]>([])
+  const [accoesLoading, setAccoesLoading] = useState(false)
+  const [accoesError, setAccoesError] = useState<string | null>(null)
+  // Melhores por valor recuperado
+  const [bestItems, setBestItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
+  const [bestLoading, setBestLoading] = useState(false)
+  const [bestError, setBestError] = useState<string | null>(null)
+  useEffect(() => {
+    (async () => {
+      setBestLoading(true); setBestError(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
+          auth,
+          'regiao',
+          10,
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: it?.group_name || (regioes.find(r => r.id === it?.group_id)?.name) || it?.group_id, value: Number(it?.valor || 0) }))
+        setBestItems(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setBestError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar melhores grupos por valor recuperado.')
+      } finally { setBestLoading(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
+
+  // Top por Tendência (valor recuperado)
+  const [bestTendItems, setBestTendItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
+  const [bestTendLoading, setBestTendLoading] = useState(false)
+  const [bestTendError, setBestTendError] = useState<string | null>(null)
+  useEffect(() => {
+    (async () => {
+      setBestTendLoading(true); setBestTendError(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
+          auth,
+          'tendencia',
+          10,
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: labelTendencia(it?.group_name || it?.group_id), value: Number(it?.valor || 0) }))
+        setBestTendItems(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setBestTendError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar top por tendência.')
+      } finally { setBestTendLoading(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId])
+
+  // Top por Análise (valor recuperado)
+  const [bestAnaliseItems, setBestAnaliseItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
+  const [bestAnaliseLoading, setBestAnaliseLoading] = useState(false)
+  const [bestAnaliseError, setBestAnaliseError] = useState<string | null>(null)
+  useEffect(() => {
+    (async () => {
+      setBestAnaliseLoading(true); setBestAnaliseError(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
+          auth,
+          'analise',
+          10,
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: labelAnalise(it?.group_name || it?.group_id), value: Number(it?.valor || 0) }))
+        setBestAnaliseItems(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setBestAnaliseError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar top por análise.')
+      } finally { setBestAnaliseLoading(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId])
+  useEffect(() => {
+    (async () => {
+      setAccoesLoading(true); setAccoesError(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesContagensGet(
+          auth,
+          'regiao',
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped: CountItem[] = raw.map((it: any) => ({ id: it?.group_id, label: (regioes.find(r => r.id === it?.group_id)?.name) || it?.group_id, count: it?.total }))
+        setAccoesCounts(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setAccoesError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar contagens de ações.')
+      } finally { setAccoesLoading(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -188,6 +309,22 @@ export default function InstalacoesDashboardScreen() {
             <option value="DECRESCENTE">Decrescente</option>
             <option value="MUITO_DECRESCENTE">Muito decrescente</option>
             <option value="SEM_COMPRAS">Sem compras</option>
+          </select>
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 13, color: '#374151' }}>Marcação</span>
+          <select value={marcacaoStatus} onChange={(e) => setMarcacaoStatus(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 180 }}>
+            <option value="">Todas</option>
+            <option value="EXECUTADO">Executado</option>
+            <option value="MARCADO">Marcado</option>
+          </select>
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 13, color: '#374151' }}>Análise</span>
+          <select value={analiseStatus} onChange={(e) => setAnaliseStatus(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 180 }}>
+            <option value="">Todas</option>
+            <option value="EM_ANALISE">Em análise</option>
+            <option value="ANALISADO">Analisado</option>
           </select>
         </label>
       </div>
@@ -402,6 +539,142 @@ export default function InstalacoesDashboardScreen() {
           </Card>
         </div>
       </Card>
+
+      {/* Ações por instalação — contagens (por região) */}
+      <Card title="Ações por instalação — Contagens">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accoesLoading ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                ) : (accoesCounts || []).length === 0 ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                ) : (
+                  (accoesCounts || []).map((it, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ maxWidth: 360 }}>
+            <DonutChart data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))} />
+          </div>
+        </div>
+        {accoesError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesError}</div> : null}
+      </Card>
+
+      {/* Melhores por valor recuperado */}
+      <Card title="Ações — Melhores grupos por valor recuperado">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bestLoading ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                ) : (bestItems || []).length === 0 ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                ) : (
+                  (bestItems || []).map((it, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ maxWidth: 360 }}>
+            <DonutChart data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          </div>
+        </div>
+        {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
+      </Card>
+
+      {/* Top por Tendência */}
+      <Card title="Ações — Top por tendência (valor recuperado)">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bestTendLoading ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                ) : (bestTendItems || []).length === 0 ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                ) : (
+                  (bestTendItems || []).map((it, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ maxWidth: 360 }}>
+            <DonutChart data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          </div>
+        </div>
+        {bestTendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestTendError}</div> : null}
+      </Card>
+
+      {/* Top por Análise */}
+      <Card title="Ações — Top por análise (valor recuperado)">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Análise</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bestAnaliseLoading ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                ) : (bestAnaliseItems || []).length === 0 ? (
+                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                ) : (
+                  (bestAnaliseItems || []).map((it, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ maxWidth: 360 }}>
+            <DonutChart data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          </div>
+        </div>
+        {bestAnaliseError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestAnaliseError}</div> : null}
+      </Card>
     </div>
   )
 }
@@ -528,6 +801,15 @@ function labelTendencia(v?: string) {
     case 'DECRESCENTE': return 'Decrescente'
     case 'MUITO_DECRESCENTE': return 'Muito decrescente'
     case 'SEM_COMPRAS': return 'Sem compras'
+    default: return v || '—'
+  }
+}
+
+function labelAnalise(v?: string) {
+  const x = String(v || '').toUpperCase()
+  switch (x) {
+    case 'EM_ANALISE': return 'Em análise'
+    case 'ANALISADO': return 'Analisado'
     default: return v || '—'
   }
 }
