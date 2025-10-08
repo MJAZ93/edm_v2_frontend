@@ -162,6 +162,7 @@ export default function OcorrenciaEditScreen() {
       setLat(o.lat != null ? String(o.lat) : '')
       setLong(o.long != null ? String(o.long) : '')
       setProcCriminal(Boolean((o as any).processo_criminal_aberto))
+      setDataFacto(((o as any).data_facto || '').slice(0, 10))
       setAutoTexto(String((o as any).auto || ''))
       setAutoImagem('')
 
@@ -269,7 +270,8 @@ export default function OcorrenciaEditScreen() {
         if (autoTexto) extras.auto = autoTexto
         if (autoImagem) extras.auto_image = autoImagem.startsWith('data:') ? (autoImagem.split(',')[1] || '') : autoImagem
       }
-      await occurrenceApi.privateOccurrencesIdPut(id, authHeader, { ...(occPayload as any), ...extras })
+      const toRfc3339 = (d?: string | null) => { if (!d) return undefined; try { return new Date(`${d}T00:00:00Z`).toISOString() } catch { return undefined } }
+      await occurrenceApi.privateOccurrencesIdPut(id, authHeader, { ...(occPayload as any), ...extras, data_facto: toRfc3339(dataFacto) } as any)
 
       // 2) Upsert infractions
       for (const inf of infractions) {
@@ -367,10 +369,16 @@ export default function OcorrenciaEditScreen() {
 
       <Card title="Dados da ocorrência">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Local</span>
-            <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
-          </label>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260, flex: 1 }}>
+              <span style={{ fontSize: 13, color: '#374151' }}>Local</span>
+              <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+              <span style={{ fontSize: 13, color: '#374151' }}>Data da ocorrência</span>
+              <input type="date" value={dataFacto} onChange={(e) => setDataFacto(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+            </label>
+          </div>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 13, color: '#374151' }}>Descrição</span>
             <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição da ocorrência" rows={4} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', resize: 'vertical' }} />

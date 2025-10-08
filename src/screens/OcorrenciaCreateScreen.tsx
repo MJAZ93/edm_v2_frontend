@@ -34,6 +34,7 @@ export default function OcorrenciaCreateScreen() {
 
   const [local, setLocal] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [dataFacto, setDataFacto] = useState<string>('')
   const [regiaoId, setRegiaoId] = useState('')
   const [ascId, setAscId] = useState('')
   const [formaId, setFormaId] = useState('')
@@ -195,7 +196,11 @@ export default function OcorrenciaCreateScreen() {
         if (autoTexto) extra.auto = autoTexto
         if (autoImagem) extra.auto_image = autoImagem.startsWith('data:') ? (autoImagem.split(',')[1] || '') : autoImagem
       }
-      const body: any = { ...payload, ...extra }
+      const toRfc3339 = (d?: string | null) => {
+        if (!d) return undefined
+        try { return new Date(`${d}T00:00:00Z`).toISOString() } catch { return undefined }
+      }
+      const body: any = { ...payload, ...extra, data_facto: toRfc3339(dataFacto) }
       const { data } = await api.privateOccurrencesPost(authHeader, body)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       // voltar à lista
@@ -244,10 +249,16 @@ export default function OcorrenciaCreateScreen() {
 
       <Card title="Dados da ocorrência">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Local</span>
-            <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
-          </label>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260, flex: 1 }}>
+              <span style={{ fontSize: 13, color: '#374151' }}>Local</span>
+              <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+              <span style={{ fontSize: 13, color: '#374151' }}>Data da ocorrência</span>
+              <input type="date" value={dataFacto} onChange={(e) => setDataFacto(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+            </label>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" checked={procCriminal} onChange={(e) => setProcCriminal(e.target.checked)} />

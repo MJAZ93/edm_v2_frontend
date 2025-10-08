@@ -20,7 +20,7 @@ import ScrapyardsScreen from './ScrapyardsScreen'
 import ScrapyardDetailScreen from './ScrapyardDetailScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 import { useAuth } from '../contexts/AuthContext'
-import { DashboardApi, ScrapyardApi, InfractionApi } from '../services'
+import { DashboardApi, ScrapyardApi, InfractionApi, OccurrenceApi } from '../services'
 import { useUnauthorizedHandlers } from '../utils/auth'
 import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
@@ -282,7 +282,7 @@ export default function DashboardScreen() {
           {dashError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{dashError}</div> : null}
 
           {/* Mapa primeiro */}
-          <Card title="Mapa: Sucatarias e Infrações">
+          <Card title="Mapa: Sucatarias e Ocorrências">
             <div style={{ width: '100%' }}>
               <DashboardMap height={420} />
               <div style={{ display: 'flex', gap: 16, marginTop: 8, color: '#6b7280', fontSize: 12 }}>
@@ -348,20 +348,7 @@ export default function DashboardScreen() {
                 </div>
               )}
             </Card>
-            <Card title="Saúde geral">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <SemiCircularGauge
-                  value={Number.isFinite(Number((financeTotals as any)?.health))
-                    ? Math.max(0, Math.min(100, Number((financeTotals as any)?.health)))
-                    : 0}
-                />
-                <div style={{ color: '#6b7280' }}>
-                  {Number.isFinite(Number((financeTotals as any)?.health))
-                    ? `Saúde: ${Number((financeTotals as any)?.health).toFixed(1)}%`
-                    : 'Saúde: —'}
-                </div>
-              </div>
-            </Card>
+            
           </Grid>
 
           <Grid minColumnWidth={360} gap={20}>
@@ -784,11 +771,11 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number }> })
 function DashboardMap({ height = 420 }: { height?: number }) {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const scrapyardApi = React.useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
-  const infractionApi = React.useMemo(() => new InfractionApi(getApiConfig()), [getApiConfig])
+  const occurrenceApi = React.useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
   const authHeader = React.useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
   const [error, setError] = React.useState<string | null>(null)
   const [scrapyards, setScrapyards] = React.useState<any[]>([])
-  const [infractions, setInfractions] = React.useState<any[]>([])
+  const [occurrences, setOccurrences] = React.useState<any[]>([])
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const mapRef = React.useRef<any>(null)
   const markersRef = React.useRef<any[]>([])
@@ -830,19 +817,19 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     let cancelled = false
     async function loadData() {
       try {
-        const [scr, inf] = await Promise.all([
+        const [scr, occ] = await Promise.all([
           scrapyardApi.privateScrapyardsGet(authHeader, -1),
-          infractionApi.privateInfractionsGet(authHeader, -1)
+          occurrenceApi.privateOccurrencesGet(authHeader, 1, 500, 'created_at', 'desc')
         ])
         if (!cancelled) {
           const sitems = scr.data?.items ?? []
-          const iitems = inf.data?.items ?? []
-          if (isUnauthorizedBody(scr.data) || isUnauthorizedBody(inf.data)) {
+          const oitems = occ.data?.items ?? []
+          if (isUnauthorizedBody(scr.data) || isUnauthorizedBody(occ.data)) {
             logout('Sessão expirada. Inicie sessão novamente.')
             return
           }
           setScrapyards(sitems)
-          setInfractions(iitems)
+          setOccurrences(oitems)
         }
       } catch (err: any) {
         if (err?.response?.status === 401 || isUnauthorizedBody(err?.response?.data)) {
@@ -854,7 +841,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     }
     loadData()
     return () => { cancelled = true }
-  }, [scrapyardApi, infractionApi, authHeader])
+  }, [scrapyardApi, occurrenceApi, authHeader])
 
   React.useEffect(() => {
     async function init() {
@@ -924,19 +911,20 @@ function DashboardMap({ height = 420 }: { height?: number }) {
         markersRef.current.push(marker)
       })
 
-    // infrações (vermelho)
-    ;(infractions || [])
-      .map((i: any) => ({ ...i, __lat: Number((i as any).lat), __lng: Number((i as any)._long) }))
-      .filter((i: any) => Number.isFinite(i.__lat) && Number.isFinite(i.__lng))
-      .forEach((i: any) => {
-        const position = { lat: i.__lat, lng: i.__lng }
-        const marker = new g.Marker({ position, map: mapRef.current, title: i?.tipo_infracao?.name || 'Infração', icon: infractionIcon })
+    // ocorrências (vermelho)
+    ;(occurrences || [])
+      .map((o: any) => ({ ...o, __lat: Number((o as any).lat), __lng: Number((o as any).long) }))
+      .filter((o: any) => Number.isFinite(o.__lat) && Number.isFinite(o.__lng))
+      .forEach((o: any) => {
+        const position = { lat: o.__lat, lng: o.__lng }
+        const marker = new g.Marker({ position, map: mapRef.current, title: o?.local || 'Ocorrência', icon: infractionIcon })
         marker.addListener('click', () => {
-          const tipo = i?.tipo_infracao?.name || 'Infração'
-          const val = typeof i?.valor === 'number' ? `${i.valor.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` : '—'
+          const when = (o as any)?.data_facto || o?.created_at
+          const whenTxt = when ? new Date(when).toLocaleString('pt-PT') : '—'
           const html = `<div style="max-width:240px">
-            <strong>${tipo}</strong><br/>
-            Valor: ${val}
+            <strong>Ocorrência</strong><br/>
+            Local: ${(o?.local || '—').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}<br/>
+            Data: ${whenTxt}
           </div>`
           info.setContent(html)
           info.open({ anchor: marker, map: mapRef.current })
@@ -951,9 +939,9 @@ function DashboardMap({ height = 420 }: { height?: number }) {
       const ln = Number((s as any).long)
       if (Number.isFinite(la) && Number.isFinite(ln)) positions.push({ lat: la, lng: ln })
     })
-    infractions.forEach((i: any) => {
-      const la = Number((i as any).lat)
-      const ln = Number((i as any)._long)
+    occurrences.forEach((o: any) => {
+      const la = Number((o as any).lat)
+      const ln = Number((o as any).long)
       if (Number.isFinite(la) && Number.isFinite(ln)) positions.push({ lat: la, lng: ln })
     })
     if (positions.length) {
@@ -969,7 +957,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
         } catch {}
       })
     }
-  }, [scrapyards, infractions])
+  }, [scrapyards, occurrences])
 
   return (
     <div>

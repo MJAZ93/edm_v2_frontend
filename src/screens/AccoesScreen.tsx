@@ -132,7 +132,12 @@ export default function AccoesScreen() {
                   <tr key={it.id}>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(it.created_at)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(it.data_implementacao)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.accoes || '-'}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'space-between' }}>
+                        <span style={{ wordBreak: 'break-word' }}>{it.accoes || '-'}</span>
+                        <button type="button" onClick={() => openDetails(it.id)} style={{ background: 'none', border: 'none', color: '#2563eb', textDecoration: 'underline', padding: 0, cursor: 'pointer' }}>Detalhes</button>
+                      </div>
+                    </td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveAsc(it.asc_id)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.amount)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.meses_analise != null ? String(it.meses_analise) : '-'}</td>
