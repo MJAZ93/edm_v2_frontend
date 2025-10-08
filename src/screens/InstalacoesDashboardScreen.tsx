@@ -282,7 +282,7 @@ export default function InstalacoesDashboardScreen() {
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -329,69 +329,71 @@ export default function InstalacoesDashboardScreen() {
         </label>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+
       {!regiaoId && (
         <Card title={`Inspeções — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''}`}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-            <div style={{ overflowX: 'auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+            <div style={{ overflow: 'auto', maxHeight: 220 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                   ) : (filtered || []).length === 0 ? (
-                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                   ) : (
                     filtered.map((it, i) => (
                       <tr key={i}>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
+                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
-            <div style={{ maxWidth: 360 }}>
-              <DonutChart data={donutData} />
+            <div style={{ maxWidth: 260 }}>
+              <DonutChart data={donutData} size={160} thickness={12} legendMaxHeight={140} />
             </div>
           </div>
           {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{error}</div> : null}
         </Card>
       )}
 
-      <Card title="Défice total">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ overflowX: 'auto' }}>
+        <Card title="Défice total">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ overflow: 'auto', maxHeight: 220 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
                 </tr>
               </thead>
               <tbody>
                 {deficitLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                 ) : (deficitFiltered || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                 ) : (
                   (deficitFiltered || []).map((it, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div style={{ maxWidth: 360 }}>
-            <DonutChart data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} />
+          <div style={{ maxWidth: 260 }}>
+            <DonutChart data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
           </div>
         </div>
         {deficitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{deficitError}</div> : null}
@@ -399,25 +401,25 @@ export default function InstalacoesDashboardScreen() {
 
       {regiaoId && (
         <Card title="Inspeções — ASCs da região">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 420px)', gap: 16, alignItems: 'stretch' }}>
-            <div style={{ overflowY: 'auto', maxHeight: 260 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+            <div style={{ overflow: 'auto', maxHeight: 220 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(ascs || []).length === 0 ? (
-                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem ASCs para mostrar.</td></tr>
+                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem ASCs para mostrar.</td></tr>
                   ) : (
                     ((ascs || []).filter(a => !ascId || a.id === ascId)).map((a, i) => {
                       const c = (ascCounts.find(x => x.id === a.id)?.count) ?? 0
                       return (
                         <tr key={i}>
-                          <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
-                          <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
+                          <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
+                          <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
                         </tr>
                       )
                     })
@@ -425,10 +427,12 @@ export default function InstalacoesDashboardScreen() {
                 </tbody>
               </table>
             </div>
-            <div style={{ maxWidth: 420 }}>
+            <div style={{ maxWidth: 260 }}>
               <DonutChart
                 data={((ascs || []).filter(a => !ascId || a.id === ascId)).map((a) => ({ label: a.name || a.id || '—', value: Number((ascCounts.find(x => x.id === a.id)?.count) ?? 0) }))}
-                legendMaxHeight={220}
+                legendMaxHeight={140}
+                size={160}
+                thickness={12}
               />
             </div>
           </div>
@@ -499,7 +503,7 @@ export default function InstalacoesDashboardScreen() {
             <span style={{ color: '#374151' }}>Sem compras nos últimos 6 meses</span>
           </label>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 1fr', gap: 16, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'stretch' }}>
           <Card title="Série — Contagem vs. Défice">
             {temporalLoading ? (
               <div style={{ color: '#6b7280' }}>A carregar…</div>
@@ -510,26 +514,26 @@ export default function InstalacoesDashboardScreen() {
             )}
           </Card>
           <Card title="Tabela — Mensal">
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflow: 'auto', maxHeight: 240 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Mês</th>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Mês</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
                   </tr>
                 </thead>
                 <tbody>
                   {temporalLoading ? (
-                    <tr><td colSpan={3} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                    <tr><td colSpan={3} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                   ) : (temporalItems || []).length === 0 ? (
-                    <tr><td colSpan={3} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                    <tr><td colSpan={3} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                   ) : (
                     (temporalItems || []).map((it, i) => (
                       <tr key={i}>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMonth(it.mes)}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.total || 0)}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.deficit)}</td>
+                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMonth(it.mes)}</td>
+                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.total || 0)}</td>
+                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.deficit)}</td>
                       </tr>
                     ))
                   )}
@@ -542,33 +546,33 @@ export default function InstalacoesDashboardScreen() {
 
       {/* Ações por instalação — contagens (por região) */}
       <Card title="Ações por instalação — Contagens">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ overflow: 'auto', maxHeight: 220 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {accoesLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                 ) : (accoesCounts || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                 ) : (
                   (accoesCounts || []).map((it, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div style={{ maxWidth: 360 }}>
-            <DonutChart data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))} />
+          <div style={{ maxWidth: 260 }}>
+            <DonutChart data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
           </div>
         </div>
         {accoesError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesError}</div> : null}
@@ -576,33 +580,33 @@ export default function InstalacoesDashboardScreen() {
 
       {/* Melhores por valor recuperado */}
       <Card title="Ações — Melhores grupos por valor recuperado">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ overflow: 'auto', maxHeight: 220 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
                 </tr>
               </thead>
               <tbody>
                 {bestLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                 ) : (bestItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                 ) : (
                   (bestItems || []).map((it, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div style={{ maxWidth: 360 }}>
-            <DonutChart data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          <div style={{ maxWidth: 260 }}>
+            <DonutChart data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
           </div>
         </div>
         {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
@@ -610,33 +614,33 @@ export default function InstalacoesDashboardScreen() {
 
       {/* Top por Tendência */}
       <Card title="Ações — Top por tendência (valor recuperado)">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ overflow: 'auto', maxHeight: 220 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
                 </tr>
               </thead>
               <tbody>
                 {bestTendLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                 ) : (bestTendItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                 ) : (
                   (bestTendItems || []).map((it, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div style={{ maxWidth: 360 }}>
-            <DonutChart data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          <div style={{ maxWidth: 260 }}>
+            <DonutChart data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
           </div>
         </div>
         {bestTendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestTendError}</div> : null}
@@ -644,48 +648,49 @@ export default function InstalacoesDashboardScreen() {
 
       {/* Top por Análise */}
       <Card title="Ações — Top por análise (valor recuperado)">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ overflow: 'auto', maxHeight: 220 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Análise</th>
-                  <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Análise</th>
+                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
                 </tr>
               </thead>
               <tbody>
                 {bestAnaliseLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
                 ) : (bestAnaliseItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
                 ) : (
                   (bestAnaliseItems || []).map((it, i) => (
                     <tr key={i}>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
+                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div style={{ maxWidth: 360 }}>
-            <DonutChart data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} />
+          <div style={{ maxWidth: 260 }}>
+            <DonutChart data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
           </div>
         </div>
         {bestAnaliseError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestAnaliseError}</div> : null}
       </Card>
+      </div>
     </div>
   )
 }
 
-function DonutChart({ data, legendMaxHeight }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number }) {
+function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12 }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number; size?: number; thickness?: number }) {
   const total = data.reduce((s, d) => s + (Number.isFinite(d.value) ? d.value : 0), 0)
-  const R = 60
-  const W = 200
-  const H = 200
+  const W = size
+  const H = size
   const CX = W / 2
   const CY = H / 2
+  const R = Math.max(20, (size / 2) - thickness - 4)
   const C = 2 * Math.PI * R
   const colors = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#84cc16']
   let acc = 0
@@ -700,7 +705,7 @@ function DonutChart({ data, legendMaxHeight }: { data: Array<{ label: string; va
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
-        <circle cx={CX} cy={CY} r={R} fill="#fff" stroke="#e5e7eb" strokeWidth={16} />
+        <circle cx={CX} cy={CY} r={R} fill="#fff" stroke="#e5e7eb" strokeWidth={thickness} />
         {segments.map((s, i) => (
           <circle key={i}
                   cx={CX}
@@ -708,14 +713,14 @@ function DonutChart({ data, legendMaxHeight }: { data: Array<{ label: string; va
                   r={R}
                   fill="transparent"
                   stroke={s.color}
-                  strokeWidth={16}
+                  strokeWidth={thickness}
                   strokeDasharray={`${s.length} ${C - s.length}`}
                   strokeDashoffset={-s.offset}
                   style={{ transition: 'stroke-dasharray 0.3s' }}
           />
         ))}
-        <circle cx={CX} cy={CY} r={R - 18} fill="#fff" />
-        <text x={CX} y={CY} textAnchor="middle" dominantBaseline="middle" fontSize={14} fill="#374151" fontWeight={700}>
+        <circle cx={CX} cy={CY} r={Math.max(2, R - thickness - 4)} fill="#fff" />
+        <text x={CX} y={CY} textAnchor="middle" dominantBaseline="middle" fontSize={13} fill="#374151" fontWeight={700}>
           {total}
         </text>
       </svg>
