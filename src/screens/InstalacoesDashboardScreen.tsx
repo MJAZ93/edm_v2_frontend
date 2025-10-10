@@ -282,403 +282,502 @@ export default function InstalacoesDashboardScreen() {
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: 24,
+      padding: '16px 24px',
+      maxWidth: '100%',
+      background: '#fafbfc'
+    }}>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
-          <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 200 }}>
-            <option value="">Todas</option>
-            {(regioes || []).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
-          <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 200 }}>
-            <option value="">Todas</option>
-            {(ascs || []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>Tendência de crescimento</span>
-          <select value={tendencia} onChange={(e) => setTendencia(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 220 }}>
-            <option value="">Todas</option>
-            <option value="CRESCENTE">Crescente</option>
-            <option value="MUITO_CRESCENTE">Muito crescente</option>
-            <option value="NORMAL">Normal</option>
-            <option value="DECRESCENTE">Decrescente</option>
-            <option value="MUITO_DECRESCENTE">Muito decrescente</option>
-            <option value="SEM_COMPRAS">Sem compras</option>
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>Marcação</span>
-          <select value={marcacaoStatus} onChange={(e) => setMarcacaoStatus(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 180 }}>
-            <option value="">Todas</option>
-            <option value="EXECUTADO">Executado</option>
-            <option value="MARCADO">Marcado</option>
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>Análise</span>
-          <select value={analiseStatus} onChange={(e) => setAnaliseStatus(e.target.value)} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 180 }}>
-            <option value="">Todas</option>
-            <option value="EM_ANALISE">Em análise</option>
-            <option value="ANALISADO">Analisado</option>
-          </select>
-        </label>
+      {/* Filtros */}
+      <div style={{ 
+        background: '#fff',
+        padding: '20px 24px',
+        borderRadius: 12,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        border: '1px solid #e2e8f0'
+      }}>
+        <h3 style={{ 
+          margin: '0 0 16px 0', 
+          fontSize: 16, 
+          fontWeight: 600, 
+          color: '#1e293b'
+        }}>
+          Filtros de Pesquisa
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: 16
+        }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Região</span>
+            <select 
+              value={regiaoId} 
+              onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              <option value="">Todas as regiões</option>
+              {(regioes || []).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>ASC</span>
+            <select 
+              value={ascId} 
+              onChange={(e) => setAscId(e.target.value)} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              <option value="">Todas as ASCs</option>
+              {(ascs || []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Tendência de crescimento</span>
+            <select 
+              value={tendencia} 
+              onChange={(e) => setTendencia(e.target.value)} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              <option value="">Todas as tendências</option>
+              <option value="CRESCENTE">Crescente</option>
+              <option value="MUITO_CRESCENTE">Muito crescente</option>
+              <option value="NORMAL">Normal</option>
+              <option value="DECRESCENTE">Decrescente</option>
+              <option value="MUITO_DECRESCENTE">Muito decrescente</option>
+              <option value="SEM_COMPRAS">Sem compras</option>
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Estado da Marcação</span>
+            <select 
+              value={marcacaoStatus} 
+              onChange={(e) => setMarcacaoStatus(e.target.value)} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              <option value="">Todos os estados</option>
+              <option value="EXECUTADO">Executado</option>
+              <option value="MARCADO">Marcado</option>
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Estado da Análise</span>
+            <select 
+              value={analiseStatus} 
+              onChange={(e) => setAnaliseStatus(e.target.value)} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              <option value="">Todos os estados</option>
+              <option value="EM_ANALISE">Em análise</option>
+              <option value="ANALISADO">Analisado</option>
+            </select>
+          </label>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* Seção de Inspeções */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h2 style={{ 
+          margin: 0, 
+          fontSize: 20, 
+          fontWeight: 700, 
+          color: '#1e293b',
+          borderBottom: '2px solid #e2e8f0',
+          paddingBottom: 8
+        }}>
+          📊 Análise de Inspeções
+        </h2>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
       {!regiaoId && (
         <Card title={`Inspeções — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''}`}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-            <div style={{ overflow: 'auto', maxHeight: 220 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                  ) : (filtered || []).length === 0 ? (
-                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                  ) : (
-                    filtered.map((it, i) => (
-                      <tr key={i}>
-                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
+            <div style={{ overflow: 'auto', maxHeight: 280 }}>
+              {loading ? (
+                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                  <div style={{ marginBottom: 8 }}>A carregar…</div>
+                  <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: '60%', height: '100%', background: '#0ea5e9', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                  </div>
+                </div>
+              ) : (
+                <InspectionCountsTable data={filtered} />
+              )}
             </div>
-            <div style={{ maxWidth: 260 }}>
-              <DonutChart data={donutData} size={160} thickness={12} legendMaxHeight={140} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <ImprovedDonutChart data={donutData} title="Distribuição por Região" />
+              <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total de Inspeções</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
+                  {(filtered || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
+                </div>
+              </div>
             </div>
           </div>
           {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{error}</div> : null}
         </Card>
       )}
 
-        <Card title="Défice total">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ overflow: 'auto', maxHeight: 220 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Card title="Défice total">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
+              <div style={{ overflow: 'auto', maxHeight: 280 }}>
                 {deficitLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (deficitFiltered || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                    <div style={{ marginBottom: 8 }}>A carregar défices…</div>
+                    <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: '70%', height: '100%', background: '#ef4444', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                    </div>
+                  </div>
                 ) : (
-                  (deficitFiltered || []).map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label}</td>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
-                    </tr>
-                  ))
+                  <DeficitTable data={deficitFiltered} />
                 )}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ maxWidth: 260 }}>
-            <DonutChart data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
-          </div>
-        </div>
-        {deficitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{deficitError}</div> : null}
-      </Card>
-
-      {regiaoId && (
-        <Card title="Inspeções — ASCs da região">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-            <div style={{ overflow: 'auto', maxHeight: 220 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(ascs || []).length === 0 ? (
-                    <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem ASCs para mostrar.</td></tr>
-                  ) : (
-                    ((ascs || []).filter(a => !ascId || a.id === ascId)).map((a, i) => {
-                      const c = (ascCounts.find(x => x.id === a.id)?.count) ?? 0
-                      return (
-                        <tr key={i}>
-                          <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
-                          <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <ImprovedDonutChart 
+                  data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} 
+                  title="Défice por Região"
+                  colorScheme="red"
+                />
+                <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
+                  <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 4 }}>Défice Total</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: '#dc2626' }}>
+                    {formatMoney((deficitFiltered || []).reduce((sum, item) => sum + (item.value || 0), 0))}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style={{ maxWidth: 260 }}>
-              <DonutChart
-                data={((ascs || []).filter(a => !ascId || a.id === ascId)).map((a) => ({ label: a.name || a.id || '—', value: Number((ascCounts.find(x => x.id === a.id)?.count) ?? 0) }))}
-                legendMaxHeight={140}
-                size={160}
-                thickness={12}
-              />
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Tendência: respeita seleção de tendência; oculta quando há região selecionada */}
-      {!regiaoId && (
-        <Card title="Inspeções — Contagens por tendência">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(220px, 360px)', gap: 16, alignItems: 'stretch' }}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
-                    <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tendLoading ? (
-                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
-                  ) : (tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia))).length === 0 ? (
-                    <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                  ) : (
-                    (tendCounts || [])
-                      .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
-                      .map((it, i) => (
-                        <tr key={i}>
-                          <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                          <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div style={{ maxWidth: 360 }}>
-              <DonutChart data={(tendCounts || [])
-                .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
-                .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))} />
-            </div>
-          </div>
-          {tendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{tendError}</div> : null}
-        </Card>
-      )}
-
-      {/* Temporal */}
-      <Card title="Análise temporal (últimos meses)">
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Meses</span>
-            <select value={months} onChange={(e) => setMonths(Number(e.target.value))} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120 }}>
-              <option value={3}>3</option>
-              <option value={6}>6</option>
-              <option value={12}>12</option>
-            </select>
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Score mín (0-1)</span>
-            <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120 }} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Score máx (0-1)</span>
-            <input value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="1.0" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120 }} />
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 22 }}>
-            <input type="checkbox" checked={zeroCompras} onChange={(e) => setZeroCompras(e.target.checked)} />
-            <span style={{ color: '#374151' }}>Sem compras nos últimos 6 meses</span>
-          </label>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'stretch' }}>
-          <Card title="Série — Contagem vs. Défice">
-            {temporalLoading ? (
-              <div style={{ color: '#6b7280' }}>A carregar…</div>
-            ) : temporalError ? (
-              <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8 }}>{temporalError}</div>
-            ) : (
-              <TimeSeriesDual data={temporalItems} />
-            )}
+            {deficitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{deficitError}</div> : null}
           </Card>
-          <Card title="Tabela — Mensal">
-            <div style={{ overflow: 'auto', maxHeight: 240 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Mês</th>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
-                    <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Défice</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {temporalLoading ? (
-                    <tr><td colSpan={3} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                  ) : (temporalItems || []).length === 0 ? (
-                    <tr><td colSpan={3} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                  ) : (
-                    (temporalItems || []).map((it, i) => (
-                      <tr key={i}>
-                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMonth(it.mes)}</td>
-                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.total || 0)}</td>
-                        <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.deficit)}</td>
+
+          {regiaoId && (
+            <Card title="Inspeções — ASCs da região">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
+                <div style={{ overflow: 'auto', maxHeight: 220 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                        <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
+                        <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
                       </tr>
-                    ))
+                    </thead>
+                    <tbody>
+                      {(ascs || []).length === 0 ? (
+                        <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem ASCs para mostrar.</td></tr>
+                      ) : (
+                        ((ascs || []).filter(a => !ascId || a.id === ascId)).map((a, i) => {
+                          const c = (ascCounts.find(x => x.id === a.id)?.count) ?? 0
+                          return (
+                            <tr key={i}>
+                              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
+                              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{ maxWidth: 260 }}>
+                  <DonutChart
+                    data={((ascs || []).filter(a => !ascId || a.id === ascId)).map((a) => ({ label: a.name || a.id || '—', value: Number((ascCounts.find(x => x.id === a.id)?.count) ?? 0) }))}
+                    legendMaxHeight={140}
+                    size={160}
+                    thickness={12}
+                  />
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Tendência: respeita seleção de tendência; oculta quando há região selecionada */}
+        {!regiaoId && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+            <Card title="Inspeções — Contagens por tendência">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 16, alignItems: 'stretch' }}>
+                <div style={{ overflowX: 'auto', maxHeight: 320 }}>
+                  {tendLoading ? (
+                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                      <div style={{ marginBottom: 8 }}>A carregar tendências…</div>
+                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: '80%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <TrendTable 
+                      data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
+                    />
                   )}
-                </tbody>
-              </table>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <ImprovedDonutChart 
+                    data={(tendCounts || [])
+                      .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
+                      .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
+                    title="Distribuição por Tendência"
+                    colorScheme="green"
+                  />
+                  <TrendSummaryCards 
+                    data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
+                  />
+                </div>
+              </div>
+              {tendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{tendError}</div> : null}
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Seção de Análise Temporal */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h2 style={{ 
+          margin: 0, 
+          fontSize: 20, 
+          fontWeight: 700, 
+          color: '#1e293b',
+          borderBottom: '2px solid #e2e8f0',
+          paddingBottom: 8
+        }}>
+          📈 Análise Temporal
+        </h2>
+        
+        <Card title="Evolução temporal dos últimos meses">
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Período</span>
+                <select value={months} onChange={(e) => setMonths(Number(e.target.value))} style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 140, background: '#fff', fontSize: 14 }}>
+                  <option value={3}>3 meses</option>
+                  <option value={6}>6 meses</option>
+                  <option value={12}>12 meses</option>
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Score mínimo</span>
+                <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120, fontSize: 14 }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Score máximo</span>
+                <input value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="1.0" style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120, fontSize: 14 }} />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32 }}>
+                <input type="checkbox" checked={zeroCompras} onChange={(e) => setZeroCompras(e.target.checked)} style={{ width: 18, height: 18 }} />
+                <span style={{ color: '#374151', fontSize: 14, fontWeight: 500 }}>Sem compras nos últimos 6 meses</span>
+              </label>
             </div>
-          </Card>
-        </div>
-      </Card>
+            <TemporalSummary data={temporalItems} loading={temporalLoading} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, alignItems: 'stretch' }}>
+            <Card title="Evolução Temporal" style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              {temporalLoading ? (
+                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                  <div style={{ marginBottom: 8 }}>A carregar análise temporal…</div>
+                  <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: '50%', height: '100%', background: '#8b5cf6', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                  </div>
+                </div>
+              ) : temporalError ? (
+                <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8 }}>{temporalError}</div>
+              ) : (
+                <ImprovedTimeSeriesDual data={temporalItems} />
+              )}
+            </Card>
+            <Card title="Resumo Mensal" style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div style={{ overflow: 'auto', maxHeight: 320 }}>
+                {temporalLoading ? (
+                  <div style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>A carregar…</div>
+                ) : (
+                  <TemporalTable data={temporalItems} />
+                )}
+              </div>
+            </Card>
+          </div>
+        </Card>
+      </div>
 
-      {/* Ações por instalação — contagens (por região) */}
-      <Card title="Ações por instalação — Contagens">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ overflow: 'auto', maxHeight: 220 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
+      {/* Seção de Ações */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h2 style={{ 
+          margin: 0, 
+          fontSize: 20, 
+          fontWeight: 700, 
+          color: '#1e293b',
+          borderBottom: '2px solid #e2e8f0',
+          paddingBottom: 8
+        }}>
+          🎯 Análise de Ações
+        </h2>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+          {/* Ações por instalação — contagens (por região) */}
+          <Card title="Ações por instalação — Contagens por região">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
+              <div style={{ overflow: 'auto', maxHeight: 280 }}>
                 {accoesLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (accoesCounts || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
+                  <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                    <div style={{ marginBottom: 8 }}>A carregar ações…</div>
+                    <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: '75%', height: '100%', background: '#f59e0b', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                    </div>
+                  </div>
                 ) : (
-                  (accoesCounts || []).map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(it.count || 0)}</td>
-                    </tr>
-                  ))
+                  <ActionsTable data={accoesCounts} />
                 )}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ maxWidth: 260 }}>
-            <DonutChart data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
-          </div>
-        </div>
-        {accoesError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesError}</div> : null}
-      </Card>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <ImprovedDonutChart 
+                  data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
+                  title="Ações por Região"
+                  colorScheme="orange"
+                />
+                <div style={{ padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fed7aa' }}>
+                  <div style={{ fontSize: 12, color: '#92400e', marginBottom: 4 }}>Total de Ações</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: '#ea580c' }}>
+                    {(accoesCounts || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {accoesError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesError}</div> : null}
+          </Card>
 
-      {/* Melhores por valor recuperado */}
-      <Card title="Ações — Melhores grupos por valor recuperado">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ overflow: 'auto', maxHeight: 220 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Região</th>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bestLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (bestItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                ) : (
-                  (bestItems || []).map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          {/* Valor Recuperado */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+            <Card title="Melhores grupos por valor recuperado">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20, alignItems: 'stretch' }}>
+                <div style={{ overflow: 'auto', maxHeight: 280 }}>
+                  {bestLoading ? (
+                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                      <div style={{ marginBottom: 8 }}>A carregar melhores grupos…</div>
+                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: '85%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <BestGroupsTable data={bestItems} />
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <ImprovedDonutChart 
+                    data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
+                    title="Valor Recuperado por Região"
+                    colorScheme="green"
+                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Total Recuperado</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
+                        {formatMoney((bestItems || []).reduce((sum, item) => sum + (item.value || 0), 0))}
+                      </div>
+                    </div>
+                    <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Regiões Ativas</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
+                        {(bestItems || []).filter(item => (item.value || 0) > 0).length}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
+            </Card>
           </div>
-          <div style={{ maxWidth: 260 }}>
-            <DonutChart data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
-          </div>
-        </div>
-        {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
-      </Card>
 
-      {/* Top por Tendência */}
-      <Card title="Ações — Top por tendência (valor recuperado)">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ overflow: 'auto', maxHeight: 220 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Tendência</th>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bestTendLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (bestTendItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                ) : (
-                  (bestTendItems || []).map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ maxWidth: 260 }}>
-            <DonutChart data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
-          </div>
-        </div>
-        {bestTendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestTendError}</div> : null}
-      </Card>
+          {/* Análise por Tendência e Estado */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            <Card title="Top por tendência (valor recuperado)">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'stretch' }}>
+                <div style={{ overflow: 'auto', maxHeight: 280 }}>
+                  {bestTendLoading ? (
+                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                      <div style={{ marginBottom: 8 }}>A carregar por tendência…</div>
+                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: '90%', height: '100%', background: '#8b5cf6', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <TrendValueTable data={bestTendItems} />
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <ImprovedDonutChart 
+                    data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
+                    title="Valor por Tendência"
+                    colorScheme="purple"
+                    size={160}
+                  />
+                  <TrendEfficiencyCard data={bestTendItems} />
+                </div>
+              </div>
+              {bestTendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestTendError}</div> : null}
+            </Card>
 
-      {/* Top por Análise */}
-      <Card title="Ações — Top por análise (valor recuperado)">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ overflow: 'auto', maxHeight: 220 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Análise</th>
-                  <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Valor recuperado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bestAnaliseLoading ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>A carregar…</td></tr>
-                ) : (bestAnaliseItems || []).length === 0 ? (
-                  <tr><td colSpan={2} style={{ padding: 12, color: '#6b7280' }}>Sem dados para mostrar.</td></tr>
-                ) : (
-                  (bestAnaliseItems || []).map((it, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.label || it.id || '-'}</td>
-                      <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatMoney(it.value)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ maxWidth: 260 }}>
-            <DonutChart data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))} size={160} thickness={12} legendMaxHeight={140} />
+            <Card title="Top por análise (valor recuperado)">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'stretch' }}>
+                <div style={{ overflow: 'auto', maxHeight: 280 }}>
+                  {bestAnaliseLoading ? (
+                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                      <div style={{ marginBottom: 8 }}>A carregar por análise…</div>
+                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: '95%', height: '100%', background: '#06b6d4', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <AnalysisValueTable data={bestAnaliseItems} />
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <ImprovedDonutChart 
+                    data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
+                    title="Valor por Análise"
+                    colorScheme="cyan"
+                    size={160}
+                  />
+                  <AnalysisEfficiencyCard data={bestAnaliseItems} />
+                </div>
+              </div>
+              {bestAnaliseError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestAnaliseError}</div> : null}
+            </Card>
           </div>
         </div>
-        {bestAnaliseError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestAnaliseError}</div> : null}
-      </Card>
       </div>
     </div>
   )
@@ -817,4 +916,924 @@ function labelAnalise(v?: string) {
     case 'ANALISADO': return 'Analisado'
     default: return v || '—'
   }
+}
+
+// Componentes melhorados
+
+function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200 }: { 
+  data: Array<{ label: string; value: number }>; 
+  title: string; 
+  colorScheme?: 'default' | 'red' | 'green' | 'orange' | 'purple' | 'cyan';
+  size?: number;
+}) {
+  const getColorScheme = (scheme: string) => {
+    switch (scheme) {
+      case 'red': return ['#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b']
+      case 'green': return ['#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534']
+      case 'orange': return ['#fdba74', '#fb923c', '#f97316', '#ea580c', '#dc2626', '#c2410c']
+      case 'purple': return ['#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6']
+      case 'cyan': return ['#67e8f9', '#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75']
+      default: return ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af']
+    }
+  }
+
+  const colors = getColorScheme(colorScheme)
+  const total = data.reduce((s, d) => s + (Number.isFinite(d.value) ? d.value : 0), 0)
+  const cleanData = data.filter(d => d.value > 0).slice(0, 6)
+  
+  if (total === 0 || cleanData.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', textAlign: 'center' }}>{title}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: size }}>
+          <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+            <div>Sem dados disponíveis</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Usar método mais simples e confiável com stroke-dasharray
+  const radius = size / 2 - 20
+  const circumference = 2 * Math.PI * radius
+  let accumulatedPercentage = 0
+
+  const segments = cleanData.map((item, i) => {
+    const percentage = (item.value / total) * 100
+    const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`
+    const strokeDashoffset = -((accumulatedPercentage / 100) * circumference)
+    
+    const segment = {
+      ...item,
+      percentage,
+      color: colors[i % colors.length],
+      strokeDasharray,
+      strokeDashoffset
+    }
+    
+    accumulatedPercentage += percentage
+    return segment
+  })
+
+  // Formatação do valor total
+  const formatTotal = (value: number) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`
+    }
+    return value.toLocaleString('pt-PT')
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', textAlign: 'center' }}>{title}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: size, height: size }}>
+          <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%">
+            {/* Círculo de fundo */}
+            <circle 
+              cx={size/2} 
+              cy={size/2} 
+              r={radius} 
+              fill="none" 
+              stroke="#f1f5f9" 
+              strokeWidth="16"
+            />
+            
+            {/* Segmentos do donut */}
+            {segments.map((segment, i) => (
+              <circle
+                key={i}
+                cx={size/2}
+                cy={size/2}
+                r={radius}
+                fill="none"
+                stroke={segment.color}
+                strokeWidth="16"
+                strokeLinecap="round"
+                strokeDasharray={segment.strokeDasharray}
+                strokeDashoffset={segment.strokeDashoffset}
+                transform={`rotate(-90 ${size/2} ${size/2})`}
+                style={{ 
+                  transition: 'stroke-dasharray 0.3s ease, stroke-dashoffset 0.3s ease',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
+                }}
+              />
+            ))}
+            
+            {/* Círculo interno e texto */}
+            <circle cx={size/2} cy={size/2} r={radius - 25} fill="#fff" stroke="#e2e8f0" strokeWidth="1" />
+            <text x={size/2} y={size/2 - 6} textAnchor="middle" fontSize="18" fontWeight="700" fill="#1f2937">
+              {formatTotal(total)}
+            </text>
+            <text x={size/2} y={size/2 + 12} textAnchor="middle" fontSize="11" fill="#6b7280">
+              total
+            </text>
+          </svg>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: size - 40, overflowY: 'auto' }}>
+          {segments.map((segment, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+              <div style={{ 
+                width: 12, 
+                height: 12, 
+                borderRadius: 2, 
+                background: segment.color, 
+                flexShrink: 0,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {segment.label}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: 11 }}>
+                  {segment.percentage.toFixed(1)}% · {formatMoney ? formatMoney(segment.value) : segment.value.toLocaleString('pt-PT')}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InspectionCountsTable({ data }: { data: CountItem[] }) {
+  const maxCount = Math.max(...data.map(d => d.count || 0), 1)
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados para mostrar</div>
+      ) : (
+        data.map((item, i) => (
+          <div key={i} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr auto', 
+            alignItems: 'center', 
+            padding: '12px 16px', 
+            background: '#fff',
+            border: '1px solid #f1f5f9',
+            borderRadius: 8,
+            marginBottom: 4,
+            transition: 'all 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#f1f5f9' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 8, 
+                height: 8, 
+                borderRadius: 4, 
+                background: `hsl(${220 + i * 40}, 60%, 55%)` 
+              }} />
+              <div>
+                <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || item.id || '—'}</div>
+                <div style={{ 
+                  width: Math.max(60, (item.count || 0) / maxCount * 200), 
+                  height: 4, 
+                  background: `hsl(${220 + i * 40}, 60%, 55%)`, 
+                  borderRadius: 2, 
+                  marginTop: 4,
+                  opacity: 0.7
+                }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#1e293b' }}>
+              {(item.count || 0).toLocaleString('pt-PT')}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function DeficitTable({ data }: { data: Array<{ label: string; value: number }> }) {
+  const maxValue = Math.max(...data.map(d => d.value || 0), 1)
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem défices registados</div>
+      ) : (
+        data.map((item, i) => (
+          <div key={i} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr auto', 
+            alignItems: 'center', 
+            padding: '12px 16px', 
+            background: '#fff',
+            border: '1px solid #fecaca',
+            borderRadius: 8,
+            marginBottom: 4,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#f87171' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#fecaca' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 8, 
+                height: 8, 
+                borderRadius: 4, 
+                background: `hsl(${0 + i * 10}, 70%, ${60 - i * 5}%)` 
+              }} />
+              <div>
+                <div style={{ fontWeight: 600, color: '#7f1d1d' }}>{item.label}</div>
+                <div style={{ 
+                  width: Math.max(60, (item.value || 0) / maxValue * 200), 
+                  height: 4, 
+                  background: `hsl(${0 + i * 10}, 70%, ${60 - i * 5}%)`, 
+                  borderRadius: 2, 
+                  marginTop: 4,
+                  opacity: 0.8
+                }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#dc2626' }}>
+              {formatMoney(item.value)}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function TrendTable({ data }: { data: CountItem[] }) {
+  const getTrendColor = (label: string) => {
+    if (label.includes('Crescente')) return '#059669'
+    if (label.includes('Decrescente')) return '#dc2626'
+    if (label.includes('Normal')) return '#0891b2'
+    return '#6b7280'
+  }
+
+  const getTrendIcon = (label: string) => {
+    if (label.includes('Crescente')) return '↗'
+    if (label.includes('Decrescente')) return '↘'
+    if (label.includes('Normal')) return '→'
+    return '—'
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados de tendência</div>
+      ) : (
+        data.map((item, i) => {
+          const color = getTrendColor(item.label || '')
+          const icon = getTrendIcon(item.label || '')
+          
+          return (
+            <div key={i} style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'auto 1fr auto', 
+              alignItems: 'center', 
+              padding: '14px 16px', 
+              background: '#fff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 10,
+              gap: 12,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <div style={{ 
+                fontSize: 20, 
+                color, 
+                fontWeight: 'bold',
+                width: 24,
+                textAlign: 'center'
+              }}>
+                {icon}
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || item.id || '—'}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>Tendência de compras</div>
+              </div>
+              <div style={{ 
+                fontSize: 18, 
+                fontWeight: 800, 
+                color,
+                padding: '4px 12px',
+                background: `${color}15`,
+                borderRadius: 20,
+                border: `1px solid ${color}30`
+              }}>
+                {(item.count || 0).toLocaleString('pt-PT')}
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+function TrendSummaryCards({ data }: { data: CountItem[] }) {
+  const total = data.reduce((sum, item) => sum + (item.count || 0), 0)
+  const crescentes = data.filter(item => item.label?.includes('Crescente')).reduce((sum, item) => sum + (item.count || 0), 0)
+  const decrescentes = data.filter(item => item.label?.includes('Decrescente')).reduce((sum, item) => sum + (item.count || 0), 0)
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+        <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Crescentes</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
+          {total > 0 ? `${((crescentes / total) * 100).toFixed(1)}%` : '0%'}
+        </div>
+      </div>
+      <div style={{ padding: 10, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca' }}>
+        <div style={{ fontSize: 11, color: '#991b1b', marginBottom: 2 }}>Decrescentes</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#dc2626' }}>
+          {total > 0 ? `${((decrescentes / total) * 100).toFixed(1)}%` : '0%'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TemporalSummary({ data, loading }: { data: Array<{ mes?: string; total?: number; deficit?: number }>; loading: boolean }) {
+  if (loading) return null
+  
+  const totalInspections = data.reduce((sum, item) => sum + (item.total || 0), 0)
+  const totalDeficit = data.reduce((sum, item) => sum + (item.deficit || 0), 0)
+  const avgPerMonth = data.length > 0 ? totalInspections / data.length : 0
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div style={{ padding: 12, background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd' }}>
+        <div style={{ fontSize: 12, color: '#0c4a6e', marginBottom: 4 }}>Total Inspeções</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#0284c7' }}>
+          {totalInspections.toLocaleString('pt-PT')}
+        </div>
+      </div>
+      <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
+        <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 4 }}>Défice Total</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#dc2626' }}>
+          {formatMoney(totalDeficit)}
+        </div>
+      </div>
+      <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+        <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>Média/Mês</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#334155' }}>
+          {avgPerMonth.toFixed(1)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: number; deficit?: number }> }) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const [width, setWidth] = React.useState<number>(600)
+  const [hoveredPoint, setHoveredPoint] = React.useState<{ x: number; y: number; month?: string; total?: number; deficit?: number } | null>(null)
+  
+  React.useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth))
+    setWidth(el.clientWidth)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const series = Array.isArray(data) ? data : []
+  if (!series.length) return <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados temporais</div>
+
+  const totals = series.map((d) => Number(d.total || 0))
+  const deficits = series.map((d) => Number(d.deficit || 0))
+  const maxTotal = Math.max(1, ...totals)
+  const maxDeficit = Math.max(1, ...deficits)
+  
+  const H = 280
+  const pad = 40
+  const W = Math.max(400, width)
+  const chartWidth = W - pad * 2
+  const chartHeight = H - pad * 2
+
+  const sx = (i: number) => pad + (i / Math.max(1, series.length - 1)) * chartWidth
+  const syTotal = (v: number) => H - pad - (v / maxTotal) * (chartHeight / 2)
+  const syDeficit = (v: number) => H - pad - (v / maxDeficit) * (chartHeight / 2) - chartHeight / 2
+
+  const createPath = (values: number[], scaleY: (v: number) => number) => {
+    return values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${sx(i)} ${scaleY(v)}`).join(' ')
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    
+    if (mouseX < pad || mouseX > W - pad || mouseY < pad || mouseY > H - pad) {
+      setHoveredPoint(null)
+      return
+    }
+
+    const indexAtMouse = Math.round(((mouseX - pad) / chartWidth) * (series.length - 1))
+    const validIndex = Math.max(0, Math.min(series.length - 1, indexAtMouse))
+    const item = series[validIndex]
+    
+    if (item) {
+      setHoveredPoint({
+        x: sx(validIndex),
+        y: mouseY,
+        month: formatMonth(item.mes),
+        total: item.total,
+        deficit: item.deficit
+      })
+    }
+  }
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', position: 'relative' }}>
+      <svg 
+        width={W} 
+        height={H} 
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredPoint(null)}
+        style={{ cursor: 'crosshair' }}
+      >
+        {/* Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map((f, i) => (
+          <g key={i}>
+            <line x1={pad} y1={pad + f * chartHeight} x2={W - pad} y2={pad + f * chartHeight} stroke="#f1f5f9" strokeDasharray="2,2" />
+            <text x={pad - 10} y={pad + f * chartHeight + 4} fontSize={10} fill="#64748b" textAnchor="end">
+              {Math.round((1 - f) * maxTotal)}
+            </text>
+          </g>
+        ))}
+
+        {/* Axes */}
+        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#cbd5e1" strokeWidth="2" />
+        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#cbd5e1" strokeWidth="2" />
+
+        {/* Areas */}
+        <path d={`${createPath(totals, syTotal)} L ${sx(series.length - 1)} ${H - pad} L ${sx(0)} ${H - pad} Z`} fill="url(#totalGradient)" />
+        <path d={`${createPath(deficits, syDeficit)} L ${sx(series.length - 1)} ${syDeficit(0)} L ${sx(0)} ${syDeficit(0)} Z`} fill="url(#deficitGradient)" />
+
+        {/* Lines */}
+        <path d={createPath(totals, syTotal)} fill="none" stroke="#0ea5e9" strokeWidth="3" strokeLinecap="round" />
+        <path d={createPath(deficits, syDeficit)} fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+
+        {/* Points */}
+        {totals.map((v, i) => (
+          <circle key={`total-${i}`} cx={sx(i)} cy={syTotal(v)} r="4" fill="#0ea5e9" stroke="#fff" strokeWidth="2" />
+        ))}
+        {deficits.map((v, i) => (
+          <circle key={`deficit-${i}`} cx={sx(i)} cy={syDeficit(v)} r="4" fill="#ef4444" stroke="#fff" strokeWidth="2" />
+        ))}
+
+        {/* X Labels */}
+        {series.map((item, i) => (
+          <text key={i} x={sx(i)} y={H - 10} fontSize={10} fill="#64748b" textAnchor="middle">
+            {formatMonth(item.mes)}
+          </text>
+        ))}
+
+        {/* Hover line */}
+        {hoveredPoint && (
+          <line x1={hoveredPoint.x} y1={pad} x2={hoveredPoint.x} y2={H - pad} stroke="#374151" strokeDasharray="4,4" />
+        )}
+
+        {/* Gradients */}
+        <defs>
+          <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.05" />
+          </linearGradient>
+          <linearGradient id="deficitGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+
+        {/* Legend */}
+        <g transform={`translate(${W - 160}, 20)`}>
+          <rect x="0" y="-5" width="150" height="30" fill="#fff" stroke="#e2e8f0" rx="6" fillOpacity="0.95" />
+          <circle cx="15" cy="10" r="4" fill="#0ea5e9" />
+          <text x="25" y="14" fontSize="12" fill="#374151">Inspeções</text>
+          <circle cx="90" cy="10" r="4" fill="#ef4444" />
+          <text x="100" y="14" fontSize="12" fill="#374151">Défice</text>
+        </g>
+      </svg>
+
+      {/* Tooltip */}
+      {hoveredPoint && (
+        <div style={{
+          position: 'absolute',
+          left: Math.min(hoveredPoint.x + 10, W - 180),
+          top: Math.max(hoveredPoint.y - 80, 10),
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          padding: 12,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          fontSize: 13,
+          minWidth: 160,
+          zIndex: 10
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
+            {hoveredPoint.month}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0ea5e9', marginRight: 8 }} />
+            <span style={{ color: '#6b7280' }}>Inspeções:</span>
+            <span style={{ marginLeft: 8, fontWeight: 600, color: '#0ea5e9' }}>
+              {hoveredPoint.total?.toLocaleString('pt-PT') || '0'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444', marginRight: 8 }} />
+            <span style={{ color: '#6b7280' }}>Défice:</span>
+            <span style={{ marginLeft: 8, fontWeight: 600, color: '#ef4444' }}>
+              {formatMoney(hoveredPoint.deficit)}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TemporalTable({ data }: { data: Array<{ mes?: string; total?: number; deficit?: number }> }) {
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <thead>
+        <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+          <th style={{ padding: '12px 8px', textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 13 }}>Mês</th>
+          <th style={{ padding: '12px 8px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 13 }}>Inspeções</th>
+          <th style={{ padding: '12px 8px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 13 }}>Défice</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.length === 0 ? (
+          <tr>
+            <td colSpan={3} style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>
+              Sem dados temporais
+            </td>
+          </tr>
+        ) : (
+          data.map((item, i) => (
+            <tr key={i} style={{ 
+              borderBottom: '1px solid #f1f5f9',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+            >
+              <td style={{ padding: '10px 8px', fontWeight: 600, color: '#334155' }}>
+                {formatMonth(item.mes)}
+              </td>
+              <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 700, color: '#0ea5e9' }}>
+                {(item.total || 0).toLocaleString('pt-PT')}
+              </td>
+              <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 700, color: '#ef4444' }}>
+                {formatMoney(item.deficit)}
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  )
+}
+
+function ActionsTable({ data }: { data: CountItem[] }) {
+  const maxCount = Math.max(...data.map(d => d.count || 0), 1)
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem ações registadas</div>
+      ) : (
+        data.map((item, i) => (
+          <div key={i} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr auto', 
+            alignItems: 'center', 
+            padding: '12px 16px', 
+            background: '#fff',
+            border: '1px solid #fed7aa',
+            borderRadius: 8,
+            marginBottom: 4,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#fffbeb'; e.currentTarget.style.borderColor = '#fb923c' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#fed7aa' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 8, 
+                height: 8, 
+                borderRadius: 4, 
+                background: `hsl(${30 + i * 15}, 70%, ${55 - i * 3}%)` 
+              }} />
+              <div>
+                <div style={{ fontWeight: 600, color: '#9a3412' }}>{item.label || item.id || '—'}</div>
+                <div style={{ 
+                  width: Math.max(60, (item.count || 0) / maxCount * 200), 
+                  height: 4, 
+                  background: `hsl(${30 + i * 15}, 70%, ${55 - i * 3}%)`, 
+                  borderRadius: 2, 
+                  marginTop: 4,
+                  opacity: 0.8
+                }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#ea580c' }}>
+              {(item.count || 0).toLocaleString('pt-PT')}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function BestGroupsTable({ data }: { data: Array<{ label?: string; value?: number }> }) {
+  const maxValue = Math.max(...data.map(d => d.value || 0), 1)
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados de valor recuperado</div>
+      ) : (
+        data.slice(0, 8).map((item, i) => (
+          <div key={i} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'auto 1fr auto', 
+            alignItems: 'center', 
+            padding: '14px 16px', 
+            background: '#fff',
+            border: '1px solid #bbf7d0',
+            borderRadius: 10,
+            gap: 12,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            <div style={{ 
+              fontSize: 14, 
+              fontWeight: 'bold',
+              color: '#166534',
+              background: '#dcfce7',
+              padding: '4px 8px',
+              borderRadius: 6,
+              minWidth: 24,
+              textAlign: 'center'
+            }}>
+              #{i + 1}
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || '—'}</div>
+              <div style={{ 
+                width: Math.max(80, (item.value || 0) / maxValue * 220), 
+                height: 4, 
+                background: '#22c55e', 
+                borderRadius: 2, 
+                marginTop: 4,
+                opacity: 0.8
+              }} />
+            </div>
+            <div style={{ 
+              fontSize: 16, 
+              fontWeight: 800, 
+              color: '#15803d',
+              textAlign: 'right'
+            }}>
+              {formatMoney(item.value)}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function TrendValueTable({ data }: { data: Array<{ label?: string; value?: number }> }) {
+  const getTrendColor = (label: string) => {
+    if (label.includes('Crescente')) return '#7c3aed'
+    if (label.includes('Decrescente')) return '#dc2626'
+    if (label.includes('Normal')) return '#0891b2'
+    return '#6b7280'
+  }
+
+  const getTrendIcon = (label: string) => {
+    if (label.includes('Muito crescente')) return '↗↗'
+    if (label.includes('Crescente')) return '↗'
+    if (label.includes('Muito decrescente')) return '↘↘'
+    if (label.includes('Decrescente')) return '↘'
+    if (label.includes('Normal')) return '→'
+    return '—'
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados por tendência</div>
+      ) : (
+        data.map((item, i) => {
+          const color = getTrendColor(item.label || '')
+          const icon = getTrendIcon(item.label || '')
+          
+          return (
+            <div key={i} style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'auto 1fr auto', 
+              alignItems: 'center', 
+              padding: '14px 16px', 
+              background: '#fff',
+              border: '1px solid #e7e5e4',
+              borderRadius: 10,
+              gap: 12,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#faf5ff'; e.currentTarget.style.borderColor = '#c084fc' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e7e5e4' }}
+            >
+              <div style={{ 
+                fontSize: 18, 
+                color, 
+                fontWeight: 'bold',
+                width: 28,
+                textAlign: 'center'
+              }}>
+                {icon}
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || '—'}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>Valor recuperado</div>
+              </div>
+              <div style={{ 
+                fontSize: 16, 
+                fontWeight: 800, 
+                color,
+                textAlign: 'right'
+              }}>
+                {formatMoney(item.value)}
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+function TrendEfficiencyCard({ data }: { data: Array<{ label?: string; value?: number }> }) {
+  const totalValue = data.reduce((sum, item) => sum + (item.value || 0), 0)
+  const crescenteValue = data.filter(item => item.label?.includes('Crescente')).reduce((sum, item) => sum + (item.value || 0), 0)
+  const eficiencia = totalValue > 0 ? (crescenteValue / totalValue) * 100 : 0
+
+  return (
+    <div style={{ padding: 12, background: '#faf5ff', borderRadius: 10, border: '1px solid #d8b4fe' }}>
+      <div style={{ fontSize: 12, color: '#7c2d12', marginBottom: 8, fontWeight: 600 }}>Eficiência por Tendência</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <div>
+          <div style={{ fontSize: 10, color: '#8b5cf6' }}>Crescente</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#7c3aed' }}>
+            {formatMoney(crescenteValue)}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: '#8b5cf6' }}>Eficácia</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#7c3aed' }}>
+            {eficiencia.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+      <div style={{ 
+        width: '100%', 
+        height: 6, 
+        background: '#e5e7eb', 
+        borderRadius: 3, 
+        overflow: 'hidden'
+      }}>
+        <div style={{ 
+          width: `${Math.min(100, eficiencia)}%`, 
+          height: '100%', 
+          background: '#8b5cf6',
+          transition: 'width 0.3s ease'
+        }} />
+      </div>
+    </div>
+  )
+}
+
+function AnalysisValueTable({ data }: { data: Array<{ label?: string; value?: number }> }) {
+  const getAnalysisColor = (label: string) => {
+    if (label.includes('Analisado')) return '#0891b2'
+    if (label.includes('Em análise')) return '#f59e0b'
+    return '#6b7280'
+  }
+
+  const getAnalysisIcon = (label: string) => {
+    if (label.includes('Analisado')) return '✓'
+    if (label.includes('Em análise')) return '⏳'
+    return '—'
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {data.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados por análise</div>
+      ) : (
+        data.map((item, i) => {
+          const color = getAnalysisColor(item.label || '')
+          const icon = getAnalysisIcon(item.label || '')
+          
+          return (
+            <div key={i} style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'auto 1fr auto', 
+              alignItems: 'center', 
+              padding: '14px 16px', 
+              background: '#fff',
+              border: '1px solid #cffafe',
+              borderRadius: 10,
+              gap: 12,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f0fdfa'; e.currentTarget.style.borderColor = '#67e8f9' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cffafe' }}
+            >
+              <div style={{ 
+                fontSize: 16, 
+                color, 
+                fontWeight: 'bold',
+                width: 24,
+                textAlign: 'center'
+              }}>
+                {icon}
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || '—'}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>Estado da análise</div>
+              </div>
+              <div style={{ 
+                fontSize: 16, 
+                fontWeight: 800, 
+                color,
+                textAlign: 'right'
+              }}>
+                {formatMoney(item.value)}
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+function AnalysisEfficiencyCard({ data }: { data: Array<{ label?: string; value?: number }> }) {
+  const totalValue = data.reduce((sum, item) => sum + (item.value || 0), 0)
+  const analisadoValue = data.filter(item => item.label?.includes('Analisado')).reduce((sum, item) => sum + (item.value || 0), 0)
+  const completionRate = totalValue > 0 ? (analisadoValue / totalValue) * 100 : 0
+
+  return (
+    <div style={{ padding: 12, background: '#f0fdfa', borderRadius: 10, border: '1px solid #99f6e4' }}>
+      <div style={{ fontSize: 12, color: '#0f766e', marginBottom: 8, fontWeight: 600 }}>Taxa de Conclusão</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <div>
+          <div style={{ fontSize: 10, color: '#0891b2' }}>Analisado</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#0e7490' }}>
+            {formatMoney(analisadoValue)}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: '#0891b2' }}>Taxa</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#0e7490' }}>
+            {completionRate.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+      <div style={{ 
+        width: '100%', 
+        height: 6, 
+        background: '#e5e7eb', 
+        borderRadius: 3, 
+        overflow: 'hidden'
+      }}>
+        <div style={{ 
+          width: `${Math.min(100, completionRate)}%`, 
+          height: '100%', 
+          background: '#06b6d4',
+          transition: 'width 0.3s ease'
+        }} />
+      </div>
+    </div>
+  )
 }
