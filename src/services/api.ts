@@ -1380,6 +1380,146 @@ export interface InstalacaoAccoesExecuteMonthlyAnalysisResponse {
 /**
  * 
  * @export
+ * @interface InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+ */
+export interface InstalacaoAccoesInstalacaoAccoesEffectivenessItem {
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'accao_tipo_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'after_count'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'after_total'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'analise_status'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'before_count'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'before_total'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'change_pct'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'change_total'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'compras_6_antes'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'compras_6_depois'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'data_execucao'?: string;
+    /**
+     * EFFECTIVE, INEFFECTIVE, NEUTRAL
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'effectiveness'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'marcacao_status'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'pf'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'tendencia_compras'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessItem
+     */
+    'valor_recuperado'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse
+ */
+export interface InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse {
+    /**
+     * 
+     * @type {Array<InstalacaoAccoesInstalacaoAccoesEffectivenessItem>}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse
+     */
+    'items'?: Array<InstalacaoAccoesInstalacaoAccoesEffectivenessItem>;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse
+     */
+    'page_size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse
+     */
+    'total'?: number;
+}
+/**
+ * 
+ * @export
  * @interface InstalacaoAccoesInstalacaoAccoesListResponse
  */
 export interface InstalacaoAccoesInstalacaoAccoesListResponse {
@@ -9368,6 +9508,90 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
             };
         },
         /**
+         * For each installation action, returns effectiveness analysis comparing purchase patterns before and after execution date
+         * @summary List InstalacaoAccoes effectiveness
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by installation PF
+         * @param {string} [accaoTipoId] Filter by action type ID
+         * @param {string} [marcacaoStatus] Filter by marking status (EXECUTADO, MARCADO)
+         * @param {string} [analiseStatus] Filter by analysis status (EM_ANALISE, ANALISADO)
+         * @param {string} [tendenciaCompras] Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesEffectivenessGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, accaoTipoId?: string, marcacaoStatus?: string, analiseStatus?: string, tendenciaCompras?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesEffectivenessGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/effectiveness`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['page_size'] = pageSize;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+            if (orderDirection !== undefined) {
+                localVarQueryParameter['order_direction'] = orderDirection;
+            }
+
+            if (pf !== undefined) {
+                localVarQueryParameter['pf'] = pf;
+            }
+
+            if (accaoTipoId !== undefined) {
+                localVarQueryParameter['accao_tipo_id'] = accaoTipoId;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -9976,6 +10200,28 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * For each installation action, returns effectiveness analysis comparing purchase patterns before and after execution date
+         * @summary List InstalacaoAccoes effectiveness
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by installation PF
+         * @param {string} [accaoTipoId] Filter by action type ID
+         * @param {string} [marcacaoStatus] Filter by marking status (EXECUTADO, MARCADO)
+         * @param {string} [analiseStatus] Filter by analysis status (EM_ANALISE, ANALISADO)
+         * @param {string} [tendenciaCompras] Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesEffectivenessGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, accaoTipoId?: string, marcacaoStatus?: string, analiseStatus?: string, tendenciaCompras?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesEffectivenessGet(authorization, page, pageSize, orderBy, orderDirection, pf, accaoTipoId, marcacaoStatus, analiseStatus, tendenciaCompras, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesEffectivenessGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -10170,6 +10416,25 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
             return localVarFp.privateInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
         },
         /**
+         * For each installation action, returns effectiveness analysis comparing purchase patterns before and after execution date
+         * @summary List InstalacaoAccoes effectiveness
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [pf] Filter by installation PF
+         * @param {string} [accaoTipoId] Filter by action type ID
+         * @param {string} [marcacaoStatus] Filter by marking status (EXECUTADO, MARCADO)
+         * @param {string} [analiseStatus] Filter by analysis status (EM_ANALISE, ANALISADO)
+         * @param {string} [tendenciaCompras] Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesEffectivenessGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, accaoTipoId?: string, marcacaoStatus?: string, analiseStatus?: string, tendenciaCompras?: string, options?: RawAxiosRequestConfig): AxiosPromise<InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse> {
+            return localVarFp.privateInstalacaoAccoesEffectivenessGet(authorization, page, pageSize, orderBy, orderDirection, pf, accaoTipoId, marcacaoStatus, analiseStatus, tendenciaCompras, options).then((request) => request(axios, basePath));
+        },
+        /**
          * For each action in EM_ANALISE, within 6 months after data_execucao and not yet processed this month, updates compras_6_depois and tendencia_compras. On the last month, sets analise_status to ANALISADO.
          * @summary Execute monthly analysis for running InstalacaoAccoes
          * @param {string} authorization Bearer token
@@ -10333,6 +10598,27 @@ export class InstalacaoAccoesApi extends BaseAPI {
      */
     public privateInstalacaoAccoesContagensGet(authorization: string, groupBy?: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
         return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesContagensGet(authorization, groupBy, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * For each installation action, returns effectiveness analysis comparing purchase patterns before and after execution date
+     * @summary List InstalacaoAccoes effectiveness
+     * @param {string} authorization Bearer token
+     * @param {number} [page] Page number (-1 returns all)
+     * @param {number} [pageSize] Page size
+     * @param {string} [orderBy] Order by
+     * @param {string} [orderDirection] asc|desc
+     * @param {string} [pf] Filter by installation PF
+     * @param {string} [accaoTipoId] Filter by action type ID
+     * @param {string} [marcacaoStatus] Filter by marking status (EXECUTADO, MARCADO)
+     * @param {string} [analiseStatus] Filter by analysis status (EM_ANALISE, ANALISADO)
+     * @param {string} [tendenciaCompras] Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesEffectivenessGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, pf?: string, accaoTipoId?: string, marcacaoStatus?: string, analiseStatus?: string, tendenciaCompras?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesEffectivenessGet(authorization, page, pageSize, orderBy, orderDirection, pf, accaoTipoId, marcacaoStatus, analiseStatus, tendenciaCompras, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

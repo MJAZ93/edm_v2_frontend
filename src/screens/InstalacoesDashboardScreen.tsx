@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Card } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { InspeccoesApi, ASCApi, RegiaoApi, InstalacaoAccoesApi, type ModelASC, type ModelRegiao } from '../services'
+import { InspeccoesApi, ASCApi, RegiaoApi, InstalacaoAccoesApi, InstalacaoAccaoTipoApi, type ModelASC, type ModelRegiao } from '../services'
 
 type CountItem = { id?: string; label?: string; count?: number }
 
@@ -36,6 +36,10 @@ export default function InstalacoesDashboardScreen() {
   const [tendCounts, setTendCounts] = useState<CountItem[]>([])
   const [tendLoading, setTendLoading] = useState(false)
   const [tendError, setTendError] = useState<string | null>(null)
+  // Effectiveness de instalação-ações (valor recuperado por tipo de ação)
+  const [effectivenessData, setEffectivenessData] = useState<any[]>([])
+  const [effectivenessLoading, setEffectivenessLoading] = useState(false)
+  const [effectivenessError, setEffectivenessError] = useState<string | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -162,6 +166,23 @@ export default function InstalacoesDashboardScreen() {
       } finally { setTendLoading(false) }
     })()
   }, [api, auth])
+
+  // Carregar dados de effectiveness de instalação-ações
+  useEffect(() => {
+    (async () => {
+      setEffectivenessLoading(true); setEffectivenessError(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesEffectivenessGet(auth, -1)
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const items = ((data as any)?.items) ?? []
+        setEffectivenessData(items)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setEffectivenessError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar dados de effectiveness de instalações.')
+      } finally { setEffectivenessLoading(false) }
+    })()
+  }, [accoesApi, auth])
 
   // Contagens de ações por instalação (por região)
   const [accoesCounts, setAccoesCounts] = useState<CountItem[]>([])
@@ -719,7 +740,24 @@ export default function InstalacoesDashboardScreen() {
               </div>
               {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
             </Card>
+
           </div>
+
+          {/* Effectiveness de Ações de Instalação */}
+          <Card title="Valor Recuperado por Tipo de Ação (Instalações)">
+            {effectivenessLoading ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ marginBottom: 8 }}>A carregar effectiveness de instalações…</div>
+                <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: '75%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                </div>
+              </div>
+            ) : effectivenessError ? (
+              <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8 }}>{effectivenessError}</div>
+            ) : (
+              <InstallationEffectivenessChart data={effectivenessData} />
+            )}
+          </Card>
 
           {/* Análise por Tendência e Estado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
@@ -840,6 +878,191 @@ function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12 }: { dat
 function formatMoney(n?: number) {
   if (typeof n !== 'number' || Number.isNaN(n)) return '—'
   try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` }
+}
+
+function formatKwh(n?: number) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return '—'
+  try { return `${n.toLocaleString('pt-PT')} kWh` } catch { return `${n} kWh` }
+}
+
+function InstallationEffectivenessChart({ data }: { data: any[] }) {
+  const { getApiConfig, getAuthorizationHeaderValue } = useAuth()
+  const accaoTipoApi = useMemo(() => new InstalacaoAccaoTipoApi(getApiConfig()), [getApiConfig])
+  const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  
+  const [accaoTiposLookup, setAccaoTiposLookup] = useState<Record<string, any>>({})
+  const [loadingAccaoTipos, setLoadingAccaoTipos] = useState(false)
+
+  // Carregar todos os tipos de ação uma vez para fazer lookup
+  useEffect(() => {
+    (async () => {
+      setLoadingAccaoTipos(true)
+      try {
+        const { data: tiposResponse } = await accaoTipoApi.privateInstalacaoAccaoTiposGet(
+          authHeader, 
+          -1, // página -1 para retornar todos
+          1000 // tamanho grande para garantir que pega todas
+        )
+        
+        const tiposItems = ((tiposResponse as any)?.items) ?? []
+        console.log('Todos os tipos de ação carregados:', tiposItems) // Debug
+        
+        // Criar lookup por ID
+        const lookup: Record<string, any> = {}
+        tiposItems.forEach((tipo: any) => {
+          if (tipo?.id) {
+            lookup[tipo.id] = tipo
+          }
+        })
+        
+        setAccaoTiposLookup(lookup)
+      } catch (err: any) {
+        console.warn('Erro ao carregar tipos de ação:', err)
+        if (err?.response?.status === 401 || err?.response?.status === 403) {
+          // Erro de autorização - não fazer nada
+          return
+        }
+      } finally {
+        setLoadingAccaoTipos(false)
+      }
+    })()
+  }, [accaoTipoApi, authHeader])
+
+  if (!data || data.length === 0) {
+    return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Sem dados de effectiveness de instalações disponíveis.</div>
+  }
+
+  if (loadingAccaoTipos) {
+    return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>A carregar tipos de ação…</div>
+  }
+
+  // Agrupar por tipo de ação e somar valor recuperado
+  const groupedData = data.reduce((acc: any, item: any) => {
+    let tipoNome = 'Sem tipo'
+    
+    // Primeiro tentar usar accao_tipo do item
+    if (item?.accao_tipo?.nome) {
+      tipoNome = item.accao_tipo.nome
+    } else if (item?.accao_tipo_id && accaoTiposLookup[item.accao_tipo_id]) {
+      // Buscar o nome do tipo de ação usando o lookup
+      const tipoDetail = accaoTiposLookup[item.accao_tipo_id]
+      console.log(`Detalhes do tipo ${item.accao_tipo_id}:`, tipoDetail) // Debug
+      tipoNome = tipoDetail?.nome || 
+                 tipoDetail?.name || 
+                 tipoDetail?.title || 
+                 tipoDetail?.descricao ||
+                 `Tipo ${item.accao_tipo_id}`
+      console.log(`Nome extraído: "${tipoNome}"`) // Debug
+    } else if (item?.accao_tipo_id) {
+      tipoNome = `Tipo ${item.accao_tipo_id}`
+      console.log(`Usando fallback para tipo ${item.accao_tipo_id}: "${tipoNome}"`) // Debug
+    } else if (item?.accao_id) {
+      tipoNome = `Ação ${item.accao_id}`
+      console.log(`Usando fallback para ação ${item.accao_id}: "${tipoNome}"`) // Debug
+    }
+    
+    const valorRecuperado = Number(item?.valor_recuperado || 0)
+    
+    if (!acc[tipoNome]) {
+      acc[tipoNome] = 0
+    }
+    acc[tipoNome] += valorRecuperado
+    
+    return acc
+  }, {})
+
+  // Converter para array e ordenar por valor
+  const chartData = Object.entries(groupedData)
+    .map(([label, value]) => ({ label, value: value as number }))
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8) // Top 8 tipos
+
+  if (chartData.length === 0) {
+    return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Sem dados com valor recuperado disponíveis.</div>
+  }
+
+  const total = chartData.reduce((sum, item) => sum + item.value, 0)
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+              <th style={{ padding: '12px 8px', textAlign: 'left', color: '#374151', fontWeight: 600 }}>Tipo de Ação</th>
+              <th style={{ padding: '12px 8px', textAlign: 'right', color: '#374151', fontWeight: 600 }}>Valor Recuperado (kWh)</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', color: '#374151', fontWeight: 600 }}>% do Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chartData.map((item, i) => {
+              const percentage = total > 0 ? (item.value / total) * 100 : 0
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '12px 8px' }}>
+                    <div style={{ fontWeight: 600, color: '#111827' }}>{item.label}</div>
+                  </td>
+                  <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>
+                    {formatKwh(item.value)}
+                  </td>
+                  <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <div style={{ 
+                        width: 60, 
+                        height: 8, 
+                        background: '#f3f4f6', 
+                        borderRadius: 4, 
+                        overflow: 'hidden',
+                        position: 'relative'
+                      }}>
+                        <div style={{ 
+                          width: `${Math.max(0, Math.min(100, percentage))}%`, 
+                          height: '100%', 
+                          background: '#16a34a',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                      <span style={{ 
+                        fontSize: 12, 
+                        fontWeight: 600,
+                        color: '#16a34a',
+                        padding: '2px 6px',
+                        borderRadius: 6,
+                        background: '#dcfce715'
+                      }}>
+                        {percentage.toFixed(1)}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: 16, background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: 12, color: '#166534', fontWeight: 600, marginBottom: 4 }}>Total Recuperado</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d' }}>
+            {formatKwh(total)}
+          </div>
+        </div>
+        <div style={{ padding: 16, background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: 12, color: '#166534', fontWeight: 600, marginBottom: 4 }}>Tipos de Ação</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d' }}>
+            {chartData.length}
+          </div>
+        </div>
+        <div style={{ padding: 16, background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: 12, color: '#166534', fontWeight: 600, marginBottom: 4 }}>Ações Totais</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d' }}>
+            {data.length}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function formatMonth(m?: string) {

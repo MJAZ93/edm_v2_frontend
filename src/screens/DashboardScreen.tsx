@@ -213,6 +213,7 @@ export default function DashboardScreen() {
     })()
   }, [active, dashApi, authHeader])
 
+
   const infraRoute = useMemo(() => {
     if (/^\/infracoes\/[^/]+\/editar$/.test(path)) return 'edit'
     if (/^\/infracoes\/[^/]+$/.test(path)) return 'detail'
@@ -530,6 +531,7 @@ export default function DashboardScreen() {
               </div>
             )}
           </Card>
+
         </div>
       )}
 
@@ -618,6 +620,7 @@ export default function DashboardScreen() {
     </AppShell>
   )
 }
+
 
 function Metric({ label, value, color = '#111827' }: { label: string; value: string | number; color?: string }) {
   return (

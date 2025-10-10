@@ -5,6 +5,7 @@ All URIs are relative to */api*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**privateInstalacaoAccoesContagensGet**](#privateinstalacaoaccoescontagensget) | **GET** /private/instalacao-accoes/contagens | Contagens de ações por instalação|
+|[**privateInstalacaoAccoesEffectivenessGet**](#privateinstalacaoaccoeseffectivenessget) | **GET** /private/instalacao-accoes/effectiveness | List InstalacaoAccoes effectiveness|
 |[**privateInstalacaoAccoesExecuteMonthlyAnalisysPost**](#privateinstalacaoaccoesexecutemonthlyanalisyspost) | **POST** /private/instalacao-accoes/execute_monthly_analisys | Execute monthly analysis for running InstalacaoAccoes|
 |[**privateInstalacaoAccoesGet**](#privateinstalacaoaccoesget) | **GET** /private/instalacao-accoes | List InstalacaoAccoes|
 |[**privateInstalacaoAccoesIdDelete**](#privateinstalacaoaccoesiddelete) | **DELETE** /private/instalacao-accoes/{id} | Delete InstalacaoAccoes|
@@ -85,6 +86,85 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesContagensGet(
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **privateInstalacaoAccoesEffectivenessGet**
+> InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse privateInstalacaoAccoesEffectivenessGet()
+
+For each installation action, returns effectiveness analysis comparing purchase patterns before and after execution date
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let page: number; //Page number (-1 returns all) (optional) (default to undefined)
+let pageSize: number; //Page size (optional) (default to undefined)
+let orderBy: string; //Order by (optional) (default to 'data_execucao')
+let orderDirection: string; //asc|desc (optional) (default to 'asc')
+let pf: string; //Filter by installation PF (optional) (default to undefined)
+let accaoTipoId: string; //Filter by action type ID (optional) (default to undefined)
+let marcacaoStatus: string; //Filter by marking status (EXECUTADO, MARCADO) (optional) (default to undefined)
+let analiseStatus: string; //Filter by analysis status (EM_ANALISE, ANALISADO) (optional) (default to undefined)
+let tendenciaCompras: string; //Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS) (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesEffectivenessGet(
+    authorization,
+    page,
+    pageSize,
+    orderBy,
+    orderDirection,
+    pf,
+    accaoTipoId,
+    marcacaoStatus,
+    analiseStatus,
+    tendenciaCompras
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
+| **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
+| **orderBy** | [**string**] | Order by | (optional) defaults to 'data_execucao'|
+| **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|
+| **pf** | [**string**] | Filter by installation PF | (optional) defaults to undefined|
+| **accaoTipoId** | [**string**] | Filter by action type ID | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | Filter by marking status (EXECUTADO, MARCADO) | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | Filter by analysis status (EM_ANALISE, ANALISADO) | (optional) defaults to undefined|
+| **tendenciaCompras** | [**string**] | Filter by purchase trend (CRESCENTE, DECRESCENTE, MUITO_CRESCENTE, MUITO_DECRESCENTE, NORMAL, SEM_COMPRAS) | (optional) defaults to undefined|
+
+
+### Return type
+
+**InstalacaoAccoesInstalacaoAccoesEffectivenessListResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**401** | Unauthorized |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
