@@ -292,57 +292,82 @@ export default function DashboardScreen() {
       ) : undefined}
       >
       {active === 'dashboard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {dashError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{dashError}</div> : null}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Heading level={2}>Dashboard de Vandalizações</Heading>
 
-          {/* Mapa primeiro */}
-          <Card title="Mapa: Sucatarias e Ocorrências">
+          {dashError && (
+            <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 10, border: '1px solid #fecaca' }}>
+              {dashError}
+            </div>
+          )}
+
+          <Card title="Mapa Geral">
             <div style={{ width: '100%' }}>
               <DashboardMap height={420} />
-              <div style={{ display: 'flex', gap: 16, marginTop: 8, color: '#6b7280', fontSize: 12 }}>
-                <div><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 10, background: '#1d4ed8', marginRight: 6 }} /> Sucatarias</div>
-                <div><span style={{ color: '#ef4444' }}>●</span> Infrações</div>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
+                  <span>Sucatarias</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1d4ed8' }} />
+                  <span>Ocorrências</span>
+                </div>
               </div>
             </div>
           </Card>
 
-          <Grid minColumnWidth={260} gap={20}>
-            <Card title="Totais">
+          <Grid minColumnWidth={300} gap={16}>
+            <Card title="Métricas Principais">
               {loadingDash ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar métricas…</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Metric label="Regiões" value={(kpis as any)?.nr_regioes ?? '—'} color="#7c3aed" />
-                  <Metric label="ASCs" value={(kpis as any)?.nr_ascs ?? '—'} color="#1d4ed8" />
-                  <Metric label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} color="#0ea5e9" />
-                  <Metric label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} color="#ef4444" />
-                  <Metric label="Infractores" value={(kpis as any)?.nr_infractors ?? '—'} color="#059669" />
-                  <Metric label="Total perdas" value={formatMoney((kpis as any)?.total_valor_infractions)} color="#b91c1c" />
-                  <Metric label="Média por infração" value={formatMoney((kpis as any)?.avg_valor_infraction)} color="#9333ea" />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                  <MetricCard label="Regiões" value={(kpis as any)?.nr_regioes ?? '—'} color="#7c3aed" />
+                  <MetricCard label="ASCs" value={(kpis as any)?.nr_ascs ?? '—'} color="#1d4ed8" />
+                  <MetricCard label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} color="#0ea5e9" />
+                  <MetricCard label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} color="#ef4444" />
+                  <MetricCard label="Infractores" value={(kpis as any)?.nr_infractors ?? '—'} color="#059669" />
                 </div>
               )}
             </Card>
-            <Card title="Totais financeiros">
+
+            <Card title="Resumo Financeiro (2025)">
               {loadingDash ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar dados…</div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, minmax(120px,1fr))', gap: 8 }}>
-                  <Metric label="Perdas (infrações)" value={formatMoney((financeTotals as any)?.loss_total)} color="#ef4444" />
-                  <Metric label="Gastos (ações)" value={formatMoney((financeTotals as any)?.actions_spend_total)} color="#f59e0b" />
-                  {Object.entries((financeTotals || {})).filter(([k]) => !['loss_total','actions_spend_total','health'].includes(k)).map(([k,v]) => (
-                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151' }}>
-                      <span style={{ color: '#6b7280' }}>{k}</span>
-                      <strong>{typeof v === 'number' ? v : String(v)}</strong>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={{ padding: 16, borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca' }}>
+                      <div style={{ fontSize: 12, color: '#991b1b', fontWeight: 600, marginBottom: 4 }}>Total Perdas</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#dc2626' }}>
+                        {formatMoney((kpis as any)?.total_valor_infractions)}
+                      </div>
                     </div>
-                  ))}
+                    <div style={{ padding: 16, borderRadius: 12, background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                      <div style={{ fontSize: 12, color: '#1e40af', fontWeight: 600, marginBottom: 4 }}>Gastos Ações</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#2563eb' }}>
+                        {formatMoney((financeTotals as any)?.actions_spend_total)}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ padding: 12, borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Média por Infração</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#334155' }}>
+                      {formatMoney((kpis as any)?.avg_valor_infraction)}
+                    </div>
+                  </div>
                 </div>
               )}
             </Card>
-            <Card title="Comparação 3 meses">
-              {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px,1fr))', gap: 12 }}>
-                  <CompareBlock
-                    title="Perdas (infrações)"
+
+            <Card title="Evolução (3 Meses)">
+              {loadingDash ? (
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar comparação…</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <ComparisonCard
+                    title="Perdas (Infrações)"
                     before={(financeCompare as any)?.loss_before}
                     after={(financeCompare as any)?.loss_after}
                     changeAbs={(financeCompare as any)?.loss_change_abs}
@@ -350,109 +375,158 @@ export default function DashboardScreen() {
                     goodWhenDecrease
                     color="#ef4444"
                   />
-                  <CompareBlock
-                    title="Gastos (ações)"
+                  <ComparisonCard
+                    title="Gastos (Ações)"
                     before={(financeCompare as any)?.spend_before}
                     after={(financeCompare as any)?.spend_after}
                     changeAbs={(financeCompare as any)?.spend_change_abs}
                     changePct={(financeCompare as any)?.spend_change_pct}
                     goodWhenDecrease={false}
-                    color="#f59e0b"
+                    color="#0ea5e9"
                   />
                 </div>
               )}
             </Card>
-            
           </Grid>
 
-          <Card title="Sucatarias de maior risco">
-            {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px,1fr))', gap: 12 }}>
-                {riskScrapyards.map((s, i) => {
-                  const pct = riskPercent(s?.nivel_confianca)
-                  const col = riskColor(pct)
-                  const barBg = '#fde68a'
-                  return (
-                    <div key={i} style={{ padding: 12, borderRadius: 12, border: `1px solid ${col}33`, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                        <div style={{ fontWeight: 800, wordBreak: 'break-word' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
-                        <span style={{ fontSize: 12, background: `${col}1A`, color: col, padding: '4px 8px', borderRadius: 999 }}>Risco {pct.toFixed(1)}%</span>
-                      </div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, wordBreak: 'break-word' }}>ASC: {s?.asc_name || s?.asc_id || '—'}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <div style={{ height: 8, background: barBg, borderRadius: 6, overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: '100%', background: col, transition: 'width .3s ease' }} />
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                        <button type="button" onClick={() => { if (s?.scrapyard_id) { window.history.pushState({}, '', `/sucatarias/${s.scrapyard_id}`); window.dispatchEvent(new Event('locationchange')) } }} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${col}`, background: '#fff', color: col, cursor: 'pointer' }}>Ver detalhes</button>
-                      </div>
-                    </div>
-                  )
-                })}
-                {!riskScrapyards.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
+          <Card title="Análise de Risco · Sucatarias">
+            {loadingDash ? (
+              <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar análise de risco…</div>
+            ) : riskScrapyards.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Sem dados de risco disponíveis.</div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#374151', fontWeight: 600 }}>Sucataria</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#374151', fontWeight: 600 }}>ASC</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#374151', fontWeight: 600 }}>Nível Risco</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#374151', fontWeight: 600 }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {riskScrapyards.map((s, i) => {
+                      const pct = riskPercent(s?.nivel_confianca)
+                      const col = riskColor(pct)
+                      return (
+                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={{ padding: '12px 8px' }}>
+                            <div style={{ fontWeight: 600, color: '#111827' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
+                          </td>
+                          <td style={{ padding: '12px 8px', color: '#6b7280' }}>
+                            {s?.asc_name || s?.asc_id || '—'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                              <div style={{ 
+                                width: 60, 
+                                height: 8, 
+                                background: '#f3f4f6', 
+                                borderRadius: 4, 
+                                overflow: 'hidden',
+                                position: 'relative'
+                              }}>
+                                <div style={{ 
+                                  width: `${Math.max(0, Math.min(100, pct))}%`, 
+                                  height: '100%', 
+                                  background: col,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                              <span style={{ 
+                                fontSize: 12, 
+                                fontWeight: 600,
+                                color: col,
+                                padding: '2px 6px',
+                                borderRadius: 6,
+                                background: `${col}15`
+                              }}>
+                                {pct.toFixed(1)}%
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => { 
+                                if (s?.scrapyard_id) { 
+                                  window.history.pushState({}, '', `/sucatarias/${s.scrapyard_id}`)
+                                  window.dispatchEvent(new Event('locationchange'))
+                                } 
+                              }}
+                              style={{ 
+                                padding: '6px 12px', 
+                                borderRadius: 6, 
+                                border: '1px solid #d1d5db', 
+                                background: '#fff', 
+                                color: '#374151', 
+                                cursor: 'pointer',
+                                fontSize: 12,
+                                fontWeight: 500
+                              }}
+                            >
+                              Ver detalhes
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </Card>
 
-          <Grid minColumnWidth={360} gap={20}>
-            <Card title="Infrações por tipo — Distribuição">
+          <Grid minColumnWidth={400} gap={16}>
+            <Card title="Distribuição por Tipo de Infração">
               {loadingDash ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar distribuições…</div>
               ) : (
                 <DonutChart
-                  data={(infractionsByTipo || []).map((it: any) => ({ label: it?.key_name || it?.key_id || '—', value: Number(it?.count || 0) }))}
+                  data={(infractionsByTipo || []).map((it: any) => ({ 
+                    label: it?.key_name || it?.key_id || '—', 
+                    value: Number(it?.count || 0) 
+                  }))}
                 />
               )}
             </Card>
-            <Card title="Ocorrências por ASC — Distribuição">
+
+            <Card title="Distribuição por ASC">
               {loadingDash ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar distribuições…</div>
               ) : (
                 <DonutChart
-                  data={(occByAsc || []).map((it: any) => ({ label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', value: Number(it?.count || it?.value || 0) }))}
+                  data={(occByAsc || []).map((it: any) => ({ 
+                    label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', 
+                    value: Number(it?.count || it?.value || 0) 
+                  }))}
                 />
               )}
             </Card>
           </Grid>
 
-          <Card title="Financeiro — Série temporal (perdas vs. gastos)">
-            {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
+          <Card title="Evolução Temporal (2025) · Perdas vs Gastos">
+            {loadingDash ? (
+              <div style={{ color: '#6b7280', padding: 40, textAlign: 'center' }}>A carregar série temporal…</div>
+            ) : (
               <TimeSeriesChart loss={financeLoss} spend={financeSpend} />
             )}
           </Card>
 
-          <Card title="Top ASCs por perdas e gastos">
-            {loadingDash ? <div style={{ color: '#6b7280' }}>A carregar…</div> : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 12 }}>
-                {financeTop.map((it, i) => (
-                  <div key={i} style={{ padding: 16, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, wordBreak: 'break-word', marginBottom: 8 }}>{it?.asc_name || it?.asc_id || '—'}</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ color: '#6b7280', fontSize: 12 }}>Perdas</div>
-                        <div style={{ fontWeight: 800, color: '#ef4444', fontSize: 18 }}>{formatMoney(it?.loss_total)}</div>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ color: '#6b7280', fontSize: 12 }}>Gastos</div>
-                        <div style={{ fontWeight: 800, color: '#0ea5e9', fontSize: 18 }}>{formatMoney(it?.spend_total)}</div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
-                      <div style={{ color: '#6b7280', fontSize: 12 }}>Ocorrências: <strong>{it?.count_occurrences || 0}</strong></div>
-                      <div style={{ 
-                        fontSize: 11, 
-                        padding: '2px 8px', 
-                        borderRadius: 12, 
-                        background: (it?.loss_total || 0) > (it?.spend_total || 0) ? '#fee2e2' : '#dcfce7',
-                        color: (it?.loss_total || 0) > (it?.spend_total || 0) ? '#991b1b' : '#166534'
-                      }}>
-                        {(it?.loss_total || 0) > (it?.spend_total || 0) ? 'Perdas > Gastos' : 'Gastos ≥ Perdas'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {!financeTop.length && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
+          <Card title="Top ASCs (2025) · Distribuição de Perdas">
+            {loadingDash ? (
+              <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar rankings…</div>
+            ) : financeTop.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Sem dados de performance disponíveis.</div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'center', maxWidth: 500, margin: '0 auto' }}>
+                <DonutChart
+                  data={financeTop.map((it: any) => ({ 
+                    label: it?.asc_name || it?.asc_id || '—', 
+                    value: Number(it?.loss_total || 0) 
+                  }))}
+                />
               </div>
             )}
           </Card>
@@ -550,6 +624,77 @@ function Metric({ label, value, color = '#111827' }: { label: string; value: str
     <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, width: '100%' }}>
       <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
       <div style={{ fontWeight: 800, fontSize: 22, color }}>{value as any}</div>
+    </div>
+  )
+}
+
+function MetricCard({ label, value, color = '#111827' }: { label: string; value: string | number; color?: string }) {
+  return (
+    <div style={{ 
+      padding: 16, 
+      borderRadius: 12, 
+      background: '#fff', 
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 500, marginBottom: 8 }}>{label}</div>
+      <div style={{ fontWeight: 800, fontSize: 24, color }}>{value as any}</div>
+    </div>
+  )
+}
+
+function ComparisonCard({ title, before, after, changeAbs, changePct, goodWhenDecrease = true, color = '#0ea5e9' }: {
+  title: string
+  before?: number
+  after?: number
+  changeAbs?: number
+  changePct?: number
+  goodWhenDecrease?: boolean
+  color?: string
+}) {
+  const b = typeof before === 'number' ? before : null
+  const a = typeof after === 'number' ? after : null
+  const dAbs = typeof changeAbs === 'number' ? changeAbs : (b != null && a != null ? (a - b) : null)
+  const dPct = typeof changePct === 'number' ? changePct : (b != null && b !== 0 && a != null ? ((a - b) / b) * 100 : null)
+  const isBetter = (b != null && a != null) ? (goodWhenDecrease ? a < b : a > b) : null
+  
+  const sign = (v?: number | null) => (v == null ? '' : (v > 0 ? '+' : ''))
+  const colorAbs = (dAbs == null ? '#374151' : (dAbs > 0 ? (goodWhenDecrease ? '#dc2626' : '#16a34a') : (goodWhenDecrease ? '#16a34a' : '#dc2626')))
+  const colorPct = (dPct == null ? '#374151' : (dPct > 0 ? (goodWhenDecrease ? '#dc2626' : '#16a34a') : (goodWhenDecrease ? '#16a34a' : '#dc2626')))
+  
+  return (
+    <div style={{ 
+      padding: 16, 
+      borderRadius: 12, 
+      background: '#fff',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginBottom: 12 }}>{title}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Período Anterior</div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: '#374151' }}>{formatMoney(b ?? undefined)}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Período Atual</div>
+          <div style={{ fontWeight: 800, fontSize: 16, color }}>{formatMoney(a ?? undefined)}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Variação Absoluta</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: colorAbs }}>
+            {dAbs == null ? '—' : `${sign(dAbs)}${formatMoney(Math.abs(dAbs) as any)}`}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Variação %</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: colorPct }}>
+            {dPct == null ? '—' : `${sign(dPct)}${dPct.toFixed(1)}%`}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
