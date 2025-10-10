@@ -218,65 +218,6 @@ export default function InstalacoesDashboardScreen() {
     })()
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
 
-  // Top por Tendência (valor recuperado)
-  const [bestTendItems, setBestTendItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
-  const [bestTendLoading, setBestTendLoading] = useState(false)
-  const [bestTendError, setBestTendError] = useState<string | null>(null)
-  useEffect(() => {
-    (async () => {
-      setBestTendLoading(true); setBestTendError(null)
-      try {
-        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
-          auth,
-          'tendencia',
-          10,
-          tendencia || undefined,
-          marcacaoStatus || undefined,
-          analiseStatus || undefined,
-          regiaoId || undefined,
-          undefined
-        )
-        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        const raw = ((data as any)?.items) ?? []
-        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: labelTendencia(it?.group_name || it?.group_id), value: Number(it?.valor || 0) }))
-        setBestTendItems(mapped)
-      } catch (err: any) {
-        const status = err?.response?.status
-        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        setBestTendError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar top por tendência.')
-      } finally { setBestTendLoading(false) }
-    })()
-  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId])
-
-  // Top por Análise (valor recuperado)
-  const [bestAnaliseItems, setBestAnaliseItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
-  const [bestAnaliseLoading, setBestAnaliseLoading] = useState(false)
-  const [bestAnaliseError, setBestAnaliseError] = useState<string | null>(null)
-  useEffect(() => {
-    (async () => {
-      setBestAnaliseLoading(true); setBestAnaliseError(null)
-      try {
-        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
-          auth,
-          'analise',
-          10,
-          tendencia || undefined,
-          marcacaoStatus || undefined,
-          analiseStatus || undefined,
-          regiaoId || undefined,
-          undefined
-        )
-        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        const raw = ((data as any)?.items) ?? []
-        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: labelAnalise(it?.group_name || it?.group_id), value: Number(it?.valor || 0) }))
-        setBestAnaliseItems(mapped)
-      } catch (err: any) {
-        const status = err?.response?.status
-        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        setBestAnaliseError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar top por análise.')
-      } finally { setBestAnaliseLoading(false) }
-    })()
-  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId])
   useEffect(() => {
     (async () => {
       setAccoesLoading(true); setAccoesError(null)
@@ -759,62 +700,6 @@ export default function InstalacoesDashboardScreen() {
             )}
           </Card>
 
-          {/* Análise por Tendência e Estado */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-            <Card title="Top por tendência (valor recuperado)">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'stretch' }}>
-                <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                  {bestTendLoading ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                      <div style={{ marginBottom: 8 }}>A carregar por tendência…</div>
-                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: '90%', height: '100%', background: '#8b5cf6', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                      </div>
-                    </div>
-                  ) : (
-                    <TrendValueTable data={bestTendItems} />
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <ImprovedDonutChart 
-                    data={(bestTendItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
-                    title="Valor por Tendência"
-                    colorScheme="purple"
-                    size={160}
-                  />
-                  <TrendEfficiencyCard data={bestTendItems} />
-                </div>
-              </div>
-              {bestTendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestTendError}</div> : null}
-            </Card>
-
-            <Card title="Top por análise (valor recuperado)">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'stretch' }}>
-                <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                  {bestAnaliseLoading ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                      <div style={{ marginBottom: 8 }}>A carregar por análise…</div>
-                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: '95%', height: '100%', background: '#06b6d4', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                      </div>
-                    </div>
-                  ) : (
-                    <AnalysisValueTable data={bestAnaliseItems} />
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <ImprovedDonutChart 
-                    data={(bestAnaliseItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
-                    title="Valor por Análise"
-                    colorScheme="cyan"
-                    size={160}
-                  />
-                  <AnalysisEfficiencyCard data={bestAnaliseItems} />
-                </div>
-              </div>
-              {bestAnaliseError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestAnaliseError}</div> : null}
-            </Card>
-          </div>
         </div>
       </div>
     </div>
