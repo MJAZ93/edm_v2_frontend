@@ -45,7 +45,7 @@ export default function LoginScreen() {
             <img src={logoSrc} alt="EDM" style={{ height: 56 }} />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
               <span style={{ fontWeight: 700 }}>EDM</span>
-              <span style={{ color: '#6b7280', fontSize: 13 }}>Sistema de analise de dados da DPRP</span>
+              <span style={{ color: '#6b7280', fontSize: 13 }}>Sistema de analise de dados da EDM</span>
             </div>
           </div>
           <Card style={{ padding: 32 }}>
@@ -113,7 +113,7 @@ export default function LoginScreen() {
             lineHeight: 1.1
           }}
         >
-          <div style={{ fontSize: 'clamp(24px, 4vw, 46px)', fontWeight: 800 }}>com energia construímos futuro</div>
+          <div style={{ fontSize: 'clamp(24px, 4vw, 46px)', fontWeight: 800 }}>Iluminando a Transformação de Moçambique</div>
         </div>
       </div>
     </div>

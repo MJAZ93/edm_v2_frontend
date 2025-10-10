@@ -307,7 +307,7 @@ export default function DashboardScreen() {
           </Card>
 
           <Grid minColumnWidth={260} gap={20}>
-            <Card title="KPIs">
+            <Card title="Totais">
               {loadingDash ? (
                 <div style={{ color: '#6b7280' }}>A carregar…</div>
               ) : (
