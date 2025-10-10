@@ -12,6 +12,7 @@ All URIs are relative to */api*
 |[**privateInstalacaoAccoesIdPut**](#privateinstalacaoaccoesidput) | **PUT** /private/instalacao-accoes/{id} | Update InstalacaoAccoes|
 |[**privateInstalacaoAccoesMelhoresGet**](#privateinstalacaoaccoesmelhoresget) | **GET** /private/instalacao-accoes/melhores | Melhores grupos por valor recuperado|
 |[**privateInstalacaoAccoesPost**](#privateinstalacaoaccoespost) | **POST** /private/instalacao-accoes | Create InstalacaoAccoes|
+|[**privateInstalacaoAccoesRecuperacaoPorTipoGet**](#privateinstalacaoaccoesrecuperacaoportipoget) | **GET** /private/instalacao-accoes/recuperacao_por_tipo | Valor recuperado por tipo de ação|
 |[**privateInstalacaoAccoesTemporalGet**](#privateinstalacaoaccoestemporalget) | **GET** /private/instalacao-accoes/temporal | Análise temporal de ações|
 |[**privateInstalacaoAccoesValorRecuperadoGet**](#privateinstalacaoaccoesvalorrecuperadoget) | **GET** /private/instalacao-accoes/valor_recuperado | Valor recuperado|
 
@@ -393,7 +394,7 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesIdPut(
 # **privateInstalacaoAccoesMelhoresGet**
 > ReportInstalacaoAccoesValueResponse privateInstalacaoAccoesMelhoresGet()
 
-Top grupos (regiao|pt) por valor recuperado.
+Top grupos (regiao|pt|asc|tendencia|analise) por valor recuperado.
 
 ### Example
 
@@ -407,7 +408,7 @@ const configuration = new Configuration();
 const apiInstance = new InstalacaoAccoesApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let groupBy: string; //regiao|pt (optional) (default to 'regiao')
+let groupBy: string; //regiao|pt|asc|tendencia|analise (optional) (default to 'regiao')
 let limit: number; //Número máximo de grupos (optional) (default to 5)
 let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
 let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
@@ -432,7 +433,7 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesMelhoresGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **groupBy** | [**string**] | regiao|pt | (optional) defaults to 'regiao'|
+| **groupBy** | [**string**] | regiao|pt|asc|tendencia|analise | (optional) defaults to 'regiao'|
 | **limit** | [**number**] | Número máximo de grupos | (optional) defaults to 5|
 | **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
 | **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
@@ -520,6 +521,75 @@ const { status, data } = await apiInstance.privateInstalacaoAccoesPost(
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 |**409** | Conflict |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **privateInstalacaoAccoesRecuperacaoPorTipoGet**
+> ReportInstalacaoAccoesValueResponse privateInstalacaoAccoesRecuperacaoPorTipoGet()
+
+Valor recuperado agrupado por tipo de ação (accao_tipo). Mostra a eficácia de cada método de recuperação.
+
+### Example
+
+```typescript
+import {
+    InstalacaoAccoesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new InstalacaoAccoesApi(configuration);
+
+let authorization: string; //Bearer token (default to undefined)
+let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
+let marcacaoStatus: string; //EXECUTADO|MARCADO (optional) (default to undefined)
+let analiseStatus: string; //EM_ANALISE|ANALISADO (optional) (default to undefined)
+let regiaoId: string; //Filter by Regiao ID (optional) (default to undefined)
+let ptId: string; //Filter by PT ID (optional) (default to undefined)
+
+const { status, data } = await apiInstance.privateInstalacaoAccoesRecuperacaoPorTipoGet(
+    authorization,
+    tendenciaCompras,
+    marcacaoStatus,
+    analiseStatus,
+    regiaoId,
+    ptId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | [**string**] | Bearer token | defaults to undefined|
+| **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
+| **marcacaoStatus** | [**string**] | EXECUTADO|MARCADO | (optional) defaults to undefined|
+| **analiseStatus** | [**string**] | EM_ANALISE|ANALISADO | (optional) defaults to undefined|
+| **regiaoId** | [**string**] | Filter by Regiao ID | (optional) defaults to undefined|
+| **ptId** | [**string**] | Filter by PT ID | (optional) defaults to undefined|
+
+
+### Return type
+
+**ReportInstalacaoAccoesValueResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

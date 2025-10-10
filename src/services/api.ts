@@ -3232,6 +3232,12 @@ export interface OccurrenceCreateOccurrenceRequest {
      */
     'asc_id'?: string;
     /**
+     * Data do facto reportada pelo frontend (RFC3339). Se omitida, assume now().
+     * @type {string}
+     * @memberof OccurrenceCreateOccurrenceRequest
+     */
+    'data_facto'?: string;
+    /**
      * 
      * @type {string}
      * @memberof OccurrenceCreateOccurrenceRequest
@@ -3311,6 +3317,12 @@ export interface OccurrenceOccurrenceListResponse {
  * @interface OccurrenceUpdateOccurrenceRequest
  */
 export interface OccurrenceUpdateOccurrenceRequest {
+    /**
+     * Atualiza a data do facto (RFC3339)
+     * @type {string}
+     * @memberof OccurrenceUpdateOccurrenceRequest
+     */
+    'data_facto'?: string;
     /**
      * 
      * @type {string}
@@ -3405,6 +3417,12 @@ export interface ReportInstalacaoAccoesCountsItem {
      * @memberof ReportInstalacaoAccoesCountsItem
      */
     'group_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReportInstalacaoAccoesCountsItem
+     */
+    'group_name'?: string;
     /**
      * 
      * @type {number}
@@ -8423,7 +8441,7 @@ export const InspeccoesApiAxiosParamCreator = function (configuration?: Configur
          * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
          * @summary Contagens de inspeções
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {number} [minScore] Score mínimo
          * @param {number} [maxScore] Score máximo
@@ -8620,7 +8638,7 @@ export const InspeccoesApiFp = function(configuration?: Configuration) {
          * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
          * @summary Contagens de inspeções
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {number} [minScore] Score mínimo
          * @param {number} [maxScore] Score máximo
@@ -8683,7 +8701,7 @@ export const InspeccoesApiFactory = function (configuration?: Configuration, bas
          * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
          * @summary Contagens de inspeções
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {number} [minScore] Score mínimo
          * @param {number} [maxScore] Score máximo
@@ -8737,7 +8755,7 @@ export class InspeccoesApi extends BaseAPI {
      * Totais de inspeções por grupo (regiao|pt). Filtros por tendência, score mínimo/máximo e zero compras 6 meses.
      * @summary Contagens de inspeções
      * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
+     * @param {string} [groupBy] regiao|pt|asc|tendencia
      * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
      * @param {number} [minScore] Score mínimo
      * @param {number} [maxScore] Score máximo
@@ -9608,10 +9626,10 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
             };
         },
         /**
-         * Top grupos (regiao|pt) por valor recuperado.
+         * Top grupos (regiao|pt|asc|tendencia|analise) por valor recuperado.
          * @summary Melhores grupos por valor recuperado
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia|analise
          * @param {number} [limit] Número máximo de grupos
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
@@ -9720,6 +9738,70 @@ export const InstalacaoAccoesApiAxiosParamCreator = function (configuration?: Co
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(payload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Valor recuperado agrupado por tipo de ação (accao_tipo). Mostra a eficácia de cada método de recuperação.
+         * @summary Valor recuperado por tipo de ação
+         * @param {string} authorization Bearer token
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesRecuperacaoPorTipoGet: async (authorization: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateInstalacaoAccoesRecuperacaoPorTipoGet', 'authorization', authorization)
+            const localVarPath = `/private/instalacao-accoes/recuperacao_por_tipo`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (tendenciaCompras !== undefined) {
+                localVarQueryParameter['tendencia_compras'] = tendenciaCompras;
+            }
+
+            if (marcacaoStatus !== undefined) {
+                localVarQueryParameter['marcacao_status'] = marcacaoStatus;
+            }
+
+            if (analiseStatus !== undefined) {
+                localVarQueryParameter['analise_status'] = analiseStatus;
+            }
+
+            if (regiaoId !== undefined) {
+                localVarQueryParameter['regiao_id'] = regiaoId;
+            }
+
+            if (ptId !== undefined) {
+                localVarQueryParameter['pt_id'] = ptId;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -9972,10 +10054,10 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Top grupos (regiao|pt) por valor recuperado.
+         * Top grupos (regiao|pt|asc|tendencia|analise) por valor recuperado.
          * @summary Melhores grupos por valor recuperado
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia|analise
          * @param {number} [limit] Número máximo de grupos
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
@@ -10003,6 +10085,24 @@ export const InstalacaoAccoesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesPost(authorization, payload, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Valor recuperado agrupado por tipo de ação (accao_tipo). Mostra a eficácia de cada método de recuperação.
+         * @summary Valor recuperado por tipo de ação
+         * @param {string} authorization Bearer token
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportInstalacaoAccoesValueResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['InstalacaoAccoesApi.privateInstalacaoAccoesRecuperacaoPorTipoGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -10133,10 +10233,10 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
             return localVarFp.privateInstalacaoAccoesIdPut(id, authorization, payload, options).then((request) => request(axios, basePath));
         },
         /**
-         * Top grupos (regiao|pt) por valor recuperado.
+         * Top grupos (regiao|pt|asc|tendencia|analise) por valor recuperado.
          * @summary Melhores grupos por valor recuperado
          * @param {string} authorization Bearer token
-         * @param {string} [groupBy] regiao|pt
+         * @param {string} [groupBy] regiao|pt|asc|tendencia|analise
          * @param {number} [limit] Número máximo de grupos
          * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
          * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
@@ -10159,6 +10259,21 @@ export const InstalacaoAccoesApiFactory = function (configuration?: Configuratio
          */
         privateInstalacaoAccoesPost(authorization: string, payload: InstalacaoAccoesCreateInstalacaoAccoesRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelInstalacaoAccoes> {
             return localVarFp.privateInstalacaoAccoesPost(authorization, payload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Valor recuperado agrupado por tipo de ação (accao_tipo). Mostra a eficácia de cada método de recuperação.
+         * @summary Valor recuperado por tipo de ação
+         * @param {string} authorization Bearer token
+         * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+         * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+         * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+         * @param {string} [regiaoId] Filter by Regiao ID
+         * @param {string} [ptId] Filter by PT ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportInstalacaoAccoesValueResponse> {
+            return localVarFp.privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(axios, basePath));
         },
         /**
          * Contagem e valor recuperado por mês nos últimos X meses. Filtros por tendência, marcação e análise.
@@ -10294,10 +10409,10 @@ export class InstalacaoAccoesApi extends BaseAPI {
     }
 
     /**
-     * Top grupos (regiao|pt) por valor recuperado.
+     * Top grupos (regiao|pt|asc|tendencia|analise) por valor recuperado.
      * @summary Melhores grupos por valor recuperado
      * @param {string} authorization Bearer token
-     * @param {string} [groupBy] regiao|pt
+     * @param {string} [groupBy] regiao|pt|asc|tendencia|analise
      * @param {number} [limit] Número máximo de grupos
      * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
      * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
@@ -10323,6 +10438,23 @@ export class InstalacaoAccoesApi extends BaseAPI {
      */
     public privateInstalacaoAccoesPost(authorization: string, payload: InstalacaoAccoesCreateInstalacaoAccoesRequest, options?: RawAxiosRequestConfig) {
         return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Valor recuperado agrupado por tipo de ação (accao_tipo). Mostra a eficácia de cada método de recuperação.
+     * @summary Valor recuperado por tipo de ação
+     * @param {string} authorization Bearer token
+     * @param {string} [tendenciaCompras] CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS
+     * @param {string} [marcacaoStatus] EXECUTADO|MARCADO
+     * @param {string} [analiseStatus] EM_ANALISE|ANALISADO
+     * @param {string} [regiaoId] Filter by Regiao ID
+     * @param {string} [ptId] Filter by PT ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InstalacaoAccoesApi
+     */
+    public privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization: string, tendenciaCompras?: string, marcacaoStatus?: string, analiseStatus?: string, regiaoId?: string, ptId?: string, options?: RawAxiosRequestConfig) {
+        return InstalacaoAccoesApiFp(this.configuration).privateInstalacaoAccoesRecuperacaoPorTipoGet(authorization, tendenciaCompras, marcacaoStatus, analiseStatus, regiaoId, ptId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

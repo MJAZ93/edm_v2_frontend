@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**data_facto** | **string** | Atualiza a data do facto (RFC3339) | [optional] [default to undefined]
 **descricao** | **string** |  | [optional] [default to undefined]
 **lat** | **number** |  | [optional] [default to undefined]
 **local** | **string** |  | [optional] [default to undefined]
@@ -16,6 +17,7 @@ Name | Type | Description | Notes
 import { OccurrenceUpdateOccurrenceRequest } from './api';
 
 const instance: OccurrenceUpdateOccurrenceRequest = {
+    data_facto,
     descricao,
     lat,
     local,

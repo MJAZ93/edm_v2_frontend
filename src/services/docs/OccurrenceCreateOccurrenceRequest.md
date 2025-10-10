@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **asc_id** | **string** |  | [optional] [default to undefined]
+**data_facto** | **string** | Data do facto reportada pelo frontend (RFC3339). Se omitida, assume now(). | [optional] [default to undefined]
 **descricao** | **string** |  | [optional] [default to undefined]
 **forma_conhecimento_id** | **string** |  | [optional] [default to undefined]
 **infractions** | [**Array&lt;OccurrenceCreateOccurrenceInfraction&gt;**](OccurrenceCreateOccurrenceInfraction.md) |  | [optional] [default to undefined]
@@ -21,6 +22,7 @@ import { OccurrenceCreateOccurrenceRequest } from './api';
 
 const instance: OccurrenceCreateOccurrenceRequest = {
     asc_id,
+    data_facto,
     descricao,
     forma_conhecimento_id,
     infractions,

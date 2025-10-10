@@ -25,7 +25,7 @@ const configuration = new Configuration();
 const apiInstance = new InspeccoesApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let groupBy: string; //regiao|pt (optional) (default to 'regiao')
+let groupBy: string; //regiao|pt|asc|tendencia (optional) (default to 'regiao')
 let tendenciaCompras: string; //CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS (optional) (default to undefined)
 let minScore: number; //Score mínimo (optional) (default to undefined)
 let maxScore: number; //Score máximo (optional) (default to undefined)
@@ -46,7 +46,7 @@ const { status, data } = await apiInstance.privateInspeccoesContagensGet(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
-| **groupBy** | [**string**] | regiao|pt | (optional) defaults to 'regiao'|
+| **groupBy** | [**string**] | regiao|pt|asc|tendencia | (optional) defaults to 'regiao'|
 | **tendenciaCompras** | [**string**] | CRESCENTE|DECRESCENTE|MUITO_CRESCENTE|MUITO_DECRESCENTE|NORMAL|SEM_COMPRAS | (optional) defaults to undefined|
 | **minScore** | [**number**] | Score mínimo | (optional) defaults to undefined|
 | **maxScore** | [**number**] | Score máximo | (optional) defaults to undefined|

@@ -56,19 +56,22 @@ export default function InstalacaoAccaoDetailScreen() {
           } catch {}
         }
 
-        // 3) Carregar instalação do mês da execução (para obter inspecao_id e métricas)
-        if (a?.pf && a?.data_execucao) {
-          const mes = toMonthStart(a.data_execucao)
+        // 3) Carregar instalação (para obter inspecao_id e métricas)
+        if (a?.pf) {
           try {
-            const { data: i } = await instApi.privateInstallationsPfGet(a.pf, mes, authHeader)
-            if (!isUnauthorizedBody(i)) {
-              setInst(i as any)
-              const inspecId = (i as any)?.inspecao_id
-              if (inspecId) {
-                try {
-                  const { data: eq } = await eqApi.privateEquipamentosInspeccaoIdGet(inspecId, authHeader)
-                  if (!isUnauthorizedBody(eq)) setEquipamentos(((eq as any)?.items) ?? [])
-                } catch {}
+            const { data: installations } = await instApi.privateInstallationsGet(authHeader, 1, 1, undefined, undefined, a.pf)
+            if (!isUnauthorizedBody(installations)) {
+              const items = ((installations as any)?.items) ?? []
+              if (items.length > 0) {
+                const i = items[0]
+                setInst(i as any)
+                const inspecId = (i as any)?.inspecao_id
+                if (inspecId) {
+                  try {
+                    const { data: eq } = await eqApi.privateEquipamentosInspeccaoIdGet(inspecId, authHeader)
+                    if (!isUnauthorizedBody(eq)) setEquipamentos(((eq as any)?.items) ?? [])
+                  } catch {}
+                }
               }
             }
           } catch {}
@@ -108,7 +111,7 @@ export default function InstalacaoAccaoDetailScreen() {
           <Info label="Marcação" value={accao?.marcacao_status || '—'} color="#f59e0b" />
           <Info label="Análise" value={accao?.analise_status || '—'} color="#6366f1" />
           <Info label="Tendência" value={formatTendencia(accao?.tendencia_compras)} color="#ef4444" />
-          <Info label="Valor recuperado" value={formatMoney(accao?.valor_recuperado)} color="#111827" />
+          <Info label="Valor recuperado" value={formatKwh(accao?.valor_recuperado)} color="#111827" />
         </div>
         {accao?.comentario ? (
           <div style={{ marginTop: 12 }}>
@@ -122,7 +125,7 @@ export default function InstalacaoAccaoDetailScreen() {
         <Card title="Compras (últimos períodos)">
           <ComprasChart data={compras} actionDate={accao?.data_execucao} />
         </Card>
-        <Card title="Consumo calculado" subtitle="Estimativa por equipamentos (kWh)">
+        <Card title="Equipamentos">
           <EquipamentosList items={equipamentos} emptyHint={!inst?.inspecao_id ? 'Sem inspeção associada para este mês.' : 'Sem equipamentos registados.'} />
         </Card>
       </div>
@@ -319,6 +322,7 @@ function BeforeAfterPurchases({ data = [], actionDate, months = 6 }: { data?: Mo
   const delta = aSum - bSum
   const pct = bSum !== 0 ? (delta / bSum) * 100 : null
   const badge = (better: boolean | null) => ({ background: better == null ? '#f3f4f6' : better ? '#dcfce7' : '#fee2e2', border: `1px solid ${better == null ? '#e5e7eb' : better ? '#86efac' : '#fecaca'}` })
+  const greenBadge = { background: '#dcfce7', border: '1px solid #86efac' }
   const isBetter = bSum > 0 ? aSum < bSum : null
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
@@ -326,17 +330,23 @@ function BeforeAfterPurchases({ data = [], actionDate, months = 6 }: { data?: Mo
         <div style={{ fontSize: 12, opacity: 0.8 }}>Antes da ação ({months} meses)</div>
         <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{formatKwh(bSum)}</div>
       </div>
-      <div style={{ padding: 12, borderRadius: 10, ...badge(isBetter) }}>
+      <div style={{ padding: 12, borderRadius: 10, ...greenBadge }}>
         <div style={{ fontSize: 12, opacity: 0.8 }}>Depois da ação ({months} meses)</div>
         <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{formatKwh(aSum)}</div>
       </div>
-      <div style={{ padding: 12, borderRadius: 10, ...badge(isBetter) }}>
+      <div style={{ padding: 12, borderRadius: 10, ...greenBadge }}>
         <div style={{ fontSize: 12, opacity: 0.8 }}>Variação</div>
         <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <div style={{ fontWeight: 700 }}>{formatKwh(bSum)}</div>
           <span>→</span>
           <div style={{ fontWeight: 800, fontSize: 18 }}>{formatKwh(aSum)}</div>
-          <div style={{ marginLeft: 'auto', fontWeight: 700 }}>{pct != null ? `${pct.toFixed(1)}%` : '—'}</div>
+          <div style={{ 
+            marginLeft: 'auto', 
+            fontWeight: 700, 
+            color: pct != null ? (pct > 0 ? '#16a34a' : '#dc2626') : '#374151'
+          }}>
+            {pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%` : '—'}
+          </div>
         </div>
       </div>
     </div>
