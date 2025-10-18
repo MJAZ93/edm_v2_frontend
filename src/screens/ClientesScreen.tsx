@@ -3,7 +3,7 @@ import { Button, Card, Heading, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InstallationsApi, RegiaoApi, ModelInstallation } from '../services'
 
-export default function InstallationsScreen() {
+export default function ClientesScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InstallationsApi(getApiConfig()), [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
@@ -147,7 +147,7 @@ export default function InstallationsScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Instalações</Heading>
+      <Heading level={2}>Clientes</Heading>
 
       <Card title="Filtros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>

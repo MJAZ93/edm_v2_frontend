@@ -38,6 +38,10 @@ docs/DashboardScrapyardRiskTop.md
 docs/DashboardTimeSeriesValue.md
 docs/DashboardTimeValueBucket.md
 docs/DashboardValueBucket.md
+docs/DirecaoTransportesApi.md
+docs/DirecaoTransportesCreateDirecaoTransportesRequest.md
+docs/DirecaoTransportesDirecaoTransportesListResponse.md
+docs/DirecaoTransportesUpdateDirecaoTransportesRequest.md
 docs/EquipamentosApi.md
 docs/EquipamentosEquipamentosListResponse.md
 docs/FormaConhecimentoApi.md
@@ -80,6 +84,7 @@ docs/ModelASC.md
 docs/ModelAccoes.md
 docs/ModelAnaliseStatus.md
 docs/ModelCompras.md
+docs/ModelDirecaoTransportes.md
 docs/ModelEquipamentos.md
 docs/ModelFormaConhecimento.md
 docs/ModelInfraction.md
@@ -91,6 +96,7 @@ docs/ModelMarcacaoStatus.md
 docs/ModelMaterial.md
 docs/ModelOccurrence.md
 docs/ModelPermission.md
+docs/ModelProvince.md
 docs/ModelRegiao.md
 docs/ModelScrapyard.md
 docs/ModelSectorInfracao.md
@@ -104,6 +110,10 @@ docs/OccurrenceCreateOccurrenceInfractor.md
 docs/OccurrenceCreateOccurrenceRequest.md
 docs/OccurrenceOccurrenceListResponse.md
 docs/OccurrenceUpdateOccurrenceRequest.md
+docs/ProvinceApi.md
+docs/ProvinceCreateProvinceRequest.md
+docs/ProvinceProvinceListResponse.md
+docs/ProvinceUpdateProvinceRequest.md
 docs/RegiaoApi.md
 docs/RegiaoCreateRegiaoRequest.md
 docs/RegiaoRegiaoListResponse.md

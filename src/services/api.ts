@@ -841,6 +841,63 @@ export interface DashboardValueBucket {
 /**
  * 
  * @export
+ * @interface DirecaoTransportesCreateDirecaoTransportesRequest
+ */
+export interface DirecaoTransportesCreateDirecaoTransportesRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof DirecaoTransportesCreateDirecaoTransportesRequest
+     */
+    'name'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface DirecaoTransportesDirecaoTransportesListResponse
+ */
+export interface DirecaoTransportesDirecaoTransportesListResponse {
+    /**
+     * 
+     * @type {Array<ModelDirecaoTransportes>}
+     * @memberof DirecaoTransportesDirecaoTransportesListResponse
+     */
+    'items'?: Array<ModelDirecaoTransportes>;
+    /**
+     * 
+     * @type {number}
+     * @memberof DirecaoTransportesDirecaoTransportesListResponse
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DirecaoTransportesDirecaoTransportesListResponse
+     */
+    'page_size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DirecaoTransportesDirecaoTransportesListResponse
+     */
+    'total'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface DirecaoTransportesUpdateDirecaoTransportesRequest
+ */
+export interface DirecaoTransportesUpdateDirecaoTransportesRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof DirecaoTransportesUpdateDirecaoTransportesRequest
+     */
+    'name'?: string;
+}
+/**
+ * 
+ * @export
  * @interface EquipamentosEquipamentosListResponse
  */
 export interface EquipamentosEquipamentosListResponse {
@@ -2210,6 +2267,37 @@ export interface ModelCompras {
 /**
  * 
  * @export
+ * @interface ModelDirecaoTransportes
+ */
+export interface ModelDirecaoTransportes {
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelDirecaoTransportes
+     */
+    'created_at'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelDirecaoTransportes
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelDirecaoTransportes
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelDirecaoTransportes
+     */
+    'updated_at'?: string;
+}
+/**
+ * 
+ * @export
  * @interface ModelEquipamentos
  */
 export interface ModelEquipamentos {
@@ -2841,6 +2929,12 @@ export interface ModelMaterial {
 export interface ModelOccurrence {
     /**
      * 
+     * @type {number}
+     * @memberof ModelOccurrence
+     */
+    'ImportId'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof ModelOccurrence
      */
@@ -2874,6 +2968,12 @@ export interface ModelOccurrence {
      * @type {string}
      * @memberof ModelOccurrence
      */
+    'condicoes_favoreceram'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelOccurrence
+     */
     'created_at'?: string;
     /**
      * 
@@ -2887,6 +2987,12 @@ export interface ModelOccurrence {
      * @memberof ModelOccurrence
      */
     'descricao'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelOccurrence
+     */
+    'direcao_transportes_id'?: string;
     /**
      * 
      * @type {string}
@@ -2943,6 +3049,12 @@ export interface ModelOccurrence {
     'nr_detidos'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof ModelOccurrence
+     */
+    'observacoes'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof ModelOccurrence
      */
@@ -2953,6 +3065,12 @@ export interface ModelOccurrence {
      * @memberof ModelOccurrence
      */
     'processo_criminal_aberto'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelOccurrence
+     */
+    'province_id'?: string;
     /**
      * 
      * @type {string}
@@ -3008,6 +3126,37 @@ export interface ModelPermission {
      * @memberof ModelPermission
      */
     'url'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ModelProvince
+ */
+export interface ModelProvince {
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelProvince
+     */
+    'created_at'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelProvince
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelProvince
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelProvince
+     */
+    'updated_at'?: string;
 }
 /**
  * 
@@ -3388,6 +3537,12 @@ export interface OccurrenceCreateOccurrenceRequest {
      * @type {string}
      * @memberof OccurrenceCreateOccurrenceRequest
      */
+    'direcao_transportes_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceCreateOccurrenceRequest
+     */
     'forma_conhecimento_id'?: string;
     /**
      * 
@@ -3413,6 +3568,12 @@ export interface OccurrenceCreateOccurrenceRequest {
      * @memberof OccurrenceCreateOccurrenceRequest
      */
     'long'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceCreateOccurrenceRequest
+     */
+    'province_id'?: string;
     /**
      * 
      * @type {string}
@@ -3458,6 +3619,12 @@ export interface OccurrenceOccurrenceListResponse {
  */
 export interface OccurrenceUpdateOccurrenceRequest {
     /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceUpdateOccurrenceRequest
+     */
+    'asc_id'?: string;
+    /**
      * Atualiza a data do facto (RFC3339)
      * @type {string}
      * @memberof OccurrenceUpdateOccurrenceRequest
@@ -3469,6 +3636,12 @@ export interface OccurrenceUpdateOccurrenceRequest {
      * @memberof OccurrenceUpdateOccurrenceRequest
      */
     'descricao'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceUpdateOccurrenceRequest
+     */
+    'direcao_transportes_id'?: string;
     /**
      * 
      * @type {number}
@@ -3487,6 +3660,75 @@ export interface OccurrenceUpdateOccurrenceRequest {
      * @memberof OccurrenceUpdateOccurrenceRequest
      */
     'long'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceUpdateOccurrenceRequest
+     */
+    'province_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OccurrenceUpdateOccurrenceRequest
+     */
+    'regiao_id'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ProvinceCreateProvinceRequest
+ */
+export interface ProvinceCreateProvinceRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ProvinceCreateProvinceRequest
+     */
+    'name'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ProvinceProvinceListResponse
+ */
+export interface ProvinceProvinceListResponse {
+    /**
+     * 
+     * @type {Array<ModelProvince>}
+     * @memberof ProvinceProvinceListResponse
+     */
+    'items'?: Array<ModelProvince>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ProvinceProvinceListResponse
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ProvinceProvinceListResponse
+     */
+    'page_size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ProvinceProvinceListResponse
+     */
+    'total'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ProvinceUpdateProvinceRequest
+ */
+export interface ProvinceUpdateProvinceRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ProvinceUpdateProvinceRequest
+     */
+    'name'?: string;
 }
 /**
  * 
@@ -6773,6 +7015,494 @@ export class DashboardApi extends BaseAPI {
      */
     public privateDashboardScrapyardsRiskTopGet(authorization: string, limit?: number, options?: RawAxiosRequestConfig) {
         return DashboardApiFp(this.configuration).privateDashboardScrapyardsRiskTopGet(authorization, limit, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * DirecaoTransportesApi - axios parameter creator
+ * @export
+ */
+export const DirecaoTransportesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Paginated list of DirecaoTransportes
+         * @summary List DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateDirecaoTransportesGet', 'authorization', authorization)
+            const localVarPath = `/private/direcao_transportes`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['page_size'] = pageSize;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+            if (orderDirection !== undefined) {
+                localVarQueryParameter['order_direction'] = orderDirection;
+            }
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdDelete: async (id: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdDelete', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdDelete', 'authorization', authorization)
+            const localVarPath = `/private/direcao_transportes/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdGet: async (id: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdGet', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdGet', 'authorization', authorization)
+            const localVarPath = `/private/direcao_transportes/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesUpdateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdPut: async (id: string, authorization: string, payload: DirecaoTransportesUpdateDirecaoTransportesRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdPut', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdPut', 'authorization', authorization)
+            // verify required parameter 'payload' is not null or undefined
+            assertParamExists('privateDirecaoTransportesIdPut', 'payload', payload)
+            const localVarPath = `/private/direcao_transportes/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(payload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesCreateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesPost: async (authorization: string, payload: DirecaoTransportesCreateDirecaoTransportesRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateDirecaoTransportesPost', 'authorization', authorization)
+            // verify required parameter 'payload' is not null or undefined
+            assertParamExists('privateDirecaoTransportesPost', 'payload', payload)
+            const localVarPath = `/private/direcao_transportes`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(payload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * DirecaoTransportesApi - functional programming interface
+ * @export
+ */
+export const DirecaoTransportesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = DirecaoTransportesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Paginated list of DirecaoTransportes
+         * @summary List DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateDirecaoTransportesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirecaoTransportesDirecaoTransportesListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateDirecaoTransportesGet(authorization, page, pageSize, orderBy, orderDirection, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DirecaoTransportesApi.privateDirecaoTransportesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateDirecaoTransportesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateDirecaoTransportesIdDelete(id, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DirecaoTransportesApi.privateDirecaoTransportesIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateDirecaoTransportesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelDirecaoTransportes>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateDirecaoTransportesIdGet(id, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DirecaoTransportesApi.privateDirecaoTransportesIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesUpdateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateDirecaoTransportesIdPut(id: string, authorization: string, payload: DirecaoTransportesUpdateDirecaoTransportesRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelDirecaoTransportes>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateDirecaoTransportesIdPut(id, authorization, payload, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DirecaoTransportesApi.privateDirecaoTransportesIdPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesCreateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateDirecaoTransportesPost(authorization: string, payload: DirecaoTransportesCreateDirecaoTransportesRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelDirecaoTransportes>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateDirecaoTransportesPost(authorization, payload, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DirecaoTransportesApi.privateDirecaoTransportesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * DirecaoTransportesApi - factory interface
+ * @export
+ */
+export const DirecaoTransportesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = DirecaoTransportesApiFp(configuration)
+    return {
+        /**
+         * Paginated list of DirecaoTransportes
+         * @summary List DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig): AxiosPromise<DirecaoTransportesDirecaoTransportesListResponse> {
+            return localVarFp.privateDirecaoTransportesGet(authorization, page, pageSize, orderBy, orderDirection, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.privateDirecaoTransportesIdDelete(id, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<ModelDirecaoTransportes> {
+            return localVarFp.privateDirecaoTransportesIdGet(id, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update DirecaoTransportes
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesUpdateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesIdPut(id: string, authorization: string, payload: DirecaoTransportesUpdateDirecaoTransportesRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelDirecaoTransportes> {
+            return localVarFp.privateDirecaoTransportesIdPut(id, authorization, payload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create DirecaoTransportes
+         * @param {string} authorization Bearer token
+         * @param {DirecaoTransportesCreateDirecaoTransportesRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateDirecaoTransportesPost(authorization: string, payload: DirecaoTransportesCreateDirecaoTransportesRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelDirecaoTransportes> {
+            return localVarFp.privateDirecaoTransportesPost(authorization, payload, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * DirecaoTransportesApi - object-oriented interface
+ * @export
+ * @class DirecaoTransportesApi
+ * @extends {BaseAPI}
+ */
+export class DirecaoTransportesApi extends BaseAPI {
+    /**
+     * Paginated list of DirecaoTransportes
+     * @summary List DirecaoTransportes
+     * @param {string} authorization Bearer token
+     * @param {number} [page] Page number (-1 returns all)
+     * @param {number} [pageSize] Page size
+     * @param {string} [orderBy] Order by
+     * @param {string} [orderDirection] asc|desc
+     * @param {string} [name] Filter by name
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DirecaoTransportesApi
+     */
+    public privateDirecaoTransportesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig) {
+        return DirecaoTransportesApiFp(this.configuration).privateDirecaoTransportesGet(authorization, page, pageSize, orderBy, orderDirection, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete DirecaoTransportes
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DirecaoTransportesApi
+     */
+    public privateDirecaoTransportesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return DirecaoTransportesApiFp(this.configuration).privateDirecaoTransportesIdDelete(id, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get DirecaoTransportes
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DirecaoTransportesApi
+     */
+    public privateDirecaoTransportesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return DirecaoTransportesApiFp(this.configuration).privateDirecaoTransportesIdGet(id, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update DirecaoTransportes
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {DirecaoTransportesUpdateDirecaoTransportesRequest} payload Payload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DirecaoTransportesApi
+     */
+    public privateDirecaoTransportesIdPut(id: string, authorization: string, payload: DirecaoTransportesUpdateDirecaoTransportesRequest, options?: RawAxiosRequestConfig) {
+        return DirecaoTransportesApiFp(this.configuration).privateDirecaoTransportesIdPut(id, authorization, payload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create DirecaoTransportes
+     * @param {string} authorization Bearer token
+     * @param {DirecaoTransportesCreateDirecaoTransportesRequest} payload Payload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DirecaoTransportesApi
+     */
+    public privateDirecaoTransportesPost(authorization: string, payload: DirecaoTransportesCreateDirecaoTransportesRequest, options?: RawAxiosRequestConfig) {
+        return DirecaoTransportesApiFp(this.configuration).privateDirecaoTransportesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -12004,7 +12734,9 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
          * @param {string} [orderDirection] asc|desc
          * @param {string} [regiaoId] Filter by regiao
          * @param {string} [ascId] Filter by asc
+         * @param {string} [direcaoTransportesId] Filter by direcao_transportes
          * @param {string} [formaConhecimentoId] Filter by forma_conhecimento
+         * @param {string} [provinceId] Filter by province
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
@@ -12013,7 +12745,7 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateOccurrencesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        privateOccurrencesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, direcaoTransportesId?: string, formaConhecimentoId?: string, provinceId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('privateOccurrencesGet', 'authorization', authorization)
             const localVarPath = `/private/occurrences`;
@@ -12055,8 +12787,16 @@ export const OccurrenceApiAxiosParamCreator = function (configuration?: Configur
                 localVarQueryParameter['asc_id'] = ascId;
             }
 
+            if (direcaoTransportesId !== undefined) {
+                localVarQueryParameter['direcao_transportes_id'] = direcaoTransportesId;
+            }
+
             if (formaConhecimentoId !== undefined) {
                 localVarQueryParameter['forma_conhecimento_id'] = formaConhecimentoId;
+            }
+
+            if (provinceId !== undefined) {
+                localVarQueryParameter['province_id'] = provinceId;
             }
 
             if (dataInicio !== undefined) {
@@ -12293,7 +13033,9 @@ export const OccurrenceApiFp = function(configuration?: Configuration) {
          * @param {string} [orderDirection] asc|desc
          * @param {string} [regiaoId] Filter by regiao
          * @param {string} [ascId] Filter by asc
+         * @param {string} [direcaoTransportesId] Filter by direcao_transportes
          * @param {string} [formaConhecimentoId] Filter by forma_conhecimento
+         * @param {string} [provinceId] Filter by province
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
@@ -12302,8 +13044,8 @@ export const OccurrenceApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OccurrenceOccurrenceListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options);
+        async privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, direcaoTransportesId?: string, formaConhecimentoId?: string, provinceId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OccurrenceOccurrenceListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, provinceId, dataInicio, dataFim, texto, lat, _long, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OccurrenceApi.privateOccurrencesGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -12385,7 +13127,9 @@ export const OccurrenceApiFactory = function (configuration?: Configuration, bas
          * @param {string} [orderDirection] asc|desc
          * @param {string} [regiaoId] Filter by regiao
          * @param {string} [ascId] Filter by asc
+         * @param {string} [direcaoTransportesId] Filter by direcao_transportes
          * @param {string} [formaConhecimentoId] Filter by forma_conhecimento
+         * @param {string} [provinceId] Filter by province
          * @param {string} [dataInicio] Start date (RFC3339)
          * @param {string} [dataFim] End date (RFC3339)
          * @param {string} [texto] Free text search
@@ -12394,8 +13138,8 @@ export const OccurrenceApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): AxiosPromise<OccurrenceOccurrenceListResponse> {
-            return localVarFp.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(axios, basePath));
+        privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, direcaoTransportesId?: string, formaConhecimentoId?: string, provinceId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig): AxiosPromise<OccurrenceOccurrenceListResponse> {
+            return localVarFp.privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, provinceId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -12462,7 +13206,9 @@ export class OccurrenceApi extends BaseAPI {
      * @param {string} [orderDirection] asc|desc
      * @param {string} [regiaoId] Filter by regiao
      * @param {string} [ascId] Filter by asc
+     * @param {string} [direcaoTransportesId] Filter by direcao_transportes
      * @param {string} [formaConhecimentoId] Filter by forma_conhecimento
+     * @param {string} [provinceId] Filter by province
      * @param {string} [dataInicio] Start date (RFC3339)
      * @param {string} [dataFim] End date (RFC3339)
      * @param {string} [texto] Free text search
@@ -12472,8 +13218,8 @@ export class OccurrenceApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof OccurrenceApi
      */
-    public privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, formaConhecimentoId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig) {
-        return OccurrenceApiFp(this.configuration).privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(this.axios, this.basePath));
+    public privateOccurrencesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, regiaoId?: string, ascId?: string, direcaoTransportesId?: string, formaConhecimentoId?: string, provinceId?: string, dataInicio?: string, dataFim?: string, texto?: string, lat?: number, _long?: number, options?: RawAxiosRequestConfig) {
+        return OccurrenceApiFp(this.configuration).privateOccurrencesGet(authorization, page, pageSize, orderBy, orderDirection, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, provinceId, dataInicio, dataFim, texto, lat, _long, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -12527,6 +13273,494 @@ export class OccurrenceApi extends BaseAPI {
      */
     public privateOccurrencesPost(authorization: string, payload: OccurrenceCreateOccurrenceRequest, options?: RawAxiosRequestConfig) {
         return OccurrenceApiFp(this.configuration).privateOccurrencesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ProvinceApi - axios parameter creator
+ * @export
+ */
+export const ProvinceApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Paginated list of provinces
+         * @summary List Provinces
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesGet: async (authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateProvincesGet', 'authorization', authorization)
+            const localVarPath = `/private/provinces`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['page_size'] = pageSize;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+            if (orderDirection !== undefined) {
+                localVarQueryParameter['order_direction'] = orderDirection;
+            }
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdDelete: async (id: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateProvincesIdDelete', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateProvincesIdDelete', 'authorization', authorization)
+            const localVarPath = `/private/provinces/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdGet: async (id: string, authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateProvincesIdGet', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateProvincesIdGet', 'authorization', authorization)
+            const localVarPath = `/private/provinces/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {ProvinceUpdateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdPut: async (id: string, authorization: string, payload: ProvinceUpdateProvinceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('privateProvincesIdPut', 'id', id)
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateProvincesIdPut', 'authorization', authorization)
+            // verify required parameter 'payload' is not null or undefined
+            assertParamExists('privateProvincesIdPut', 'payload', payload)
+            const localVarPath = `/private/provinces/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(payload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create Province
+         * @param {string} authorization Bearer token
+         * @param {ProvinceCreateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesPost: async (authorization: string, payload: ProvinceCreateProvinceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('privateProvincesPost', 'authorization', authorization)
+            // verify required parameter 'payload' is not null or undefined
+            assertParamExists('privateProvincesPost', 'payload', payload)
+            const localVarPath = `/private/provinces`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(payload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ProvinceApi - functional programming interface
+ * @export
+ */
+export const ProvinceApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ProvinceApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Paginated list of provinces
+         * @summary List Provinces
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateProvincesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProvinceProvinceListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateProvincesGet(authorization, page, pageSize, orderBy, orderDirection, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProvinceApi.privateProvincesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateProvincesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateProvincesIdDelete(id, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProvinceApi.privateProvincesIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateProvincesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelProvince>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateProvincesIdGet(id, authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProvinceApi.privateProvincesIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {ProvinceUpdateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateProvincesIdPut(id: string, authorization: string, payload: ProvinceUpdateProvinceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelProvince>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateProvincesIdPut(id, authorization, payload, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProvinceApi.privateProvincesIdPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create Province
+         * @param {string} authorization Bearer token
+         * @param {ProvinceCreateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async privateProvincesPost(authorization: string, payload: ProvinceCreateProvinceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelProvince>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.privateProvincesPost(authorization, payload, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProvinceApi.privateProvincesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ProvinceApi - factory interface
+ * @export
+ */
+export const ProvinceApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ProvinceApiFp(configuration)
+    return {
+        /**
+         * Paginated list of provinces
+         * @summary List Provinces
+         * @param {string} authorization Bearer token
+         * @param {number} [page] Page number (-1 returns all)
+         * @param {number} [pageSize] Page size
+         * @param {string} [orderBy] Order by
+         * @param {string} [orderDirection] asc|desc
+         * @param {string} [name] Filter by name
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig): AxiosPromise<ProvinceProvinceListResponse> {
+            return localVarFp.privateProvincesGet(authorization, page, pageSize, orderBy, orderDirection, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.privateProvincesIdDelete(id, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig): AxiosPromise<ModelProvince> {
+            return localVarFp.privateProvincesIdGet(id, authorization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update Province
+         * @param {string} id ID
+         * @param {string} authorization Bearer token
+         * @param {ProvinceUpdateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesIdPut(id: string, authorization: string, payload: ProvinceUpdateProvinceRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelProvince> {
+            return localVarFp.privateProvincesIdPut(id, authorization, payload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create Province
+         * @param {string} authorization Bearer token
+         * @param {ProvinceCreateProvinceRequest} payload Payload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        privateProvincesPost(authorization: string, payload: ProvinceCreateProvinceRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelProvince> {
+            return localVarFp.privateProvincesPost(authorization, payload, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ProvinceApi - object-oriented interface
+ * @export
+ * @class ProvinceApi
+ * @extends {BaseAPI}
+ */
+export class ProvinceApi extends BaseAPI {
+    /**
+     * Paginated list of provinces
+     * @summary List Provinces
+     * @param {string} authorization Bearer token
+     * @param {number} [page] Page number (-1 returns all)
+     * @param {number} [pageSize] Page size
+     * @param {string} [orderBy] Order by
+     * @param {string} [orderDirection] asc|desc
+     * @param {string} [name] Filter by name
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProvinceApi
+     */
+    public privateProvincesGet(authorization: string, page?: number, pageSize?: number, orderBy?: string, orderDirection?: string, name?: string, options?: RawAxiosRequestConfig) {
+        return ProvinceApiFp(this.configuration).privateProvincesGet(authorization, page, pageSize, orderBy, orderDirection, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete Province
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProvinceApi
+     */
+    public privateProvincesIdDelete(id: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return ProvinceApiFp(this.configuration).privateProvincesIdDelete(id, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Province
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProvinceApi
+     */
+    public privateProvincesIdGet(id: string, authorization: string, options?: RawAxiosRequestConfig) {
+        return ProvinceApiFp(this.configuration).privateProvincesIdGet(id, authorization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update Province
+     * @param {string} id ID
+     * @param {string} authorization Bearer token
+     * @param {ProvinceUpdateProvinceRequest} payload Payload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProvinceApi
+     */
+    public privateProvincesIdPut(id: string, authorization: string, payload: ProvinceUpdateProvinceRequest, options?: RawAxiosRequestConfig) {
+        return ProvinceApiFp(this.configuration).privateProvincesIdPut(id, authorization, payload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create Province
+     * @param {string} authorization Bearer token
+     * @param {ProvinceCreateProvinceRequest} payload Payload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProvinceApi
+     */
+    public privateProvincesPost(authorization: string, payload: ProvinceCreateProvinceRequest, options?: RawAxiosRequestConfig) {
+        return ProvinceApiFp(this.configuration).privateProvincesPost(authorization, payload, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

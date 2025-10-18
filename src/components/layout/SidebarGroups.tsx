@@ -29,7 +29,7 @@ export function SidebarGroups({ groups, activeKey, onSelect }: Props) {
     if (k.includes('infracao')) return <IconWarn />
     if (k.includes('infractor')) return <IconUser />
     if (k.includes('accoes') || k.includes('acao')) return <IconWrench />
-    if (k.includes('instalacao') || k.includes('instalacoes') || k.includes('installation')) return <IconBuilding />
+    if (k.includes('instalacao') || k.includes('instalacoes') || k.includes('installation') || k.includes('cliente')) return <IconBuilding />
     if (k.includes('inspecc')) return <IconSearch />
     if (k.includes('sucataria') || k.includes('sucatarias')) return <IconBuilding />
     if (k.includes('utilizador') || k.includes('user')) return <IconUser />

@@ -62,7 +62,7 @@ src/
 - **Infractores (Infractors)** - Person/entity management
 - **Sucatas (Scrapyards)** - Scrapyard management with map integration
 - **Materiais (Materials)** - Material catalog management
-- **Instalações (Installations)** - Installation management
+- **Clientes (Clients)** - Client management
 - **Ações (Actions)** - Action planning and tracking
 
 ### Administrative Screens
@@ -75,8 +75,8 @@ src/
 
 ### Analytics & Reporting
 - **Dashboard** - Main analytics dashboard
-- **Instalações Dashboard** - Installation-specific metrics
-- **Inspeções Dashboard** - Inspection analytics
+- **Clientes Dashboard** - Client-specific metrics
+- **Clientes Dashboard** - Client analytics
 - **Relatórios (Reports)** - Comprehensive reporting system
 
 ## Authentication & Security

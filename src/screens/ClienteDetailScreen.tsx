@@ -3,7 +3,7 @@ import { Button, Card, Heading } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InstallationsApi, RegiaoApi, ComprasApi, EquipamentosApi, InstalacaoAccoesApi, type ModelInstallation, type ModelCompras, type ModelEquipamentos, type ModelInstalacaoAccoes } from '../services'
 
-export default function InstallationDetailScreen() {
+export default function ClienteDetailScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InstallationsApi(getApiConfig()), [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
@@ -126,7 +126,7 @@ export default function InstallationDetailScreen() {
       gmapRef.current = new g.Map(mapRef.current, { center, zoom: 14, mapTypeControl: false, fullscreenControl: false, streetViewControl: false })
       const mainIcon: any = makeGIcon(g, scoreToPct(item?.score as any), true)
       if (mainMarkerRef.current) { try { mainMarkerRef.current.setMap(null) } catch {} }
-      mainMarkerRef.current = new g.Marker({ position: center, map: gmapRef.current, title: item?.nome || 'Instalação', icon: mainIcon })
+      mainMarkerRef.current = new g.Marker({ position: center, map: gmapRef.current, title: item?.nome || 'Cliente', icon: mainIcon })
       // init single InfoWindow
       try { infoRef.current = new g.InfoWindow() } catch { infoRef.current = null }
       // bind main marker click
@@ -134,7 +134,7 @@ export default function InstallationDetailScreen() {
         const compras = formatKwh(item?.compras_6_meses)
         const consumo = formatKwh((item as any)?.equipamentos_6_meses)
         const html = `<div style="max-width:260px">
-          <strong>${item?.nome || item?.pf || 'Instalação'}</strong><br/>
+          <strong>${item?.nome || item?.pf || 'Cliente'}</strong><br/>
           PF: ${item?.pf || '—'}<br/>
           Compras (6m): ${compras}<br/>
           Consumo calc. (6m): ${consumo}
@@ -234,12 +234,12 @@ export default function InstallationDetailScreen() {
       .forEach((n) => {
         const pos = { lat: (n as any).__lat, lng: (n as any).__lng }
         const icon = makeGIcon(g, scoreToPct((n as any)?.score as any), false)
-        const marker = new g.Marker({ position: pos, map: gmapRef.current, title: n.nome || n.pf || 'Instalação próxima', icon })
+        const marker = new g.Marker({ position: pos, map: gmapRef.current, title: n.nome || n.pf || 'Cliente próximo', icon })
         if (infoRef.current) {
           const compras = formatKwh(n.compras_6_meses)
           const consumo = formatKwh((n as any).equipamentos_6_meses)
           const html = `<div style="max-width:260px">
-            <strong>${n.nome || n.pf || 'Instalação'}</strong><br/>
+            <strong>${n.nome || n.pf || 'Cliente'}</strong><br/>
             PF: ${n.pf || '—'}<br/>
             Compras (6m): ${compras}<br/>
             Consumo calc. (6m): ${consumo}
@@ -280,7 +280,7 @@ export default function InstallationDetailScreen() {
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>Instalação</div>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>Cliente</div>
                 <div style={{ fontSize: 22, fontWeight: 800 }}>{item.nome || item.pf || '—'}</div>
                 <div style={{ color: '#6b7280', marginTop: 4 }}>Mês: {formatMonth(item.mes)} · PF: {item.pf || '—'}</div>
               </div>
@@ -403,7 +403,7 @@ export default function InstallationDetailScreen() {
             </div>
           </Card>
 
-          <Card title="Instalações próximas">
+          <Card title="Clientes próximos">
             {nearbyError ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>{nearbyError}</div> : null}
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -3,7 +3,7 @@ import { Button, Card, Grid, Heading, Text } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InspeccoesApi } from '../services'
 
-export default function InspeccoesDashboardScreen() {
+export default function ClientesInspeccoesDashboardScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InspeccoesApi(getApiConfig()), [getApiConfig])
   const auth = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
@@ -48,7 +48,7 @@ export default function InspeccoesDashboardScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Dashboard de Inspeções · Contagens</Heading>
+      <Heading level={2}>Dashboard de Clientes · Contagens</Heading>
 
       <Card title="Filtros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -84,7 +84,7 @@ export default function InspeccoesDashboardScreen() {
             <thead>
               <tr style={{ textAlign: 'left', color: '#6b7280' }}>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>{groupBy === 'regiao' ? 'Região' : 'PT'}</th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Clientes</th>
               </tr>
             </thead>
             <tbody>

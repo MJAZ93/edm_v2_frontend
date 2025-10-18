@@ -10,7 +10,7 @@ import {
   type InstalacaoAccoesUpdateInstalacaoAccoesRequest,
 } from '../services'
 
-export default function InstalacaoAccoesScreen() {
+export default function ClienteAccoesScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InstalacaoAccoesApi(getApiConfig()), [getApiConfig])
   const tipoApi = useMemo(() => new InstalacaoAccaoTipoApi(getApiConfig()), [getApiConfig])
@@ -132,7 +132,7 @@ export default function InstalacaoAccoesScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Heading level={2}>Ações (Instalações)</Heading>
+      <Heading level={2}>Ações (Clientes)</Heading>
 
       <Card title="Filtros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>

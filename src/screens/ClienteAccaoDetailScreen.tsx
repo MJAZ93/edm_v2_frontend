@@ -12,7 +12,7 @@ import {
   type ModelEquipamentos,
 } from '../services'
 
-export default function InstalacaoAccaoDetailScreen() {
+export default function ClienteAccaoDetailScreen() {
   const id = useMemo(() => (window.location.pathname.split('/').pop() || '').trim(), [])
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InstalacaoAccoesApi(getApiConfig()), [getApiConfig])
@@ -97,7 +97,7 @@ export default function InstalacaoAccaoDetailScreen() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Detalhes da ação</Heading>
+        <Heading level={2}>Detalhes da ação (Cliente)</Heading>
         <Button variant="secondary" onClick={goBack}>Voltar</Button>
       </div>
 

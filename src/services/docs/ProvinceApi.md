@@ -1,63 +1,45 @@
-# OccurrenceApi
+# ProvinceApi
 
 All URIs are relative to */api*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**privateOccurrencesGet**](#privateoccurrencesget) | **GET** /private/occurrences | List Occurrences|
-|[**privateOccurrencesIdDelete**](#privateoccurrencesiddelete) | **DELETE** /private/occurrences/{id} | Delete Occurrence|
-|[**privateOccurrencesIdGet**](#privateoccurrencesidget) | **GET** /private/occurrences/{id} | Get Occurrence|
-|[**privateOccurrencesIdPut**](#privateoccurrencesidput) | **PUT** /private/occurrences/{id} | Update Occurrence|
-|[**privateOccurrencesPost**](#privateoccurrencespost) | **POST** /private/occurrences | Create Occurrence|
+|[**privateProvincesGet**](#privateprovincesget) | **GET** /private/provinces | List Provinces|
+|[**privateProvincesIdDelete**](#privateprovincesiddelete) | **DELETE** /private/provinces/{id} | Delete Province|
+|[**privateProvincesIdGet**](#privateprovincesidget) | **GET** /private/provinces/{id} | Get Province|
+|[**privateProvincesIdPut**](#privateprovincesidput) | **PUT** /private/provinces/{id} | Update Province|
+|[**privateProvincesPost**](#privateprovincespost) | **POST** /private/provinces | Create Province|
 
-# **privateOccurrencesGet**
-> OccurrenceOccurrenceListResponse privateOccurrencesGet()
+# **privateProvincesGet**
+> ProvinceProvinceListResponse privateProvincesGet()
 
-Paginated list of occurrences
+Paginated list of provinces
 
 ### Example
 
 ```typescript
 import {
-    OccurrenceApi,
+    ProvinceApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new OccurrenceApi(configuration);
+const apiInstance = new ProvinceApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
 let page: number; //Page number (-1 returns all) (optional) (default to undefined)
 let pageSize: number; //Page size (optional) (default to undefined)
-let orderBy: string; //Order by (optional) (default to 'data_facto')
+let orderBy: string; //Order by (optional) (default to 'id')
 let orderDirection: string; //asc|desc (optional) (default to 'asc')
-let regiaoId: string; //Filter by regiao (optional) (default to undefined)
-let ascId: string; //Filter by asc (optional) (default to undefined)
-let direcaoTransportesId: string; //Filter by direcao_transportes (optional) (default to undefined)
-let formaConhecimentoId: string; //Filter by forma_conhecimento (optional) (default to undefined)
-let provinceId: string; //Filter by province (optional) (default to undefined)
-let dataInicio: string; //Start date (RFC3339) (optional) (default to undefined)
-let dataFim: string; //End date (RFC3339) (optional) (default to undefined)
-let texto: string; //Free text search (optional) (default to undefined)
-let lat: number; //Latitude (uses QUERY_RADIUS_KM when lat/long provided) (optional) (default to undefined)
-let _long: number; //Longitude (uses QUERY_RADIUS_KM when lat/long provided) (optional) (default to undefined)
+let name: string; //Filter by name (optional) (default to undefined)
 
-const { status, data } = await apiInstance.privateOccurrencesGet(
+const { status, data } = await apiInstance.privateProvincesGet(
     authorization,
     page,
     pageSize,
     orderBy,
     orderDirection,
-    regiaoId,
-    ascId,
-    direcaoTransportesId,
-    formaConhecimentoId,
-    provinceId,
-    dataInicio,
-    dataFim,
-    texto,
-    lat,
-    _long
+    name
 );
 ```
 
@@ -68,23 +50,14 @@ const { status, data } = await apiInstance.privateOccurrencesGet(
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
 | **page** | [**number**] | Page number (-1 returns all) | (optional) defaults to undefined|
 | **pageSize** | [**number**] | Page size | (optional) defaults to undefined|
-| **orderBy** | [**string**] | Order by | (optional) defaults to 'data_facto'|
+| **orderBy** | [**string**] | Order by | (optional) defaults to 'id'|
 | **orderDirection** | [**string**] | asc|desc | (optional) defaults to 'asc'|
-| **regiaoId** | [**string**] | Filter by regiao | (optional) defaults to undefined|
-| **ascId** | [**string**] | Filter by asc | (optional) defaults to undefined|
-| **direcaoTransportesId** | [**string**] | Filter by direcao_transportes | (optional) defaults to undefined|
-| **formaConhecimentoId** | [**string**] | Filter by forma_conhecimento | (optional) defaults to undefined|
-| **provinceId** | [**string**] | Filter by province | (optional) defaults to undefined|
-| **dataInicio** | [**string**] | Start date (RFC3339) | (optional) defaults to undefined|
-| **dataFim** | [**string**] | End date (RFC3339) | (optional) defaults to undefined|
-| **texto** | [**string**] | Free text search | (optional) defaults to undefined|
-| **lat** | [**number**] | Latitude (uses QUERY_RADIUS_KM when lat/long provided) | (optional) defaults to undefined|
-| **_long** | [**number**] | Longitude (uses QUERY_RADIUS_KM when lat/long provided) | (optional) defaults to undefined|
+| **name** | [**string**] | Filter by name | (optional) defaults to undefined|
 
 
 ### Return type
 
-**OccurrenceOccurrenceListResponse**
+**ProvinceProvinceListResponse**
 
 ### Authorization
 
@@ -104,25 +77,25 @@ const { status, data } = await apiInstance.privateOccurrencesGet(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **privateOccurrencesIdDelete**
-> privateOccurrencesIdDelete()
+# **privateProvincesIdDelete**
+> privateProvincesIdDelete()
 
 
 ### Example
 
 ```typescript
 import {
-    OccurrenceApi,
+    ProvinceApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new OccurrenceApi(configuration);
+const apiInstance = new ProvinceApi(configuration);
 
-let id: string; //Occurrence ID (default to undefined)
+let id: string; //ID (default to undefined)
 let authorization: string; //Bearer token (default to undefined)
 
-const { status, data } = await apiInstance.privateOccurrencesIdDelete(
+const { status, data } = await apiInstance.privateProvincesIdDelete(
     id,
     authorization
 );
@@ -132,7 +105,7 @@ const { status, data } = await apiInstance.privateOccurrencesIdDelete(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **id** | [**string**] | Occurrence ID | defaults to undefined|
+| **id** | [**string**] | ID | defaults to undefined|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
 
 
@@ -159,25 +132,25 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **privateOccurrencesIdGet**
-> ModelOccurrence privateOccurrencesIdGet()
+# **privateProvincesIdGet**
+> ModelProvince privateProvincesIdGet()
 
 
 ### Example
 
 ```typescript
 import {
-    OccurrenceApi,
+    ProvinceApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new OccurrenceApi(configuration);
+const apiInstance = new ProvinceApi(configuration);
 
-let id: string; //Occurrence ID (default to undefined)
+let id: string; //ID (default to undefined)
 let authorization: string; //Bearer token (default to undefined)
 
-const { status, data } = await apiInstance.privateOccurrencesIdGet(
+const { status, data } = await apiInstance.privateProvincesIdGet(
     id,
     authorization
 );
@@ -187,13 +160,13 @@ const { status, data } = await apiInstance.privateOccurrencesIdGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **id** | [**string**] | Occurrence ID | defaults to undefined|
+| **id** | [**string**] | ID | defaults to undefined|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
 
 
 ### Return type
 
-**ModelOccurrence**
+**ModelProvince**
 
 ### Authorization
 
@@ -214,27 +187,27 @@ const { status, data } = await apiInstance.privateOccurrencesIdGet(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **privateOccurrencesIdPut**
-> ModelOccurrence privateOccurrencesIdPut(payload)
+# **privateProvincesIdPut**
+> ModelProvince privateProvincesIdPut(payload)
 
 
 ### Example
 
 ```typescript
 import {
-    OccurrenceApi,
+    ProvinceApi,
     Configuration,
-    OccurrenceUpdateOccurrenceRequest
+    ProvinceUpdateProvinceRequest
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new OccurrenceApi(configuration);
+const apiInstance = new ProvinceApi(configuration);
 
-let id: string; //Occurrence ID (default to undefined)
+let id: string; //ID (default to undefined)
 let authorization: string; //Bearer token (default to undefined)
-let payload: OccurrenceUpdateOccurrenceRequest; //Occurrence payload
+let payload: ProvinceUpdateProvinceRequest; //Payload
 
-const { status, data } = await apiInstance.privateOccurrencesIdPut(
+const { status, data } = await apiInstance.privateProvincesIdPut(
     id,
     authorization,
     payload
@@ -245,14 +218,14 @@ const { status, data } = await apiInstance.privateOccurrencesIdPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **payload** | **OccurrenceUpdateOccurrenceRequest**| Occurrence payload | |
-| **id** | [**string**] | Occurrence ID | defaults to undefined|
+| **payload** | **ProvinceUpdateProvinceRequest**| Payload | |
+| **id** | [**string**] | ID | defaults to undefined|
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
 
 
 ### Return type
 
-**ModelOccurrence**
+**ModelProvince**
 
 ### Authorization
 
@@ -274,27 +247,26 @@ const { status, data } = await apiInstance.privateOccurrencesIdPut(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **privateOccurrencesPost**
-> ModelOccurrence privateOccurrencesPost(payload)
+# **privateProvincesPost**
+> ModelProvince privateProvincesPost(payload)
 
-Create occurrence with optional nested infractions and infractors
 
 ### Example
 
 ```typescript
 import {
-    OccurrenceApi,
+    ProvinceApi,
     Configuration,
-    OccurrenceCreateOccurrenceRequest
+    ProvinceCreateProvinceRequest
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new OccurrenceApi(configuration);
+const apiInstance = new ProvinceApi(configuration);
 
 let authorization: string; //Bearer token (default to undefined)
-let payload: OccurrenceCreateOccurrenceRequest; //Occurrence payload
+let payload: ProvinceCreateProvinceRequest; //Payload
 
-const { status, data } = await apiInstance.privateOccurrencesPost(
+const { status, data } = await apiInstance.privateProvincesPost(
     authorization,
     payload
 );
@@ -304,13 +276,13 @@ const { status, data } = await apiInstance.privateOccurrencesPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **payload** | **OccurrenceCreateOccurrenceRequest**| Occurrence payload | |
+| **payload** | **ProvinceCreateProvinceRequest**| Payload | |
 | **authorization** | [**string**] | Bearer token | defaults to undefined|
 
 
 ### Return type
 
-**ModelOccurrence**
+**ModelProvince**
 
 ### Authorization
 

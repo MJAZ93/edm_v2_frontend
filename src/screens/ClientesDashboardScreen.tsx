@@ -5,7 +5,7 @@ import { InspeccoesApi, ASCApi, RegiaoApi, InstalacaoAccoesApi, InstalacaoAccaoT
 
 type CountItem = { id?: string; label?: string; count?: number }
 
-export default function InstalacoesDashboardScreen() {
+export default function ClientesDashboardScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InspeccoesApi(getApiConfig()), [getApiConfig])
   const auth = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
@@ -374,7 +374,7 @@ export default function InstalacoesDashboardScreen() {
         </div>
       </div>
 
-      {/* Seção de Inspeções */}
+      {/* Seção de Clientes */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <h2 style={{ 
           margin: 0, 
@@ -384,13 +384,13 @@ export default function InstalacoesDashboardScreen() {
           borderBottom: '2px solid #e2e8f0',
           paddingBottom: 8
         }}>
-          📊 Análise de Inspeções
+          📊 Análise de Clientes
         </h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
       {!regiaoId && (
-        <Card title={`Inspeções — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''}`}>
+        <Card title={`Clientes — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''}`}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
             <div style={{ overflow: 'auto', maxHeight: 280 }}>
               {loading ? (
@@ -407,7 +407,7 @@ export default function InstalacoesDashboardScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <ImprovedDonutChart data={donutData} title="Distribuição por Região" />
               <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total de Inspeções</div>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total de Clientes</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
                   {(filtered || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
                 </div>
@@ -450,14 +450,14 @@ export default function InstalacoesDashboardScreen() {
           </Card>
 
           {regiaoId && (
-            <Card title="Inspeções — ASCs da região">
+            <Card title="Clientes — ASCs da região">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
                 <div style={{ overflow: 'auto', maxHeight: 220 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ textAlign: 'left', color: '#6b7280' }}>
                         <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
-                        <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Inspeções</th>
+                        <th style={{ padding: '8px 8px', borderBottom: '1px solid #e5e7eb' }}>Clientes</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -493,7 +493,7 @@ export default function InstalacoesDashboardScreen() {
         {/* Tendência: respeita seleção de tendência; oculta quando há região selecionada */}
         {!regiaoId && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-            <Card title="Inspeções — Contagens por tendência">
+            <Card title="Clientes — Contagens por tendência">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 16, alignItems: 'stretch' }}>
                 <div style={{ overflowX: 'auto', maxHeight: 320 }}>
                   {tendLoading ? (
@@ -684,8 +684,8 @@ export default function InstalacoesDashboardScreen() {
 
           </div>
 
-          {/* Effectiveness de Ações de Instalação */}
-          <Card title="Valor Recuperado por Tipo de Ação (Instalações)">
+          {/* Effectiveness de Ações de Cliente */}
+          <Card title="Valor Recuperado por Tipo de Ação (Clientes)">
             {effectivenessLoading ? (
               <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                 <div style={{ marginBottom: 8 }}>A carregar effectiveness de instalações…</div>
@@ -996,7 +996,7 @@ function TimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: number; 
       <g>
         <rect x={W - 160} y={8} width={150} height={20} fill="#fff" />
         <circle cx={W - 146} cy={18} r={4} fill="#0ea5e9" />
-        <text x={W - 136} y={22} fontSize={11} fill="#111827">Inspeções</text>
+        <text x={W - 136} y={22} fontSize={11} fill="#111827">Clientes</text>
         <circle cx={W - 82} cy={18} r={4} fill="#ef4444" />
         <text x={W - 72} y={22} fontSize={11} fill="#111827">Défice</text>
       </g>
@@ -1379,7 +1379,7 @@ function TemporalSummary({ data, loading }: { data: Array<{ mes?: string; total?
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
       <div style={{ padding: 12, background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd' }}>
-        <div style={{ fontSize: 12, color: '#0c4a6e', marginBottom: 4 }}>Total Inspeções</div>
+        <div style={{ fontSize: 12, color: '#0c4a6e', marginBottom: 4 }}>Total Clientes</div>
         <div style={{ fontSize: 20, fontWeight: 800, color: '#0284c7' }}>
           {totalInspections.toLocaleString('pt-PT')}
         </div>
@@ -1530,7 +1530,7 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
         <g transform={`translate(${W - 160}, 20)`}>
           <rect x="0" y="-5" width="150" height="30" fill="#fff" stroke="#e2e8f0" rx="6" fillOpacity="0.95" />
           <circle cx="15" cy="10" r="4" fill="#0ea5e9" />
-          <text x="25" y="14" fontSize="12" fill="#374151">Inspeções</text>
+          <text x="25" y="14" fontSize="12" fill="#374151">Clientes</text>
           <circle cx="90" cy="10" r="4" fill="#ef4444" />
           <text x="100" y="14" fontSize="12" fill="#374151">Défice</text>
         </g>
@@ -1556,7 +1556,7 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
           </div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
             <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0ea5e9', marginRight: 8 }} />
-            <span style={{ color: '#6b7280' }}>Inspeções:</span>
+            <span style={{ color: '#6b7280' }}>Clientes:</span>
             <span style={{ marginLeft: 8, fontWeight: 600, color: '#0ea5e9' }}>
               {hoveredPoint.total?.toLocaleString('pt-PT') || '0'}
             </span>
@@ -1580,7 +1580,7 @@ function TemporalTable({ data }: { data: Array<{ mes?: string; total?: number; d
       <thead>
         <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
           <th style={{ padding: '12px 8px', textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 13 }}>Mês</th>
-          <th style={{ padding: '12px 8px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 13 }}>Inspeções</th>
+          <th style={{ padding: '12px 8px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 13 }}>Clientes</th>
           <th style={{ padding: '12px 8px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 13 }}>Défice</th>
         </tr>
       </thead>

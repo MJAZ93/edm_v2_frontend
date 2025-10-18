@@ -11,6 +11,7 @@ import { PRIMARY_COLOR } from '../utils/theme'
 import UsersScreen from './UsersScreen'
 import ConfigScreen from './ConfigScreen'
 import RegioesScreen from './RegioesScreen'
+import ProvinciasScreen from './ProvinciasScreen'
 import ASCsScreen from './ASCsScreen'
 import FormasConhecimentoScreen from './FormasConhecimentoScreen'
 import MateriaisScreen from './MateriaisScreen'
@@ -35,12 +36,12 @@ import InfractorEditScreen from './InfractorEditScreen'
 import ReportsScreen from './ReportsScreen'
 import AccoesScreen from './AccoesScreen'
 import AccaoDetailScreen from './AccaoDetailScreen'
-import InstallationsScreen from './InstallationsScreen'
-import InstallationDetailScreen from './InstallationDetailScreen'
-import InstalacaoAccoesScreen from './InstalacaoAccoesScreen'
-import InstalacaoAccaoDetailScreen from './InstalacaoAccaoDetailScreen'
-import InstalacoesDashboardScreen from './InstalacoesDashboardScreen'
-import InspeccoesDashboardScreen from './InspeccoesDashboardScreen'
+import ClientesScreen from './ClientesScreen'
+import ClienteDetailScreen from './ClienteDetailScreen'
+import ClienteAccoesScreen from './ClienteAccoesScreen'
+import ClienteAccaoDetailScreen from './ClienteAccaoDetailScreen'
+import ClientesDashboardScreen from './ClientesDashboardScreen'
+import ClientesInspeccoesDashboardScreen from './ClientesInspeccoesDashboardScreen'
 import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
 import AccaoEditScreen from './AccaoEditScreen'
 
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
     instalacaoAccoes: '/instalacoes/accoes',
     instalacoesDashboard: '/instalacoes/dashboard',
     inspeccoesDashboard: '/inspeccoes/dashboard',
+    provincias: '/provincias',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -241,6 +243,7 @@ export default function DashboardScreen() {
     accoes: 'Ações',
     sucatarias: 'Sucatarias',
     sucatariasMapa: 'Sucatarias (Mapa)',
+    provincias: 'Províncias',
     utilizadores: 'Utilizadores',
     config: 'Configurações',
     regioes: 'Regiões',
@@ -250,8 +253,8 @@ export default function DashboardScreen() {
     setoresInfracao: 'Setores de Infração',
     tiposInfracao: 'Tipos de Infração',
     relatorios: 'Relatórios',
-    instalacoes: 'Instalações',
-    instalacaoAccoes: 'Ações (Instalações)',
+    instalacoes: 'Clientes',
+    instalacaoAccoes: 'Ações (Clientes)',
     instalacoesDashboard: 'Dashboard',
     inspeccoesDashboard: 'Dashboard',
   }
@@ -272,7 +275,7 @@ export default function DashboardScreen() {
               label: 'Vandalizações',
               items: MENU.filter((i) => !['instalacoes', 'utilizadores', 'config'].includes(i.key))
             },
-            { label: 'Instalações', items: [
+            { label: 'Clientes', items: [
               { key: 'instalacoesDashboard', label: 'Dashboard' },
               { key: 'instalacoes', label: 'Lista' },
               { key: 'instalacaoAccoes', label: 'Ações' },
@@ -576,22 +579,23 @@ export default function DashboardScreen() {
       )}
       {active === 'instalacoes' && (
         /^\/instalacoes\/[^/]+$/.test(path) ? (
-          <InstallationDetailScreen />
+          <ClienteDetailScreen />
         ) : (
-          <InstallationsScreen />
+          <ClientesScreen />
         )
       )}
-      {active === 'instalacoesDashboard' && <InstalacoesDashboardScreen />}
-      {active === 'inspeccoesDashboard' && <InspeccoesDashboardScreen />}
+      {active === 'instalacoesDashboard' && <ClientesDashboardScreen />}
+      {active === 'inspeccoesDashboard' && <ClientesInspeccoesDashboardScreen />}
       {active === 'instalacaoAccoes' && (
         instalacaoAccoesRoute === 'detail' ? (
-          <InstalacaoAccaoDetailScreen />
+          <ClienteAccaoDetailScreen />
         ) : (
-          <InstalacaoAccoesScreen />
+          <ClienteAccoesScreen />
         )
       )}
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       
+      {active === 'provincias' && <ProvinciasScreen />}
       {active === 'regioes' && <RegioesScreen />}
       {active === 'ascs' && <ASCsScreen />}
       {active === 'formasConhecimento' && <FormasConhecimentoScreen />}
