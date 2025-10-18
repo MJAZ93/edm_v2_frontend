@@ -12,6 +12,7 @@ import UsersScreen from './UsersScreen'
 import ConfigScreen from './ConfigScreen'
 import RegioesScreen from './RegioesScreen'
 import ProvinciasScreen from './ProvinciasScreen'
+import DirecoesTransportesScreen from './DirecoesTransportesScreen'
 import ASCsScreen from './ASCsScreen'
 import FormasConhecimentoScreen from './FormasConhecimentoScreen'
 import MateriaisScreen from './MateriaisScreen'
@@ -73,6 +74,7 @@ export default function DashboardScreen() {
     instalacoesDashboard: '/instalacoes/dashboard',
     inspeccoesDashboard: '/inspeccoes/dashboard',
     provincias: '/provincias',
+    direcoesTransportes: '/direcoes-transportes',
     sucatarias: '/sucatarias',
     sucatariasMapa: '/sucatarias/mapa',
     utilizadores: '/utilizadores',
@@ -244,6 +246,7 @@ export default function DashboardScreen() {
     sucatarias: 'Sucatarias',
     sucatariasMapa: 'Sucatarias (Mapa)',
     provincias: 'Províncias',
+    direcoesTransportes: 'Direções de Transporte',
     utilizadores: 'Utilizadores',
     config: 'Configurações',
     regioes: 'Regiões',
@@ -596,6 +599,7 @@ export default function DashboardScreen() {
       {active === 'sucatariasMapa' && <ScrapyardsMapScreen />}
       
       {active === 'provincias' && <ProvinciasScreen />}
+      {active === 'direcoesTransportes' && <DirecoesTransportesScreen />}
       {active === 'regioes' && <RegioesScreen />}
       {active === 'ascs' && <ASCsScreen />}
       {active === 'formasConhecimento' && <FormasConhecimentoScreen />}

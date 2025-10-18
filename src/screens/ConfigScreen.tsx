@@ -17,6 +17,12 @@ export default function ConfigScreen() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Grid columns={2} gap={16}>
+        <Card title="Direções de Transporte" subtitle="Gerir lista de direções de transporte">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Adicionar, editar e remover direções.</span>
+            <Button onClick={() => go('/direcoes-transportes')}>Gerir</Button>
+          </div>
+        </Card>
         <Card title="Províncias" subtitle="Gerir lista de províncias">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Adicionar, editar e remover províncias.</span>
