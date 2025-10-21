@@ -113,13 +113,17 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
           const next = { lat: pos.lat(), lng: pos.lng() }
           onChange?.(next)
         })
-        // Fit bounds to include main marker and extras (read-only best effort)
+        // Fit bounds to include markers apenas quando há posição inicial explícita ou marcadores extra
         try {
-          const bounds = new gmaps.LatLngBounds()
-          const pos = marker.getPosition()
-          if (pos) bounds.extend(pos)
-          extraMarkersRef.current.forEach((m) => { const p = m.getPosition(); if (p) bounds.extend(p) })
-          if (!bounds.isEmpty()) map.fitBounds(bounds)
+          const hasInitialPos = typeof value?.lat === 'number' && typeof value?.lng === 'number'
+          const hasExtras = (extraMarkersRef.current || []).length > 0
+          if (hasInitialPos || hasExtras) {
+            const bounds = new gmaps.LatLngBounds()
+            const pos = marker.getPosition()
+            if (pos) bounds.extend(pos)
+            extraMarkersRef.current.forEach((m) => { const p = m.getPosition(); if (p) bounds.extend(p) })
+            if (!bounds.isEmpty()) map.fitBounds(bounds)
+          }
         } catch {}
       } catch (err: any) {
         if (!cancelled) setError(err?.message || 'Falha ao inicializar o mapa.')

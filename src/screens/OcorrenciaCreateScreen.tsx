@@ -26,8 +26,7 @@ import {
 } from '../services'
 
 export default function OcorrenciaCreateScreen() {
-  const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
-  const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  const { getApiConfig, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded, logout } = useAuth()
   const api = useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
@@ -86,59 +85,73 @@ export default function OcorrenciaCreateScreen() {
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await regiaoApi.privateRegioesGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await regiaoApi.privateRegioesGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setRegioes(data.items ?? [])
     } catch {}
-  })() }, [regiaoApi, authHeader])
+  })() }, [regiaoApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await provinceApi.privateProvincesGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await provinceApi.privateProvincesGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setProvincias(data.items ?? [])
     } catch {}
-  })() }, [provinceApi, authHeader])
+  })() }, [provinceApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc', undefined, regiaoId || undefined)
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await ascApi.privateAscsGet(auth, 1, 200, 'name', 'asc', undefined, regiaoId || undefined)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setAscs(data.items ?? [])
     } catch {}
-  })() }, [ascApi, authHeader, regiaoId])
+  })() }, [ascApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded, regiaoId])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await formaApi.privateFormaConhecimentosGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await formaApi.privateFormaConhecimentosGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setFormas(data.items ?? [])
     } catch {}
-  })() }, [formaApi, authHeader])
+  })() }, [formaApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await direcaoApi.privateDirecaoTransportesGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await direcaoApi.privateDirecaoTransportesGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setDirecoes(data.items ?? [])
     } catch {}
-  })() }, [direcaoApi, authHeader])
+  })() }, [direcaoApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await sectorApi.privateSectorInfracaoGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await sectorApi.privateSectorInfracaoGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setSetores(data.items ?? [])
     } catch {}
-  })() }, [sectorApi, authHeader])
+  })() }, [sectorApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   useEffect(() => { (async () => {
     try {
-      const { data } = await tipoApi.privateTiposInfracaoGet(authHeader, 1, 200, 'name', 'asc')
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await tipoApi.privateTiposInfracaoGet(auth, 1, 200, 'name', 'asc')
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setTiposInf(data.items ?? [])
     } catch {}
-  })() }, [tipoApi, authHeader])
+  })() }, [tipoApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   // Atribui por omissão a localização da ocorrência às infrações que ainda não têm lat/long definidos
   useEffect(() => {
@@ -232,7 +245,9 @@ export default function OcorrenciaCreateScreen() {
         try { return new Date(`${d}T00:00:00Z`).toISOString() } catch { return undefined }
       }
       const body: any = { ...payload, ...extra, data_facto: toRfc3339(dataFacto), condicoes_favoreceram: condicoesFavoreceram || undefined }
-      const { data } = await api.privateOccurrencesPost(authHeader, body)
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await api.privateOccurrencesPost(auth, body)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       // voltar à lista
       if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias?created=1')
@@ -257,7 +272,9 @@ export default function OcorrenciaCreateScreen() {
     if (materialsBySector[sid]) return
     setLoadingMaterialsSector((s) => ({ ...s, [sid]: true }))
     try {
-      const { data } = await materialApi.privateMateriaisGet(authHeader, 1, 500, 'name', 'asc', undefined, sid)
+      await refreshTokenIfNeeded()
+      const auth = await getAuthorizationHeaderValueAsync()
+      const { data } = await materialApi.privateMateriaisGet(auth, 1, 500, 'name', 'asc', undefined, sid)
       const items = (data.items ?? []) as ModelMaterial[]
       const opts = items
         .filter((m) => m.id && (m.name || m.id))
@@ -268,7 +285,7 @@ export default function OcorrenciaCreateScreen() {
     } finally {
       setLoadingMaterialsSector((s) => ({ ...s, [sid]: false }))
     }
-  }, [materialsBySector, materialApi, authHeader])
+  }, [materialsBySector, materialApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -397,6 +414,7 @@ export default function OcorrenciaCreateScreen() {
               value={{ lat: lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined, lng: long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined }}
               onChange={(pos) => { setLat(String(pos.lat)); setLong(String(pos.lng)) }}
               height={300}
+              zoom={6}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <Button type="button" variant="secondary" onClick={() => {
