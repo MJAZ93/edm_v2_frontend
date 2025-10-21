@@ -30,6 +30,7 @@ export default function OcorrenciasScreen() {
   const [regiaoId, setRegiaoId] = useState('')
   const [ascId, setAscId] = useState('')
   const [formaConhecimentoId, setFormaConhecimentoId] = useState('')
+  const [direcaoTransportesId, setDirecaoTransportesId] = useState('')
   const [dataInicio, setDataInicio] = useState<string | null>(null)
   const [dataFim, setDataFim] = useState<string | null>(null)
 
@@ -56,6 +57,15 @@ export default function OcorrenciasScreen() {
     } catch { return false }
   }
 
+  function toRfc3339(d?: string | null): string | undefined {
+    if (!d) return undefined
+    try { return new Date(`${d}T00:00:00Z`).toISOString() } catch { return undefined }
+  }
+  function toRfc3339End(d?: string | null): string | undefined {
+    if (!d) return undefined
+    try { return new Date(`${d}T23:59:59Z`).toISOString() } catch { return undefined }
+  }
+
   const load = useCallback(async () => {
     setUi({ loading: true, error: null })
     try {
@@ -67,10 +77,14 @@ export default function OcorrenciasScreen() {
         orderDirection,
         regiaoId || undefined,
         ascId || undefined,
+        direcaoTransportesId || undefined,
         formaConhecimentoId || undefined,
-        dataInicio || undefined,
-        dataFim || undefined,
-        texto || undefined
+        undefined,
+        toRfc3339(dataInicio),
+        toRfc3339End(dataFim),
+        texto || undefined,
+        undefined,
+        undefined
       )
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setItems(data.items ?? [])
@@ -83,7 +97,7 @@ export default function OcorrenciasScreen() {
       return
     }
     setUi({ loading: false, error: null })
-  }, [api, authHeader, page, pageSize, orderBy, orderDirection, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, texto])
+  }, [api, authHeader, page, pageSize, orderBy, orderDirection, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, dataInicio, dataFim, texto])
 
   useEffect(() => { load() }, [load])
 
@@ -152,7 +166,7 @@ export default function OcorrenciasScreen() {
   })() }, [tipoApi, authHeader])
 
   // Reinicia página quando filtros/ordenacao mudam
-  useEffect(() => { setPage(1) }, [texto, regiaoId, ascId, formaConhecimentoId, dataInicio, dataFim, pageSize, orderBy, orderDirection])
+  useEffect(() => { setPage(1) }, [texto, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, dataInicio, dataFim, pageSize, orderBy, orderDirection])
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
@@ -192,48 +206,87 @@ export default function OcorrenciasScreen() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card title="Filtros">
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder="Pesquisar por termo…"
-            style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', minWidth: 220 }}
-          />
-          <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value="">Região (todas)</option>
-            {regioes.map((r) => (
-              <option key={r.id} value={r.id}>{r.name || r.id}</option>
-            ))}
-          </select>
-          <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value="">ASC (todas)</option>
-            {ascs.map((a) => (
-              <option key={a.id} value={a.id}>{a.name || a.id}</option>
-            ))}
-          </select>
-          <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value="">Forma de conhecimento (todas)</option>
-            {formas.map((f) => (
-              <option key={f.id} value={f.id}>{f.name || f.id}</option>
-            ))}
-          </select>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 12,
+            alignItems: 'end'
+          }}
+        >
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Pesquisar</span>
+            <input
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="Pesquisar por termo…"
+              style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}
+            />
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
+            <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+              <option value="">Todas</option>
+              {regioes.map((r) => (
+                <option key={r.id} value={r.id}>{r.name || r.id}</option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
+            <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+              <option value="">Todas</option>
+              {ascs.map((a) => (
+                <option key={a.id} value={a.id}>{a.name || a.id}</option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Direção de Produção</span>
+            <select value={direcaoTransportesId} onChange={(e) => setDirecaoTransportesId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+              <option value="">Todas</option>
+              {direcoes.map((d) => (
+                <option key={d.id} value={d.id}>{d.name || d.id}</option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Forma de conhecimento</span>
+            <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+              <option value="">Todas</option>
+              {formas.map((f) => (
+                <option key={f.id} value={f.id}>{f.name || f.id}</option>
+              ))}
+            </select>
+          </label>
+
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 13, color: '#374151' }}>Início</span>
-            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db' }} />
+            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
           </label>
+
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 13, color: '#374151' }}>Fim</span>
-            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db' }} />
+            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
           </label>
-          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value={10}>10 por página</option>
-            <option value={20}>20 por página</option>
-            <option value={50}>50 por página</option>
-          </select>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null) }}>Limpar</Button>
-            <Button onClick={() => { if (window.location.pathname !== '/ocorrencias/novo') window.history.pushState({}, '', '/ocorrencias/novo'); window.dispatchEvent(new Event('popstate')); window.dispatchEvent(new Event('locationchange')) }}>Nova ocorrência</Button>
-          </div>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Itens por página</span>
+            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+          <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null) }}>Limpar</Button>
+          <Button onClick={() => { if (window.location.pathname !== '/ocorrencias/novo') window.history.pushState({}, '', '/ocorrencias/novo'); window.dispatchEvent(new Event('popstate')); window.dispatchEvent(new Event('locationchange')) }}>Nova ocorrência</Button>
         </div>
         {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginTop: 10 }}>{ui.error}</div> : null}
         {flash ? <div style={{ background: '#ecfdf5', color: '#065f46', padding: 10, borderRadius: 8, marginTop: 10 }}>{flash}</div> : null}
@@ -248,7 +301,7 @@ export default function OcorrenciasScreen() {
                 <Th label="Local" active={orderBy === 'local'} direction={orderDirection} onClick={() => toggleSort('local')} />
                 <Th label="Região" active={false} />
                 <Th label="ASC" active={false} />
-                <Th label="Direção Transp." active={false} />
+                <Th label="Direção de Produção" active={false} />
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
                 <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 260 }}>Ações</th>
               </tr>
