@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { RegiaoApi, ASCApi, type ModelRegiao, type ModelASC } from '../services'
 
 export default function ReportsScreen() {
-  const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
+  const { getApiConfig, getAuthorizationHeaderValue, getAuthorizationHeaderValueAsync, logout } = useAuth()
   const basePath = useMemo(() => (getApiConfig() as any)?.basePath || '/api', [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
@@ -41,7 +41,8 @@ export default function ReportsScreen() {
   async function runMonthly() {
     setExecMsg(null); setExecuting(true)
     try {
-      const resp = await fetch(`${basePath}/private/reports/execute`, { method: 'POST', headers: { Authorization: authHeader } })
+      const auth = await getAuthorizationHeaderValueAsync()
+      const resp = await fetch(`${basePath}/private/reports/execute`, { method: 'POST', headers: { Authorization: auth } })
       if (resp.status === 401) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setExecMsg('Relatório mensal executado com sucesso.')
     } catch (err: any) {
@@ -62,13 +63,14 @@ export default function ReportsScreen() {
   async function exportCsv() {
     setDownloadMsg(null); setDownloading(true)
     try {
+      const auth = await getAuthorizationHeaderValueAsync()
       const qs = new URLSearchParams()
       if (dateStart) qs.set('date_start', String(toRfc3339(dateStart)))
       if (dateEnd) qs.set('date_end', String(toRfc3339End(dateEnd)))
       if (regiaoId) qs.set('regiao_id', regiaoId)
       if (ascId) qs.set('asc_id', ascId)
       const urlReq = `${basePath}/private/reports/export?entity=${encodeURIComponent(entity)}${qs.toString() ? `&${qs.toString()}` : ''}`
-      const resp = await fetch(urlReq, { headers: { Authorization: authHeader } })
+      const resp = await fetch(urlReq, { headers: { Authorization: auth } })
       if (resp.status === 401) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       const blob = await resp.blob()
       const url = window.URL.createObjectURL(blob)

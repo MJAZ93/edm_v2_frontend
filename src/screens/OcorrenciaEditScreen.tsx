@@ -55,6 +55,7 @@ export default function OcorrenciaEditScreen() {
   const [procCriminal, setProcCriminal] = useState(false)
   const [autoTexto, setAutoTexto] = useState('')
   const [autoImagem, setAutoImagem] = useState<string>('')
+  const [dataFacto, setDataFacto] = useState<string>('')
 
   const [infractions, setInfractions] = useState<(OccurrenceCreateOccurrenceInfraction & { id?: string })[]>([])
   const [originalInfractorIds, setOriginalInfractorIds] = useState<Record<string, string[]>>({})
