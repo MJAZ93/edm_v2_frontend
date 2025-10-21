@@ -393,6 +393,9 @@ export default function DashboardScreen() {
             <div style={{ width: '100%' }}>
               <DashboardMap height={420} />
               <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
+                <div style={{ marginRight: 'auto' }}>
+                  <strong>Intervalo:</strong> {rangeLabel}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
                   <span>Sucatarias</span>
@@ -404,6 +407,7 @@ export default function DashboardScreen() {
               </div>
             </div>
           </Card>
+
 
           <Grid minColumnWidth={300} gap={16}>
             <Card title="Métricas Principais">
@@ -592,6 +596,25 @@ export default function DashboardScreen() {
                 />
               )}
             </Card>
+
+            <Card title="Distribuição por Região">
+              {loadingDash ? (
+                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar distribuições…</div>
+              ) : (
+                <DonutChart
+                  data={(occByRegiao || []).map((it: any) => ({ 
+                    label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
+                    value: Number(it?.count || it?.value || 0) 
+                  }))}
+                  onSegmentClick={(idx) => {
+                    const it = (occByRegiao || [])[idx]
+                    if (!it) return
+                    const id = it?.regiao_id || it?.key_id
+                    if (id) { setRegiaoId(String(id)); setAscId('') }
+                  }}
+                />
+              )}
+            </Card>
           </Grid>
 
           <Card title={`Evolução Temporal (${rangeLabel}) · Perdas vs Gastos`}>
@@ -716,6 +739,169 @@ function Metric({ label, value, color = '#111827' }: { label: string; value: str
     <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, width: '100%' }}>
       <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
       <div style={{ fontWeight: 800, fontSize: 22, color }}>{value as any}</div>
+    </div>
+  )
+}
+
+// Mapa de agregação por Região (centroides das ocorrências)
+function RegionClusterMap({ height = 360, dateStart, dateEnd, regiaoId, ascId, regioes, onSelectRegiao }: {
+  height?: number
+  dateStart?: string | null
+  dateEnd?: string | null
+  regiaoId?: string
+  ascId?: string
+  regioes: Array<{ id?: string; name?: string }>
+  onSelectRegiao?: (id: string) => void
+}) {
+  const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
+  const occurrenceApi = React.useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
+  const authHeader = React.useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  const [error, setError] = React.useState<string | null>(null)
+  const [groups, setGroups] = React.useState<Array<{ id: string; name: string; lat: number; lng: number; count: number }>>([])
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const mapRef = React.useRef<any>(null)
+  const markersRef = React.useRef<any[]>([])
+
+  function injectScriptOnce(apiKey: string): Promise<void> {
+    if ((window as any).google && (window as any).google.maps) return Promise.resolve()
+    if ((window as any).__gmapsLoadingPromise) return (window as any).__gmapsLoadingPromise
+    const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`
+    ;(window as any).__gmapsLoadingPromise = new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`)
+      if (existing) {
+        existing.addEventListener('load', () => resolve())
+        existing.addEventListener('error', () => reject(new Error('Falha ao carregar Google Maps')))
+        return
+      }
+      const script = document.createElement('script')
+      script.src = src
+      script.async = true
+      script.defer = true
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Falha ao carregar Google Maps'))
+      document.head.appendChild(script)
+    })
+    return (window as any).__gmapsLoadingPromise
+  }
+
+  const isUnauthorizedBody = (data: any) => {
+    try {
+      const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code
+      if (raw === undefined || raw === null) return false
+      const num = Number(raw)
+      if (!Number.isNaN(num) && num === 401) return true
+      const code = String(raw).toUpperCase()
+      return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
+    } catch { return false }
+  }
+
+  const toRfc3339 = (d?: string | null, endOfDay?: boolean): string | undefined => {
+    if (!d) return undefined
+    try { return new Date(`${d}T${endOfDay ? '23:59:59' : '00:00:00'}Z`).toISOString() } catch { return undefined }
+  }
+
+  React.useEffect(() => {
+    let cancelled = false
+    async function loadData() {
+      if (!authHeader) return
+      try {
+        const ds = toRfc3339(dateStart)
+        const de = toRfc3339(dateEnd, true)
+        // Buscar ocorrências com filtros para calcular centroides por região (limite 1000 para melhor amostragem)
+        const { data } = await occurrenceApi.privateOccurrencesGet(authHeader, 1, 1000, 'created_at', 'desc', regiaoId || undefined, ascId || undefined, undefined, undefined, ds, de)
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const items = (data as any)?.items ?? []
+        const byRegion: Record<string, { latSum: number; lngSum: number; count: number }> = {}
+        for (const o of items) {
+          const id = (o as any)?.regiao_id || ''
+          const la = Number((o as any)?.lat)
+          const ln = Number((o as any)?.long)
+          if (!id || !Number.isFinite(la) || !Number.isFinite(ln)) continue
+          if (!byRegion[id]) byRegion[id] = { latSum: 0, lngSum: 0, count: 0 }
+          byRegion[id].latSum += la
+          byRegion[id].lngSum += ln
+          byRegion[id].count += 1
+        }
+        const mapName = new Map<string, string>((regioes || []).filter((r) => r.id).map((r) => [String(r.id), String(r.name || r.id)]))
+        const list: Array<{ id: string; name: string; lat: number; lng: number; count: number }> = Object.entries(byRegion).map(([id, s]) => ({
+          id,
+          name: mapName.get(id) || id,
+          lat: s.latSum / s.count,
+          lng: s.lngSum / s.count,
+          count: s.count,
+        }))
+        if (!cancelled) setGroups(list)
+      } catch (err: any) {
+        if (err?.response?.status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        if (!cancelled) setError('Falha a obter dados para o mapa por região.')
+      }
+    }
+    loadData()
+    return () => { cancelled = true }
+  }, [occurrenceApi, authHeader, dateStart, dateEnd, regiaoId, ascId, regioes])
+
+  React.useEffect(() => {
+    const key = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY
+    if (!key) { setError('Google Maps não está configurado (VITE_GOOGLE_MAPS_API_KEY ausente).'); return }
+    (async () => { try { await injectScriptOnce(key) } catch (e: any) { setError(e?.message || 'Falha ao inicializar o mapa.') } })()
+  }, [])
+
+  React.useEffect(() => {
+    const g = (window as any).google?.maps
+    if (!g) return
+    if (!mapRef.current) {
+      const center = { lat: -25.965, lng: 32.571 }
+      mapRef.current = new g.Map(containerRef.current, {
+        center,
+        zoom: 6,
+        maxZoom: 12,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false,
+      })
+    }
+    // limpar marcadores
+    markersRef.current.forEach((m) => m.setMap(null))
+    markersRef.current = []
+
+    const info = new g.InfoWindow()
+    const clusterIcon: any = {
+      path: g.SymbolPath.CIRCLE,
+      scale: 8,
+      fillColor: '#1d4ed8', // azul: ocorrências
+      fillOpacity: 0.95,
+      strokeColor: '#ffffff',
+      strokeWeight: 1,
+    };
+    ;(groups || []).forEach((gr) => {
+      if (!Number.isFinite(gr.lat) || !Number.isFinite(gr.lng)) return
+      const marker = new g.Marker({ position: { lat: gr.lat, lng: gr.lng }, map: mapRef.current, title: `${gr.name}: ${gr.count}`, icon: clusterIcon, label: { text: String(gr.count), color: '#ffffff', fontSize: '12px', fontWeight: '700' } as any })
+      marker.addListener('click', () => { onSelectRegiao?.(gr.id) })
+      marker.addListener('mouseover', () => {
+        const html = `<div style="max-width:220px"><strong>${gr.name}</strong><br/>Ocorrências: ${gr.count}</div>`
+        info.setContent(html); info.open({ anchor: marker, map: mapRef.current })
+      })
+      markersRef.current.push(marker)
+    })
+
+    // ajustar vista
+    const bounds = new (window as any).google.maps.LatLngBounds()
+    let added = false
+    ;(groups || []).forEach((gr) => {
+      if (Number.isFinite(gr.lat) && Number.isFinite(gr.lng)) { bounds.extend({ lat: gr.lat, lng: gr.lng }); added = true }
+    })
+    if (added) mapRef.current.fitBounds(bounds)
+  }, [groups])
+
+  return (
+    <div>
+      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+      {error ? <div style={{ color: '#991b1b', background: '#fee2e2', padding: 8, borderRadius: 8, marginTop: 8 }}>{error}</div> : null}
+      {!error && (
+        <div style={{ color: '#6b7280', marginTop: 6, fontSize: 12 }}>
+          Clique numa região para filtrar os gráficos.
+        </div>
+      )}
     </div>
   )
 }
@@ -1157,7 +1343,7 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
   )
 }
 
-function DonutChart({ data }: { data: Array<{ label: string; value: number }> }) {
+function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; value: number }>; onSegmentClick?: (index: number) => void }) {
   const clean = Array.isArray(data) ? data.filter(d => Number.isFinite(d.value) && d.value > 0) : []
   const total = clean.reduce((s, d) => s + d.value, 0)
   const W = 240
@@ -1199,7 +1385,15 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number }> })
         <circle cx={cx} cy={cy} r={rOuter} fill="#f3f4f6" />
         <circle cx={cx} cy={cy} r={rInner} fill="#fff" />
         {segments.map((s, i) => (
-          <path key={i} d={arcPath(s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} />
+          <path
+            key={i}
+            d={arcPath(s.start, s.end)}
+            fill={s.color}
+            stroke="#fff"
+            strokeWidth={1}
+            style={{ cursor: onSegmentClick ? 'pointer' : 'default' }}
+            onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+          />
         ))}
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={18} fill="#111827" fontWeight={800}>
           {total}
@@ -1211,7 +1405,7 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number }> })
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
         {segments.length === 0 && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
         {segments.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: onSegmentClick ? 'pointer' : 'default' }} onClick={() => { if (onSegmentClick) onSegmentClick(i) }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: 'inline-block' }} />
               <span style={{ color: '#374151', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
@@ -1275,6 +1469,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
   React.useEffect(() => {
     let cancelled = false
     async function loadData() {
+      if (!authHeader) return
       try {
         const [scr, occ] = await Promise.all([
           scrapyardApi.privateScrapyardsGet(authHeader, -1),
@@ -1333,7 +1528,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     const scrapyardIcon: any = {
       path: g.SymbolPath.CIRCLE,
       scale: 7,
-      fillColor: '#1d4ed8', // azul
+      fillColor: '#ef4444', // vermelho (Sucatarias)
       fillOpacity: 0.95,
       strokeColor: '#ffffff',
       strokeWeight: 1,
@@ -1341,13 +1536,13 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     const infractionIcon: any = {
       path: g.SymbolPath.CIRCLE,
       scale: 7,
-      fillColor: '#ef4444', // vermelho
+      fillColor: '#1d4ed8', // azul (Ocorrências)
       fillOpacity: 0.95,
       strokeColor: '#ffffff',
       strokeWeight: 1,
     }
 
-    // sucatarias (azul)
+    // sucatarias (vermelho)
     ;(scrapyards || [])
       .map((s: any) => ({ ...s, __lat: Number((s as any).lat), __lng: Number((s as any).long) }))
       .filter((s: any) => Number.isFinite(s.__lat) && Number.isFinite(s.__lng))
@@ -1370,7 +1565,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
         markersRef.current.push(marker)
       })
 
-    // ocorrências (vermelho)
+    // ocorrências (azul)
     ;(occurrences || [])
       .map((o: any) => ({ ...o, __lat: Number((o as any).lat), __lng: Number((o as any).long) }))
       .filter((o: any) => Number.isFinite(o.__lat) && Number.isFinite(o.__lng))
