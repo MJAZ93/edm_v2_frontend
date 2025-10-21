@@ -6,6 +6,8 @@ import {
   OccurrenceApi,
   RegiaoApi,
   ASCApi,
+  ProvinceApi,
+  DirecaoTransportesApi,
   FormaConhecimentoApi,
   SectorInfracaoApi,
   TipoInfracaoApi,
@@ -15,6 +17,8 @@ import {
   type OccurrenceCreateOccurrenceInfractor,
   type ModelRegiao,
   type ModelASC,
+  type ModelProvince,
+  type ModelDirecaoTransportes,
   type ModelFormaConhecimento,
   type ModelSectorInfracao,
   type ModelTipoInfracao,
@@ -31,12 +35,18 @@ export default function OcorrenciaCreateScreen() {
   const sectorApi = useMemo(() => new SectorInfracaoApi(getApiConfig()), [getApiConfig])
   const tipoApi = useMemo(() => new TipoInfracaoApi(getApiConfig()), [getApiConfig])
   const materialApi = useMemo(() => new MaterialApi(getApiConfig()), [getApiConfig])
+  const provinceApi = useMemo(() => new ProvinceApi(getApiConfig()), [getApiConfig])
+  const direcaoApi = useMemo(() => new DirecaoTransportesApi(getApiConfig()), [getApiConfig])
 
   const [local, setLocal] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [condicoesFavoreceram, setCondicoesFavoreceram] = useState('')
   const [dataFacto, setDataFacto] = useState<string>('')
   const [regiaoId, setRegiaoId] = useState('')
   const [ascId, setAscId] = useState('')
+  const [transportes, setTransportes] = useState(false)
+  const [provinceId, setProvinceId] = useState('')
+  const [direcaoId, setDirecaoId] = useState('')
   const [formaId, setFormaId] = useState('')
   const [lat, setLat] = useState('')
   const [long, setLong] = useState('')
@@ -55,6 +65,8 @@ export default function OcorrenciaCreateScreen() {
   const [formas, setFormas] = useState<ModelFormaConhecimento[]>([])
   const [setores, setSetores] = useState<ModelSectorInfracao[]>([])
   const [tiposInf, setTiposInf] = useState<ModelTipoInfracao[]>([])
+  const [provincias, setProvincias] = useState<ModelProvince[]>([])
+  const [direcoes, setDirecoes] = useState<ModelDirecaoTransportes[]>([])
   const [materialsBySector, setMaterialsBySector] = useState<Record<string, { id: string; label: string }[]>>({})
   const [loadingMaterialsSector, setLoadingMaterialsSector] = useState<Record<string, boolean>>({})
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
@@ -82,6 +94,14 @@ export default function OcorrenciaCreateScreen() {
 
   useEffect(() => { (async () => {
     try {
+      const { data } = await provinceApi.privateProvincesGet(authHeader, 1, 200, 'name', 'asc')
+      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      setProvincias(data.items ?? [])
+    } catch {}
+  })() }, [provinceApi, authHeader])
+
+  useEffect(() => { (async () => {
+    try {
       const { data } = await ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc', undefined, regiaoId || undefined)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setAscs(data.items ?? [])
@@ -95,6 +115,14 @@ export default function OcorrenciaCreateScreen() {
       setFormas(data.items ?? [])
     } catch {}
   })() }, [formaApi, authHeader])
+
+  useEffect(() => { (async () => {
+    try {
+      const { data } = await direcaoApi.privateDirecaoTransportesGet(authHeader, 1, 200, 'name', 'asc')
+      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      setDirecoes(data.items ?? [])
+    } catch {}
+  })() }, [direcaoApi, authHeader])
 
   useEffect(() => { (async () => {
     try {
@@ -183,8 +211,11 @@ export default function OcorrenciaCreateScreen() {
       const payload: OccurrenceCreateOccurrenceRequest = {
         local: local || undefined,
         descricao: descricao || undefined,
-        regiao_id: regiaoId || undefined,
-        asc_id: ascId || undefined,
+        // Quando "Transportes" está ativo, usamos província + direção; caso contrário, região + ASC
+        regiao_id: transportes ? undefined : (regiaoId || undefined),
+        asc_id: transportes ? undefined : (ascId || undefined),
+        province_id: transportes ? (provinceId || undefined) : undefined,
+        direcao_transportes_id: transportes ? (direcaoId || undefined) : undefined,
         forma_conhecimento_id: formaId || undefined,
         lat: lat ? Number(lat) : undefined,
         long: long ? Number(long) : undefined,
@@ -200,11 +231,11 @@ export default function OcorrenciaCreateScreen() {
         if (!d) return undefined
         try { return new Date(`${d}T00:00:00Z`).toISOString() } catch { return undefined }
       }
-      const body: any = { ...payload, ...extra, data_facto: toRfc3339(dataFacto) }
+      const body: any = { ...payload, ...extra, data_facto: toRfc3339(dataFacto), condicoes_favoreceram: condicoesFavoreceram || undefined }
       const { data } = await api.privateOccurrencesPost(authHeader, body)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       // voltar à lista
-      if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias')
+      if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias?created=1')
       window.dispatchEvent(new Event('popstate'))
       window.dispatchEvent(new Event('locationchange'))
     } catch (err: any) {
@@ -259,10 +290,24 @@ export default function OcorrenciaCreateScreen() {
               <input type="date" value={dataFacto} onChange={(e) => setDataFacto(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
             </label>
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#374151' }}>Factores que contribuíram</span>
+            <textarea
+              value={condicoesFavoreceram}
+              onChange={(e) => setCondicoesFavoreceram(e.target.value)}
+              placeholder="Descreva condições/factores que favoreceram a vandalização"
+              rows={3}
+              style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', resize: 'vertical' }}
+            />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" checked={procCriminal} onChange={(e) => setProcCriminal(e.target.checked)} />
               <span style={{ fontSize: 13, color: '#374151' }}>Processo criminal aberto</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="checkbox" checked={transportes} onChange={(e) => { setTransportes(e.target.checked); setRegiaoId(''); setAscId(''); setProvinceId(''); setDirecaoId('') }} />
+              <span style={{ fontSize: 13, color: '#374151' }}>Transportes</span>
             </label>
           </div>
           {procCriminal && (
@@ -295,20 +340,41 @@ export default function OcorrenciaCreateScreen() {
             <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição da ocorrência" rows={4} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', resize: 'vertical' }} />
           </label>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
-              <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                <option value="">— Selecionar —</option>
-                {regioes.map((r) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
-              </select>
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
-              <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                <option value="">— Selecionar —</option>
-                {ascs.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-              </select>
-            </label>
+            {!transportes ? (
+              <>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
+                  <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                    <option value="">— Selecionar —</option>
+                    {regioes.map((r) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
+                  </select>
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
+                  <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                    <option value="">— Selecionar —</option>
+                    {ascs.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+                  </select>
+                </label>
+              </>
+            ) : (
+              <>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Província</span>
+                  <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                    <option value="">— Selecionar —</option>
+                    {provincias.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+                  </select>
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 240 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Direção de Transporte</span>
+                  <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                    <option value="">— Selecionar —</option>
+                    {direcoes.map((d) => <option key={d.id} value={d.id}>{d.name || d.id}</option>)}
+                  </select>
+                </label>
+              </>
+            )}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
               <span style={{ fontSize: 13, color: '#374151' }}>Forma de conhecimento</span>
               <select value={formaId} onChange={(e) => setFormaId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>

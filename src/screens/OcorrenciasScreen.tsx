@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Card, Button, Text } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
-import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, type ModelOccurrence, type OccurrenceCreateOccurrenceRequest, type OccurrenceUpdateOccurrenceRequest, type OccurrenceCreateOccurrenceInfraction, type OccurrenceCreateOccurrenceInfractor, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
+import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, DirecaoTransportesApi, type ModelOccurrence, type OccurrenceCreateOccurrenceRequest, type OccurrenceUpdateOccurrenceRequest, type OccurrenceCreateOccurrenceInfraction, type OccurrenceCreateOccurrenceInfractor, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelDirecaoTransportes } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
 type UiState = { loading: boolean; error: string | null }
@@ -15,6 +15,7 @@ export default function OcorrenciasScreen() {
   const sectorApi = useMemo(() => new SectorInfracaoApi(getApiConfig()), [getApiConfig])
   const tipoApi = useMemo(() => new TipoInfracaoApi(getApiConfig()), [getApiConfig])
   const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  const direcaoApi = useMemo(() => new DirecaoTransportesApi(getApiConfig()), [getApiConfig])
 
   const [items, setItems] = useState<ModelOccurrence[]>([])
   const [page, setPage] = useState(1)
@@ -37,10 +38,12 @@ export default function OcorrenciasScreen() {
   const [formas, setFormas] = useState<ModelFormaConhecimento[]>([])
   const [setores, setSetores] = useState<ModelSectorInfracao[]>([])
   const [tiposInf, setTiposInf] = useState<ModelTipoInfracao[]>([])
+  const [direcoes, setDirecoes] = useState<ModelDirecaoTransportes[]>([])
 
   // Edição passa a acontecer numa tela própria; removido modal inline
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -84,6 +87,19 @@ export default function OcorrenciasScreen() {
 
   useEffect(() => { load() }, [load])
 
+  // Mensagem de sucesso ao voltar da criação
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search)
+      if (sp.get('created') === '1') {
+        setFlash('Ocorrência criada com sucesso.')
+        const path = window.location.pathname
+        window.history.replaceState({}, '', path)
+        window.setTimeout(() => setFlash(null), 5000)
+      }
+    } catch {}
+  }, [])
+
   const loadRegioes = useCallback(async () => {
     try {
       const { data } = await regiaoApi.privateRegioesGet(authHeader, 1, 200, 'name', 'asc')
@@ -100,6 +116,14 @@ export default function OcorrenciasScreen() {
     } catch {}
   }, [ascApi, authHeader, regiaoId])
 
+  const loadDirecoes = useCallback(async () => {
+    try {
+      const { data } = await direcaoApi.privateDirecaoTransportesGet(authHeader, 1, 200, 'name', 'asc')
+      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      setDirecoes(data.items ?? [])
+    } catch {}
+  }, [direcaoApi, authHeader])
+
   const loadFormas = useCallback(async () => {
     try {
       const { data } = await formaApi.privateFormaConhecimentosGet(authHeader, 1, 200, 'name', 'asc')
@@ -110,6 +134,7 @@ export default function OcorrenciasScreen() {
 
   useEffect(() => { loadRegioes() }, [loadRegioes])
   useEffect(() => { loadAscs() }, [loadAscs])
+  useEffect(() => { loadDirecoes() }, [loadDirecoes])
   useEffect(() => { loadFormas() }, [loadFormas])
   useEffect(() => { (async () => {
     try {
@@ -211,6 +236,7 @@ export default function OcorrenciasScreen() {
           </div>
         </div>
         {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginTop: 10 }}>{ui.error}</div> : null}
+        {flash ? <div style={{ background: '#ecfdf5', color: '#065f46', padding: 10, borderRadius: 8, marginTop: 10 }}>{flash}</div> : null}
       </Card>
 
       <Card>
@@ -222,15 +248,16 @@ export default function OcorrenciasScreen() {
                 <Th label="Local" active={orderBy === 'local'} direction={orderDirection} onClick={() => toggleSort('local')} />
                 <Th label="Região" active={false} />
                 <Th label="ASC" active={false} />
+                <Th label="Direção Transp." active={false} />
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
                 <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 260 }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={6} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: 16, color: '#6b7280' }}>Sem ocorrências para mostrar.</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#6b7280' }}>Sem ocorrências para mostrar.</td></tr>
               ) : (
                 items.map((o) => (
                   <tr key={o.id}>
@@ -238,6 +265,7 @@ export default function OcorrenciasScreen() {
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{o.local || '-'}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(regioes, o.regiao_id)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(ascs, o.asc_id)}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(direcoes, o.direcao_transportes_id)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(o.created_at)}</td>
                     <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
                       <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>

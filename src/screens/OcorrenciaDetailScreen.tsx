@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Card, Text } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
-import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, MaterialApi, ScrapyardApi, type ModelOccurrence, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelMaterial, type ModelScrapyard } from '../services'
+import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, MaterialApi, ScrapyardApi, DirecaoTransportesApi, type ModelOccurrence, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelMaterial, type ModelScrapyard, type ModelDirecaoTransportes } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function OcorrenciaDetailScreen() {
@@ -15,6 +15,7 @@ export default function OcorrenciaDetailScreen() {
   const materialApi = useMemo(() => new MaterialApi(getApiConfig()), [getApiConfig])
   const scrapyardApi = useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
   const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
+  const direcaoApi = useMemo(() => new DirecaoTransportesApi(getApiConfig()), [getApiConfig])
 
   const id = useMemo(() => {
     const parts = window.location.pathname.split('/').filter(Boolean)
@@ -29,6 +30,7 @@ export default function OcorrenciaDetailScreen() {
   const [setores, setSetores] = useState<ModelSectorInfracao[]>([])
   const [tiposInf, setTiposInf] = useState<ModelTipoInfracao[]>([])
   const [materiais, setMateriais] = useState<ModelMaterial[]>([])
+  const [direcoes, setDirecoes] = useState<ModelDirecaoTransportes[]>([])
   const [scrapyards, setScrapyards] = useState<ModelScrapyard[]>([])
   const [scrapyardsLoading, setScrapyardsLoading] = useState(false)
   const [scrapyardsError, setScrapyardsError] = useState<string | null>(null)
@@ -54,16 +56,17 @@ export default function OcorrenciaDetailScreen() {
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const [{ data: d1 }, { data: d2 }, { data: d3 }, { data: d4 }, { data: d5 }, { data: d6 }, { data: d7 }] = await Promise.all([
+      const [{ data: d1 }, { data: d2 }, { data: d3 }, { data: d4 }, { data: d5 }, { data: d6 }, { data: d7 }, { data: d8 }] = await Promise.all([
         api.privateOccurrencesIdGet(id, authHeader),
         regiaoApi.privateRegioesGet(authHeader, 1, 200, 'name', 'asc'),
         ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc'),
         formaApi.privateFormaConhecimentosGet(authHeader, 1, 200, 'name', 'asc'),
         sectorApi.privateSectorInfracaoGet(authHeader, -1, undefined, 'name', 'asc'),
         tipoApi.privateTiposInfracaoGet(authHeader, -1, undefined, 'name', 'asc'),
-        materialApi.privateMateriaisGet(authHeader, -1, undefined, 'name', 'asc')
+        materialApi.privateMateriaisGet(authHeader, -1, undefined, 'name', 'asc'),
+        direcaoApi.privateDirecaoTransportesGet(authHeader, 1, 200, 'name', 'asc')
       ])
-      if ([d1, d2, d3, d4, d5, d6, d7].some((x) => isUnauthorizedBody(x))) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if ([d1, d2, d3, d4, d5, d6, d7, d8].some((x) => isUnauthorizedBody(x))) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       setItem(d1 as any)
       setRegioes((d2 as any).items ?? [])
       setAscs((d3 as any).items ?? [])
@@ -71,6 +74,7 @@ export default function OcorrenciaDetailScreen() {
       setSetores((d5 as any).items ?? [])
       setTiposInf((d6 as any).items ?? [])
       setMateriais((d7 as any).items ?? [])
+      setDirecoes((d8 as any).items ?? [])
     } catch (err: any) {
       const status = err?.response?.status
       if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
@@ -176,6 +180,7 @@ export default function OcorrenciaDetailScreen() {
               <Field label="Região" value={resolveNome(regioes, item.regiao_id)} />
               <Field label="ASC" value={resolveNome(ascs, item.asc_id)} />
               <Field label="Forma de conhecimento" value={resolveNome(formas, item.forma_conhecimento_id)} />
+              <Field label="Direção de Transporte" value={resolveNome(direcoes, item.direcao_transportes_id)} />
               <Field label="Data do facto" value={formatDateTime(item.data_facto)} />
               <Field label="Criado em" value={formatDateTime(item.created_at)} />
               <Field label="Latitude" value={item.lat != null ? String(item.lat) : '-'} />
