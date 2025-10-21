@@ -22,7 +22,7 @@ import ScrapyardsScreen from './ScrapyardsScreen'
 import ScrapyardDetailScreen from './ScrapyardDetailScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 import { useAuth } from '../contexts/AuthContext'
-import { DashboardApi, ScrapyardApi, InfractionApi, OccurrenceApi } from '../services'
+import { DashboardApi, RegiaoApi, ASCApi, ScrapyardApi, OccurrenceApi } from '../services'
 import { useUnauthorizedHandlers } from '../utils/auth'
 import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
@@ -130,6 +130,26 @@ export default function DashboardScreen() {
   const [infractionsByTipo, setInfractionsByTipo] = useState<any[]>([])
   const [loadingDash, setLoadingDash] = useState(false)
   const [dashError, setDashError] = useState<string | null>(null)
+  // Helpers datas
+  const formatDateInput = (d: Date) => {
+    const y = d.getUTCFullYear()
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(d.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  const today = new Date()
+  const defaultStart = new Date(Date.UTC(today.getUTCFullYear() - 1, 0, 1))
+  const defaultEnd = today
+  // Filtros (por defeito: início do ano passado até hoje)
+  const [dateStart, setDateStart] = useState<string | null>(() => formatDateInput(defaultStart))
+  const [dateEnd, setDateEnd] = useState<string | null>(() => formatDateInput(defaultEnd))
+  const [regiaoId, setRegiaoId] = useState('')
+  const [ascId, setAscId] = useState('')
+  const [bucket, setBucket] = useState<'day' | 'week' | 'month'>('month')
+  const [regioes, setRegioes] = useState<any[]>([])
+  const [ascs, setAscs] = useState<any[]>([])
+  const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
+  const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
 
   // Sincroniza estado com URL (history API)
   useEffect(() => {
@@ -179,43 +199,60 @@ export default function DashboardScreen() {
     return 'list'
   }, [path]) as 'create' | 'edit' | 'detail' | 'list'
 
-  // Load dashboard data when active is dashboard
+  function toRfc3339(d?: string | null, endOfDay?: boolean): string | undefined {
+    if (!d) return undefined
+    try { return new Date(`${d}T${endOfDay ? '23:59:59' : '00:00:00'}Z`).toISOString() } catch { return undefined }
+  }
+
+  // Carrega opções de filtros
+  useEffect(() => { (async () => { try { const { data } = await regiaoApi.privateRegioesGet(authHeader, 1, 200, 'name', 'asc'); ensureAuthorizedResponse(data); setRegioes((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [regiaoApi, authHeader])
+  useEffect(() => { (async () => { try { const { data } = await ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc', undefined, regiaoId || undefined); ensureAuthorizedResponse(data); setAscs((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [ascApi, authHeader, regiaoId])
+
+  // Load dashboard data quando ativo e filtros mudam
   useEffect(() => {
     if (active !== 'dashboard') return
     (async () => {
       setLoadingDash(true); setDashError(null)
       try {
-        const [ov, tot, cmp, risky, byAsc, topAsc, finTs, infTs, byTipo, byRegiao] = await Promise.all([
-          dashApi.privateDashboardKpisOverviewGet(authHeader),
-          dashApi.privateDashboardFinanceTotalsGet(authHeader),
-          dashApi.privateDashboardFinanceCompareGet(authHeader, 3),
+        const ds = toRfc3339(dateStart)
+        const de = toRfc3339(dateEnd, true)
+        const [ov, tot, cmp, risky, topAsc, finTs, infTs, byTipo, byRegiao, byAsc] = await Promise.all([
+          dashApi.privateDashboardKpisOverviewGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined),
+          dashApi.privateDashboardFinanceTotalsGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined),
+          dashApi.privateDashboardFinanceCompareGet(authHeader, 3, regiaoId || undefined, ascId || undefined),
           dashApi.privateDashboardScrapyardsRiskTopGet(authHeader, 5),
-          dashApi.privateDashboardOccurrencesByAscGet(authHeader),
-          dashApi.privateDashboardFinanceTopGet(authHeader, undefined, undefined, undefined, 'loss', 5),
-          dashApi.privateDashboardFinanceTimeseriesGet(authHeader, undefined, undefined, undefined, undefined, 'month'),
-          dashApi.privateDashboardInfractionsValueTimeseriesGet(authHeader, 'month'),
-          dashApi.privateDashboardGroupedGet('infractions', 'tipo', authHeader),
-          dashApi.privateDashboardGroupedGet('occurrences', 'regiao', authHeader)
+          dashApi.privateDashboardFinanceTopGet(authHeader, ds, de, regiaoId || undefined, 'loss', 5),
+          dashApi.privateDashboardFinanceTimeseriesGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined, bucket),
+          dashApi.privateDashboardInfractionsValueTimeseriesGet(authHeader, bucket),
+          dashApi.privateDashboardGroupedGet('infractions', 'tipo', authHeader, ds, de, regiaoId || undefined, ascId || undefined),
+          dashApi.privateDashboardGroupedGet('occurrences', 'regiao', authHeader, ds, de, regiaoId || undefined, ascId || undefined),
+          dashApi.privateDashboardGroupedGet('occurrences', 'asc', authHeader, ds, de, regiaoId || undefined, ascId || undefined)
         ])
-        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(byAsc.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data)
+        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data); ensureAuthorizedResponse(byAsc.data)
         setKpis(ov.data)
         setFinanceTotals(tot.data)
         setFinanceCompare(cmp.data)
         setRiskScrapyards((risky.data as any)?.items ?? [])
-        setOccByAsc((byAsc.data as any)?.items ?? [])
         setFinanceTop((topAsc.data as any)?.items ?? [])
         setFinanceLoss(((finTs.data as any)?.loss) ?? [])
         setFinanceSpend(((finTs.data as any)?.spend) ?? [])
         setInfractionsSeries(((infTs.data as any)?.buckets) ?? [])
         setInfractionsByTipo(((byTipo.data as any)?.items) ?? [])
         setOccByRegiao(((byRegiao.data as any)?.items) ?? [])
+        setOccByAsc(((byAsc.data as any)?.items) ?? [])
       } catch (err: any) {
         try { ensureAuthorizedError(err) } catch {}
         const status = err?.response?.status
         setDashError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar métricas do dashboard.')
       } finally { setLoadingDash(false) }
     })()
-  }, [active, dashApi, authHeader])
+  }, [active, dashApi, authHeader, dateStart, dateEnd, regiaoId, ascId, bucket])
+
+  const formatDatePt = (d?: string | null) => {
+    if (!d) return '—'
+    try { return new Date(`${d}T00:00:00Z`).toLocaleDateString('pt-PT') } catch { return d }
+  }
+  const rangeLabel = `${formatDatePt(dateStart)} a ${formatDatePt(dateEnd)}`
 
 
   const infraRoute = useMemo(() => {
@@ -300,7 +337,51 @@ export default function DashboardScreen() {
       >
       {active === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Heading level={2}>Dashboard de Vandalizações</Heading>
+
+          <Card title="Filtros">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: 12,
+                alignItems: 'end'
+              }}
+            >
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>Início</span>
+                <input type="date" value={dateStart ?? ''} onChange={(e) => setDateStart(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>Fim</span>
+                <input type="date" value={dateEnd ?? ''} onChange={(e) => setDateEnd(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
+                <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                  <option value="">Todas</option>
+                  {regioes.map((r: any) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
+                <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                  <option value="">Todas</option>
+                  {ascs.map((a: any) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>Escala temporal</span>
+                <select value={bucket} onChange={(e) => setBucket(e.target.value as any)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                  <option value="day">Dia</option>
+                  <option value="week">Semana</option>
+                  <option value="month">Mês</option>
+                </select>
+              </label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+              <button onClick={() => { setDateStart(null); setDateEnd(null); setRegiaoId(''); setAscId(''); setBucket('month') }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpar</button>
+            </div>
+          </Card>
 
           {dashError && (
             <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 10, border: '1px solid #fecaca' }}>
@@ -339,7 +420,7 @@ export default function DashboardScreen() {
               )}
             </Card>
 
-            <Card title="Resumo Financeiro (2025)">
+            <Card title={`Resumo Financeiro (${rangeLabel})`}>
               {loadingDash ? (
                 <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar dados…</div>
               ) : (
@@ -513,7 +594,7 @@ export default function DashboardScreen() {
             </Card>
           </Grid>
 
-          <Card title="Evolução Temporal (2025) · Perdas vs Gastos">
+          <Card title={`Evolução Temporal (${rangeLabel}) · Perdas vs Gastos`}>
             {loadingDash ? (
               <div style={{ color: '#6b7280', padding: 40, textAlign: 'center' }}>A carregar série temporal…</div>
             ) : (
@@ -521,7 +602,7 @@ export default function DashboardScreen() {
             )}
           </Card>
 
-          <Card title="Top ASCs (2025) · Distribuição de Perdas">
+          <Card title={`Top ASCs (${rangeLabel}) · Distribuição de Perdas`}>
             {loadingDash ? (
               <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar rankings…</div>
             ) : financeTop.length === 0 ? (
