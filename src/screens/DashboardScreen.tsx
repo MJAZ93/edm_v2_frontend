@@ -201,6 +201,7 @@ export default function DashboardScreen() {
     if (/^\/ocorrencias\/[^/]+$/.test(path)) return 'detail'
     return 'list'
   }, [path]) as 'create' | 'edit' | 'detail' | 'list'
+  const [occTab, setOccTab] = useState<'dash' | 'list'>('dash')
 
   function toRfc3339(d?: string | null, endOfDay?: boolean): string | undefined {
     if (!d) return undefined
@@ -212,9 +213,11 @@ export default function DashboardScreen() {
   useEffect(() => { (async () => { try { const { data } = await ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc', undefined, regiaoId || undefined); ensureAuthorizedResponse(data); setAscs((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [ascApi, authHeader, regiaoId])
   useEffect(() => { (async () => { try { const { data } = await tipoApi.privateTiposInfracaoGet(authHeader, 1, 200, 'name', 'asc'); ensureAuthorizedResponse(data); setTipos((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [tipoApi, authHeader])
 
-  // Load dashboard data quando ativo e filtros mudam
+  // Load dashboard data quando ativo e filtros mudam (inclui tab de Ocorrências/Dashboard)
   useEffect(() => {
-    if (active !== 'dashboard') return
+    const onDash = active === 'dashboard'
+    const onOccDash = active === 'ocorrencias' && occRoute === 'list' && occTab === 'dash'
+    if (!onDash && !onOccDash) return
     (async () => {
       setLoadingDash(true); setDashError(null)
       try {
@@ -276,7 +279,7 @@ export default function DashboardScreen() {
         setDashError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar métricas do dashboard.')
       } finally { setLoadingDash(false) }
     })()
-  }, [active, dashApi, authHeader, dateStart, dateEnd, regiaoId, ascId, bucket])
+  }, [active, occRoute, occTab, dashApi, authHeader, dateStart, dateEnd, regiaoId, ascId, bucket])
 
   const formatDatePt = (d?: string | null) => {
     if (!d) return '—'
@@ -710,7 +713,81 @@ export default function DashboardScreen() {
         ) : occRoute === 'detail' ? (
           <OcorrenciaDetailScreen />
         ) : (
-          <OcorrenciasScreen />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #e5e7eb' }}>
+              <button
+                onClick={() => setOccTab('dash')}
+                style={{
+                  padding: '10px 12px',
+                  border: 'none',
+                  background: occTab === 'dash' ? '#fff' : 'transparent',
+                  borderBottom: `2px solid ${occTab === 'dash' ? '#0ea5e9' : 'transparent'}`,
+                  color: occTab === 'dash' ? '#0ea5e9' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >Dashboard</button>
+              <button
+                onClick={() => setOccTab('list')}
+                style={{
+                  padding: '10px 12px',
+                  border: 'none',
+                  background: occTab === 'list' ? '#fff' : 'transparent',
+                  borderBottom: `2px solid ${occTab === 'list' ? '#0ea5e9' : 'transparent'}`,
+                  color: occTab === 'list' ? '#0ea5e9' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >Listagens</button>
+            </div>
+
+            {occTab === 'dash' ? (
+              <>
+                <Card title="Mapa de Ocorrências">
+                  <div style={{ width: '100%' }}>
+                    <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} interactive={false} />
+                    <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
+                      <div style={{ marginRight: 'auto' }}>
+                        <strong>Intervalo:</strong> {rangeLabel}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
+                        <span>Sucatarias</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1d4ed8' }} />
+                        <span>Ocorrências</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+                <Grid minColumnWidth={300} gap={16}>
+                  <Card title="Resumo">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <MetricCard label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} color="#0ea5e9" />
+                      <MetricCard label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} color="#ef4444" />
+                    </div>
+                  </Card>
+                  <Card title="Distribuição por Região">
+                    <DonutChart
+                      data={(occByRegiao || []).map((it: any) => ({ 
+                        label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
+                        value: Number(it?.count || it?.value || 0) 
+                      }))}
+                    />
+                  </Card>
+                  <Card title="Distribuição por ASC">
+                    <DonutChart
+                      data={(occByAsc || []).map((it: any) => ({ 
+                        label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', 
+                        value: Number(it?.count || it?.value || 0) 
+                      }))}
+                    />
+                  </Card>
+                </Grid>
+              </>
+            ) : (
+              <OcorrenciasScreen />
+            )}
+          </div>
         )
       )}
       {active === 'infracoes' && (
@@ -1497,7 +1574,7 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
   )
 }
 
-function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoId }: { height?: number; dateStart?: string | null; dateEnd?: string | null; regiaoId?: string; ascId?: string; tipoId?: string }) {
+function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoId, interactive = true }: { height?: number; dateStart?: string | null; dateEnd?: string | null; regiaoId?: string; ascId?: string; tipoId?: string; interactive?: boolean }) {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const scrapyardApi = React.useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
   const occurrenceApi = React.useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
@@ -1658,7 +1735,7 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
       .forEach((s: any) => {
         const position = { lat: s.__lat, lng: s.__lng }
         const marker = new g.Marker({ position, map: mapRef.current, title: s.nome || 'Sucataria', icon: scrapyardIcon })
-        marker.addListener('click', () => {
+        if (interactive) marker.addListener('click', () => {
           const asc = (s as any).asc_name || '—'
           const materiais = Array.isArray(s.materiais) && s.materiais.length
             ? (s.materiais.map((m: any) => m?.name).filter(Boolean).join(', '))
@@ -1681,7 +1758,7 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
       .forEach((o: any) => {
         const position = { lat: o.__lat, lng: o.__lng }
         const marker = new g.Marker({ position, map: mapRef.current, title: o?.local || 'Ocorrência', icon: infractionIcon })
-        marker.addListener('click', () => {
+        if (interactive) marker.addListener('click', () => {
           const when = (o as any)?.data_facto || o?.created_at
           const whenTxt = when ? new Date(when).toLocaleString('pt-PT') : '—'
           const html = `<div style="max-width:240px">
