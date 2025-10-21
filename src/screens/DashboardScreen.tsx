@@ -22,7 +22,7 @@ import ScrapyardsScreen from './ScrapyardsScreen'
 import ScrapyardDetailScreen from './ScrapyardDetailScreen'
 import { SemiCircularGauge } from '../components/ui/SemiCircularGauge'
 import { useAuth } from '../contexts/AuthContext'
-import { DashboardApi, RegiaoApi, ASCApi, ScrapyardApi, OccurrenceApi } from '../services'
+import { DashboardApi, RegiaoApi, ASCApi, TipoInfracaoApi, ScrapyardApi, OccurrenceApi, InfractionApi } from '../services'
 import { useUnauthorizedHandlers } from '../utils/auth'
 import OcorrenciasScreen from './OcorrenciasScreen'
 import OcorrenciaCreateScreen from './OcorrenciaCreateScreen'
@@ -148,8 +148,11 @@ export default function DashboardScreen() {
   const [bucket, setBucket] = useState<'day' | 'week' | 'month'>('month')
   const [regioes, setRegioes] = useState<any[]>([])
   const [ascs, setAscs] = useState<any[]>([])
+  const [tipos, setTipos] = useState<any[]>([])
+  const [tipoId, setTipoId] = useState('')
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
   const ascApi = useMemo(() => new ASCApi(getApiConfig()), [getApiConfig])
+  const tipoApi = useMemo(() => new TipoInfracaoApi(getApiConfig()), [getApiConfig])
 
   // Sincroniza estado com URL (history API)
   useEffect(() => {
@@ -207,6 +210,7 @@ export default function DashboardScreen() {
   // Carrega opções de filtros
   useEffect(() => { (async () => { try { const { data } = await regiaoApi.privateRegioesGet(authHeader, 1, 200, 'name', 'asc'); ensureAuthorizedResponse(data); setRegioes((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [regiaoApi, authHeader])
   useEffect(() => { (async () => { try { const { data } = await ascApi.privateAscsGet(authHeader, 1, 200, 'name', 'asc', undefined, regiaoId || undefined); ensureAuthorizedResponse(data); setAscs((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [ascApi, authHeader, regiaoId])
+  useEffect(() => { (async () => { try { const { data } = await tipoApi.privateTiposInfracaoGet(authHeader, 1, 200, 'name', 'asc'); ensureAuthorizedResponse(data); setTipos((data as any).items ?? []) } catch (err: any) { try { ensureAuthorizedError(err) } catch {} } })() }, [tipoApi, authHeader])
 
   // Load dashboard data quando ativo e filtros mudam
   useEffect(() => {
@@ -216,10 +220,9 @@ export default function DashboardScreen() {
       try {
         const ds = toRfc3339(dateStart)
         const de = toRfc3339(dateEnd, true)
-        const [ov, tot, cmp, risky, topAsc, finTs, infTs, byTipo, byRegiao, byAsc] = await Promise.all([
+        const [ov, tot, risky, topAsc, finTs, infTs, byTipo, byRegiao, byAsc] = await Promise.all([
           dashApi.privateDashboardKpisOverviewGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined),
           dashApi.privateDashboardFinanceTotalsGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined),
-          dashApi.privateDashboardFinanceCompareGet(authHeader, 3, regiaoId || undefined, ascId || undefined),
           dashApi.privateDashboardScrapyardsRiskTopGet(authHeader, 5),
           dashApi.privateDashboardFinanceTopGet(authHeader, ds, de, regiaoId || undefined, 'loss', 5),
           dashApi.privateDashboardFinanceTimeseriesGet(authHeader, ds, de, regiaoId || undefined, ascId || undefined, bucket),
@@ -228,10 +231,37 @@ export default function DashboardScreen() {
           dashApi.privateDashboardGroupedGet('occurrences', 'regiao', authHeader, ds, de, regiaoId || undefined, ascId || undefined),
           dashApi.privateDashboardGroupedGet('occurrences', 'asc', authHeader, ds, de, regiaoId || undefined, ascId || undefined)
         ])
-        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(cmp.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data); ensureAuthorizedResponse(byAsc.data)
+        ensureAuthorizedResponse(ov.data); ensureAuthorizedResponse(tot.data); ensureAuthorizedResponse(risky.data); ensureAuthorizedResponse(topAsc.data); ensureAuthorizedResponse(finTs.data); ensureAuthorizedResponse(infTs.data); ensureAuthorizedResponse(byTipo.data); ensureAuthorizedResponse(byRegiao.data); ensureAuthorizedResponse(byAsc.data)
         setKpis(ov.data)
         setFinanceTotals(tot.data)
-        setFinanceCompare(cmp.data)
+        // Calcula comparação ano-a-ano: janela atual vs mesma janela do ano anterior
+        const curStart = dateStart ? new Date(`${dateStart}T00:00:00Z`) : undefined
+        const curEnd = dateEnd ? new Date(`${dateEnd}T23:59:59Z`) : undefined
+        const now = new Date()
+        let winStart = curStart ? new Date(curStart) : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 1))
+        let winEnd = curEnd ? new Date(curEnd) : now
+        const prevStart = new Date(Date.UTC(winStart.getUTCFullYear() - 1, winStart.getUTCMonth(), winStart.getUTCDate()))
+        const prevEnd = new Date(Date.UTC(winEnd.getUTCFullYear() - 1, winEnd.getUTCMonth(), winEnd.getUTCDate()))
+        const [totPrev, totCur] = await Promise.all([
+          dashApi.privateDashboardFinanceTotalsGet(authHeader, prevStart.toISOString(), prevEnd.toISOString(), regiaoId || undefined, ascId || undefined),
+          dashApi.privateDashboardFinanceTotalsGet(authHeader, winStart.toISOString(), winEnd.toISOString(), regiaoId || undefined, ascId || undefined)
+        ])
+        ensureAuthorizedResponse(totPrev.data); ensureAuthorizedResponse(totCur.data)
+        const lossBefore = Number((totPrev.data as any)?.loss_total || 0)
+        const lossAfter = Number((totCur.data as any)?.loss_total || 0)
+        const spendBefore = Number((totPrev.data as any)?.actions_spend_total || 0)
+        const spendAfter = Number((totCur.data as any)?.actions_spend_total || 0)
+        const financeCmp = {
+          loss_before: lossBefore,
+          loss_after: lossAfter,
+          loss_change_abs: lossAfter - lossBefore,
+          loss_change_pct: lossBefore ? ((lossAfter - lossBefore) / lossBefore) * 100 : null,
+          spend_before: spendBefore,
+          spend_after: spendAfter,
+          spend_change_abs: spendAfter - spendBefore,
+          spend_change_pct: spendBefore ? ((spendAfter - spendBefore) / spendBefore) * 100 : null,
+        }
+        setFinanceCompare(financeCmp)
         setRiskScrapyards((risky.data as any)?.items ?? [])
         setFinanceTop((topAsc.data as any)?.items ?? [])
         setFinanceLoss(((finTs.data as any)?.loss) ?? [])
@@ -370,16 +400,15 @@ export default function DashboardScreen() {
                 </select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#374151' }}>Escala temporal</span>
-                <select value={bucket} onChange={(e) => setBucket(e.target.value as any)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                  <option value="day">Dia</option>
-                  <option value="week">Semana</option>
-                  <option value="month">Mês</option>
+                <span style={{ fontSize: 13, color: '#374151' }}>Tipo de Infração</span>
+                <select value={tipoId} onChange={(e) => setTipoId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                  <option value="">Todos</option>
+                  {tipos.map((t: any) => <option key={t.id} value={t.id}>{t.name || t.id}</option>)}
                 </select>
               </label>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-              <button onClick={() => { setDateStart(null); setDateEnd(null); setRegiaoId(''); setAscId(''); setBucket('month') }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpar</button>
+              <button onClick={() => { setDateStart(null); setDateEnd(null); setRegiaoId(''); setAscId(''); setTipoId(''); setBucket('month') }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpar</button>
             </div>
           </Card>
 
@@ -391,7 +420,7 @@ export default function DashboardScreen() {
 
           <Card title="Mapa Geral">
             <div style={{ width: '100%' }}>
-              <DashboardMap height={420} />
+              <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} />
               <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
                 <div style={{ marginRight: 'auto' }}>
                   <strong>Intervalo:</strong> {rangeLabel}
@@ -453,7 +482,16 @@ export default function DashboardScreen() {
               )}
             </Card>
 
-            <Card title="Evolução (3 Meses)">
+            <Card title={(() => {
+              // Calcula tamanho da janela em meses para titulo
+              const s = dateStart ? new Date(`${dateStart}T00:00:00Z`) : null
+              const e = dateEnd ? new Date(`${dateEnd}T00:00:00Z`) : null
+              let n = 3
+              if (s && e) {
+                n = Math.max(1, (e.getUTCFullYear() - s.getUTCFullYear()) * 12 + (e.getUTCMonth() - s.getUTCMonth()) + 1)
+              }
+              return `Evolução (Ano a ano · ${n} meses)`
+            })()}>
               {loadingDash ? (
                 <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar comparação…</div>
               ) : (
@@ -593,6 +631,12 @@ export default function DashboardScreen() {
                     label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', 
                     value: Number(it?.count || it?.value || 0) 
                   }))}
+                  onSegmentClick={(idx) => {
+                    const it = (occByAsc || [])[idx]
+                    if (!it) return
+                    const id = it?.asc_id || it?.key_id
+                    if (id) setAscId(String(id))
+                  }}
                 />
               )}
             </Card>
@@ -618,6 +662,16 @@ export default function DashboardScreen() {
           </Grid>
 
           <Card title={`Evolução Temporal (${rangeLabel}) · Perdas vs Gastos`}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>Escala:</span>
+                <select value={bucket} onChange={(e) => setBucket(e.target.value as any)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                  <option value="day">Dia</option>
+                  <option value="week">Semana</option>
+                  <option value="month">Mês</option>
+                </select>
+              </label>
+            </div>
             {loadingDash ? (
               <div style={{ color: '#6b7280', padding: 40, textAlign: 'center' }}>A carregar série temporal…</div>
             ) : (
@@ -1344,6 +1398,7 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
 }
 
 function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; value: number }>; onSegmentClick?: (index: number) => void }) {
+  const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
   const clean = Array.isArray(data) ? data.filter(d => Number.isFinite(d.value) && d.value > 0) : []
   const total = clean.reduce((s, d) => s + d.value, 0)
   const W = 240
@@ -1384,17 +1439,29 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
         <circle cx={cx} cy={cy} r={rOuter} fill="#f3f4f6" />
         <circle cx={cx} cy={cy} r={rInner} fill="#fff" />
-        {segments.map((s, i) => (
-          <path
-            key={i}
-            d={arcPath(s.start, s.end)}
-            fill={s.color}
-            stroke="#fff"
-            strokeWidth={1}
-            style={{ cursor: onSegmentClick ? 'pointer' : 'default' }}
-            onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
-          />
-        ))}
+        {segments.map((s, i) => {
+          const mid = (s.start + s.end) / 2
+          const isHover = hoverIdx === i
+          const hasHover = hoverIdx !== null
+          const offset = isHover ? 6 : 0
+          const dx = Math.cos(mid) * offset
+          const dy = Math.sin(mid) * offset
+          const scale = isHover ? 1.04 : 1
+          const opacity = hasHover ? (isHover ? 1 : 0.6) : 1
+          return (
+            <path
+              key={i}
+              d={arcPath(s.start, s.end)}
+              fill={s.color}
+              stroke="#fff"
+              strokeWidth={1}
+              style={{ cursor: onSegmentClick ? 'pointer' : 'default', transform: `translate(${dx}px, ${dy}px) scale(${scale})`, transformOrigin: `${cx}px ${cy}px`, transition: 'transform 160ms ease, opacity 160ms ease', opacity }}
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+              onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+            />
+          )
+        })}
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={18} fill="#111827" fontWeight={800}>
           {total}
         </text>
@@ -1404,27 +1471,37 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
         {segments.length === 0 && <div style={{ color: '#6b7280' }}>Sem dados.</div>}
-        {segments.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: onSegmentClick ? 'pointer' : 'default' }} onClick={() => { if (onSegmentClick) onSegmentClick(i) }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: 'inline-block' }} />
-              <span style={{ color: '#374151', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
+        {segments.map((s, i) => {
+          const isHover = hoverIdx === i
+          return (
+            <div
+              key={i}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: onSegmentClick ? 'pointer' : 'default', background: isHover ? '#f3f4f6' : 'transparent', borderRadius: 6, padding: isHover ? '4px 6px' : '0', transition: 'background 120ms ease, padding 120ms ease' }}
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+              onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: 'inline-block' }} />
+                <span style={{ color: '#374151', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: isHover ? 700 as any : 400 as any }}>{s.label}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <strong>{s.value}</strong>
+                <span style={{ color: '#6b7280', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <strong>{s.value}</strong>
-              <span style={{ color: '#6b7280', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function DashboardMap({ height = 420 }: { height?: number }) {
+function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoId }: { height?: number; dateStart?: string | null; dateEnd?: string | null; regiaoId?: string; ascId?: string; tipoId?: string }) {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const scrapyardApi = React.useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
   const occurrenceApi = React.useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
+  const infractionApi = React.useMemo(() => new InfractionApi(getApiConfig()), [getApiConfig])
   const authHeader = React.useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
   const [error, setError] = React.useState<string | null>(null)
   const [scrapyards, setScrapyards] = React.useState<any[]>([])
@@ -1466,21 +1543,53 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     } catch { return false }
   }
 
+  const toRfc3339 = (d?: string | null, endOfDay?: boolean): string | undefined => {
+    if (!d) return undefined
+    try { return new Date(`${d}T${endOfDay ? '23:59:59' : '00:00:00'}Z`).toISOString() } catch { return undefined }
+  }
+
   React.useEffect(() => {
     let cancelled = false
     async function loadData() {
       if (!authHeader) return
       try {
-        const [scr, occ] = await Promise.all([
+        const ds = toRfc3339(dateStart)
+        const de = toRfc3339(dateEnd, true)
+        const [scr, occ, infr] = await Promise.all([
           scrapyardApi.privateScrapyardsGet(authHeader, -1),
-          occurrenceApi.privateOccurrencesGet(authHeader, 1, 500, 'created_at', 'desc')
+          // Buscar TODAS as ocorrências (-1) e aplicar filtros (região/ASC/datas)
+          occurrenceApi.privateOccurrencesGet(
+            authHeader,
+            -1,
+            undefined,
+            'created_at',
+            'desc',
+            regiaoId || undefined,
+            ascId || undefined,
+            undefined,
+            undefined,
+            undefined,
+            ds,
+            de,
+            undefined,
+            undefined,
+            undefined
+          ),
+          // Quando filtrar por tipo, buscar TODAS as infrações desse tipo
+          tipoId ? infractionApi.privateInfractionsGet(authHeader, -1, undefined, 'created_at', 'desc', tipoId || undefined, undefined) : Promise.resolve({ data: { items: [] } } as any)
         ])
         if (!cancelled) {
           const sitems = scr.data?.items ?? []
-          const oitems = occ.data?.items ?? []
+          let oitems = occ.data?.items ?? []
           if (isUnauthorizedBody(scr.data) || isUnauthorizedBody(occ.data)) {
             logout('Sessão expirada. Inicie sessão novamente.')
             return
+          }
+          // Se houver filtro de tipo, manter apenas ocorrências que tenham pelo menos uma infração desse tipo (com base no join por occurrence_id)
+          if (tipoId) {
+            const infItems = (infr.data as any)?.items ?? []
+            const occIds = new Set<string>(infItems.map((it: any) => String(it.occurrence_id || '')).filter(Boolean))
+            oitems = (oitems || []).filter((o: any) => (o?.id ? occIds.has(String(o.id)) : false))
           }
           setScrapyards(sitems)
           setOccurrences(oitems)
@@ -1495,7 +1604,7 @@ function DashboardMap({ height = 420 }: { height?: number }) {
     }
     loadData()
     return () => { cancelled = true }
-  }, [scrapyardApi, occurrenceApi, authHeader])
+  }, [scrapyardApi, occurrenceApi, authHeader, dateStart, dateEnd, regiaoId, ascId])
 
   React.useEffect(() => {
     async function init() {
