@@ -405,7 +405,17 @@ export default function ClientesDashboardScreen() {
               )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <ImprovedDonutChart data={donutData} title="Distribuição por Região" />
+              <ImprovedDonutChart 
+                data={donutData} 
+                title="Distribuição por Região"
+                onSegmentClick={(idx) => {
+                  const lbl = (donutData[idx] || {}).label
+                  const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                  if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId(''); return }
+                  const it = (items || []).find(i => (i.label || i.id) === lbl)
+                  if (it && it.id != null) { setRegiaoId(String(it.id)); setAscId('') }
+                }}
+              />
               <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total de Clientes</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
@@ -437,6 +447,11 @@ export default function ClientesDashboardScreen() {
                   data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} 
                   title="Défice por Região"
                   colorScheme="red"
+                  onSegmentClick={(idx) => {
+                    const lbl = ((deficitFiltered || [])[idx] || {}).label
+                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                  }}
                 />
                 <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
                   <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 4 }}>Défice Total</div>
@@ -483,6 +498,11 @@ export default function ClientesDashboardScreen() {
                     legendMaxHeight={140}
                     size={160}
                     thickness={12}
+                    onSegmentClick={(idx) => {
+                      const arr = (ascs || []).filter(a => !ascId || a.id === ascId)
+                      const target = arr[idx]
+                      if (target && target.id != null) setAscId(String(target.id))
+                    }}
                   />
                 </div>
               </div>
@@ -516,6 +536,11 @@ export default function ClientesDashboardScreen() {
                       .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
                     title="Distribuição por Tendência"
                     colorScheme="green"
+                    onSegmentClick={(idx) => {
+                      const arr = (tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
+                      const target = arr[idx]
+                      if (target && target.id) setTendencia(String(target.id).toUpperCase())
+                    }}
                   />
                   <TrendSummaryCards 
                     data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
@@ -629,6 +654,11 @@ export default function ClientesDashboardScreen() {
                   data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
                   title="Ações por Região"
                   colorScheme="orange"
+                  onSegmentClick={(idx) => {
+                    const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
+                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                  }}
                 />
                 <div style={{ padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fed7aa' }}>
                   <div style={{ fontSize: 12, color: '#92400e', marginBottom: 4 }}>Total de Ações</div>
@@ -662,6 +692,11 @@ export default function ClientesDashboardScreen() {
                     data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
                     title="Valor Recuperado por Região"
                     colorScheme="green"
+                    onSegmentClick={(idx) => {
+                      const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
+                      const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                      if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                    }}
                   />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
@@ -706,7 +741,8 @@ export default function ClientesDashboardScreen() {
   )
 }
 
-function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12 }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number; size?: number; thickness?: number }) {
+function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12, onSegmentClick }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number; size?: number; thickness?: number; onSegmentClick?: (index: number) => void }) {
+  const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
   const total = data.reduce((s, d) => s + (Number.isFinite(d.value) ? d.value : 0), 0)
   const W = size
   const H = size
@@ -717,30 +753,39 @@ function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12 }: { dat
   const colors = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#84cc16']
   let acc = 0
   const segments = total > 0 ? data.map((d, i) => {
-    const val = Math.max(0, Number(d.value) || 0)
-    const frac = val / total
-    const len = frac * C
-    const seg = { offset: acc, length: len, color: colors[i % colors.length], label: d.label, value: val }
-    acc += len
-    return seg
-  }) : []
-  return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
-        <circle cx={CX} cy={CY} r={R} fill="#fff" stroke="#e5e7eb" strokeWidth={thickness} />
-        {segments.map((s, i) => (
-          <circle key={i}
-                  cx={CX}
-                  cy={CY}
-                  r={R}
-                  fill="transparent"
-                  stroke={s.color}
-                  strokeWidth={thickness}
-                  strokeDasharray={`${s.length} ${C - s.length}`}
-                  strokeDashoffset={-s.offset}
-                  style={{ transition: 'stroke-dasharray 0.3s' }}
-          />
-        ))}
+     const val = Math.max(0, Number(d.value) || 0)
+     const frac = val / total
+     const len = frac * C
+     const seg = { offset: acc, length: len, color: colors[i % colors.length], label: d.label, value: val }
+     acc += len
+     return seg
+   }) : []
+   return (
+     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
+         <circle cx={CX} cy={CY} r={R} fill="#fff" stroke="#e5e7eb" strokeWidth={thickness} />
+        {segments.map((s, i) => {
+          const isHover = hoverIdx === i
+          const hasHover = hoverIdx !== null
+          const scale = isHover ? 1.08 : 1
+          const opacity = hasHover ? (isHover ? 1 : 0.55) : 1
+          return (
+            <circle key={i}
+                   cx={CX}
+                   cy={CY}
+                   r={R}
+                   fill="transparent"
+                   stroke={s.color}
+                   strokeWidth={thickness}
+                   strokeDasharray={`${s.length} ${C - s.length}`}
+                   strokeDashoffset={-s.offset}
+                  style={{ transition: 'transform 160ms ease, opacity 160ms ease', cursor: onSegmentClick ? 'pointer' : 'default', opacity, transformOrigin: `${CX}px ${CY}px`, transform: `scale(${scale})` }}
+                  onMouseEnter={() => setHoverIdx(i)}
+                  onMouseLeave={() => setHoverIdx(null)}
+                  onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+            />
+          )
+        })}
         <circle cx={CX} cy={CY} r={Math.max(2, R - thickness - 4)} fill="#fff" />
         <text x={CX} y={CY} textAnchor="middle" dominantBaseline="middle" fontSize={13} fill="#374151" fontWeight={700}>
           {total}
@@ -748,7 +793,13 @@ function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12 }: { dat
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, maxHeight: legendMaxHeight, overflowY: legendMaxHeight ? 'auto' : undefined }}>
         {data.slice(0, 6).map((d, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div
+            key={i}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: onSegmentClick ? 'pointer' : 'default', opacity: hoverIdx !== null ? (hoverIdx === i ? 1 : 0.55) : 1, transition: 'opacity 120ms ease' }}
+            onMouseEnter={() => setHoverIdx(i)}
+            onMouseLeave={() => setHoverIdx(null)}
+            onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+          >
             <span style={{ width: 10, height: 10, borderRadius: 2, background: colors[i % colors.length], display: 'inline-block' }} />
             <span style={{ color: '#374151' }}>{d.label}</span>
             <span style={{ marginLeft: 'auto', color: '#111827', fontWeight: 700 }}>{d.value}</span>
@@ -1028,12 +1079,14 @@ function labelAnalise(v?: string) {
 
 // Componentes melhorados
 
-function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200 }: { 
+function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, onSegmentClick }: { 
   data: Array<{ label: string; value: number }>; 
   title: string; 
   colorScheme?: 'default' | 'red' | 'green' | 'orange' | 'purple' | 'cyan';
   size?: number;
+  onSegmentClick?: (index: number) => void;
 }) {
+  const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
   const getColorScheme = (scheme: string) => {
     switch (scheme) {
       case 'red': return ['#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b']
@@ -1071,14 +1124,17 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200 }
   const segments = cleanData.map((item, i) => {
     const percentage = (item.value / total) * 100
     const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`
-    const strokeDashoffset = -((accumulatedPercentage / 100) * circumference)
+    const startPct = accumulatedPercentage
+    const strokeDashoffset = -((startPct / 100) * circumference)
+    const midPct = startPct + (percentage / 2)
     
     const segment = {
       ...item,
       percentage,
       color: colors[i % colors.length],
       strokeDasharray,
-      strokeDashoffset
+      strokeDashoffset,
+      midPct
     }
     
     accumulatedPercentage += percentage
@@ -1112,25 +1168,38 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200 }
             />
             
             {/* Segmentos do donut */}
-            {segments.map((segment, i) => (
-              <circle
-                key={i}
-                cx={size/2}
-                cy={size/2}
-                r={radius}
-                fill="none"
-                stroke={segment.color}
-                strokeWidth="16"
-                strokeLinecap="round"
-                strokeDasharray={segment.strokeDasharray}
-                strokeDashoffset={segment.strokeDashoffset}
-                transform={`rotate(-90 ${size/2} ${size/2})`}
-                style={{ 
-                  transition: 'stroke-dasharray 0.3s ease, stroke-dashoffset 0.3s ease',
-                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
-                }}
-              />
-            ))}
+            {segments.map((segment, i) => {
+              const isHover = hoverIdx === i
+              const hasHover = hoverIdx !== null
+              const scale = isHover ? 1.08 : 1
+              const opacity = hasHover ? (isHover ? 1 : 0.55) : 1
+              return (
+                <circle
+                  key={i}
+                  cx={size/2}
+                  cy={size/2}
+                  r={radius}
+                  fill="none"
+                  stroke={segment.color}
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                  strokeDasharray={segment.strokeDasharray}
+                  strokeDashoffset={segment.strokeDashoffset}
+                  transform={`rotate(-90 ${size/2} ${size/2})`}
+                  style={{ 
+                    transition: 'transform 160ms ease, opacity 160ms ease',
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
+                    cursor: onSegmentClick ? 'pointer' : 'default',
+                    transformOrigin: `${size/2}px ${size/2}px`,
+                    transform: `scale(${scale})` as any,
+                    opacity
+                  }}
+                  onMouseEnter={() => setHoverIdx(i)}
+                  onMouseLeave={() => setHoverIdx(null)}
+                  onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+                />
+              )
+            })}
             
             {/* Círculo interno e texto */}
             <circle cx={size/2} cy={size/2} r={radius - 25} fill="#fff" stroke="#e2e8f0" strokeWidth="1" />
@@ -1145,7 +1214,13 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200 }
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: size - 40, overflowY: 'auto' }}>
           {segments.map((segment, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+            <div
+              key={i}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, cursor: onSegmentClick ? 'pointer' : 'default', opacity: hoverIdx !== null ? (hoverIdx === i ? 1 : 0.55) : 1, transition: 'opacity 120ms ease' }}
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+              onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
+            >
               <div style={{ 
                 width: 12, 
                 height: 12, 
