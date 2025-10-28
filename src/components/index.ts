@@ -21,6 +21,7 @@ export { SemiCircularGauge } from './ui/SemiCircularGauge'
 export { HexTileChart } from './ui/HexTileChart'
 export { MultiSelect } from './ui/MultiSelect'
 export { SearchSelect } from './ui/SearchSelect'
+export { Pagination } from './ui/Pagination'
 
 // Routing Components
 export { default as PrivateRoute } from './routing/PrivateRoute'

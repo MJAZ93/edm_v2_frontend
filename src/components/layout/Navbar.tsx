@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { PRIMARY_COLOR, SURFACE_ELEVATED, BORDER_COLOR, TEXT_PRIMARY, TEXT_SECONDARY, SHADOW, SPACING, RADIUS } from '../../utils/theme'
+import { PRIMARY_COLOR, PRIMARY_LIGHT, SURFACE_ELEVATED, BORDER_COLOR, TEXT_PRIMARY, TEXT_SECONDARY, SHADOW, SPACING, RADIUS } from '../../utils/theme'
 import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
@@ -30,13 +30,13 @@ export function Navbar({ onNavigate, currentPath }: Props) {
   const linkStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 8,
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
     color: TEXT_PRIMARY,
-    padding: `${SPACING.sm}px ${SPACING.md}px`,
-    borderRadius: RADIUS.md,
+    padding: '8px 16px',
+    borderRadius: 12,
     fontSize: 14,
     fontWeight: 500,
     transition: 'all 0.2s ease-in-out'
@@ -46,7 +46,7 @@ export function Navbar({ onNavigate, currentPath }: Props) {
     <nav 
       ref={ref} 
       style={{ 
-        padding: `${SPACING.md}px ${SPACING.lg}px`, 
+        padding: '16px 24px', 
         borderBottom: `1px solid ${BORDER_COLOR}`, 
         display: 'flex', 
         alignItems: 'center', 
@@ -58,40 +58,104 @@ export function Navbar({ onNavigate, currentPath }: Props) {
         zIndex: 1000
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.md }}>
-        <img 
-          src="/images/logo.png" 
-          alt="EDM - Electricidade de Moçambique" 
-          style={{ 
-            height: 40,
-            width: 'auto',
-            objectFit: 'contain'
-          }} 
-        />
-        <div style={{ 
-          borderLeft: `2px solid ${BORDER_COLOR}`, 
-          paddingLeft: SPACING.md,
-          height: 32
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        {/* Logo da EDM */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          padding: '8px 16px',
+          background: `linear-gradient(135deg, ${PRIMARY_COLOR} 0%, #c2410c 100%)`,
+          borderRadius: 16,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          color: 'white'
         }}>
-          <strong style={{ 
-            letterSpacing: '0.02em',
-            fontSize: 16,
-            color: TEXT_PRIMARY,
-            fontWeight: 600
-          }}>
-            Sistema EDM
-          </strong>
           <div style={{
-            fontSize: 12,
-            color: TEXT_SECONDARY,
-            fontWeight: 400,
-            marginTop: 2
+            width: 32,
+            height: 32,
+            background: 'white',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 4,
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
           }}>
-            Gestão de Vandalizações
+            <img 
+              src="/images/logo.png" 
+              alt="EDM - Electricidade de Moçambique" 
+              style={{ 
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }} 
+            />
+          </div>
+          <div>
+            <div style={{ 
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              lineHeight: 1.2
+            }}>
+              EDM
+            </div>
+            <div style={{
+              fontSize: 10,
+              opacity: 0.9,
+              fontWeight: 400,
+              lineHeight: 1
+            }}>
+              E.P.
+            </div>
           </div>
         </div>
+
+        {/* Nome do Sistema */}
+        <div style={{ 
+          borderLeft: `2px solid ${BORDER_COLOR}`, 
+          paddingLeft: 24,
+          height: 40,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center'
+        }}>
+          <div style={{ 
+            fontSize: 18,
+            color: TEXT_PRIMARY,
+            fontWeight: 600,
+            letterSpacing: '0.02em',
+            lineHeight: 1.2
+          }}>
+            Sistema de Gestão EDM
+          </div>
+          <div style={{
+            fontSize: 13,
+            color: TEXT_SECONDARY,
+            fontWeight: 500,
+            marginTop: 2,
+            letterSpacing: '0.01em'
+          }}>
+            Controlo e Monitorização de Vandalizações
+          </div>
+        </div>
+
+        {/* Badge de Status/Versão */}
+        <div style={{
+          background: '#fff7ed',
+          color: PRIMARY_COLOR,
+          padding: '4px 8px',
+          borderRadius: 12,
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.02em',
+          border: `1px solid ${PRIMARY_COLOR}33`,
+          textTransform: 'uppercase'
+        }}>
+          v2.0 Ativo
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.xs }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <div style={{ position: 'relative' }}>
           <button
             type="button"
@@ -123,11 +187,11 @@ export function Navbar({ onNavigate, currentPath }: Props) {
               position: 'absolute', 
               right: 0, 
               top: '100%', 
-              marginTop: SPACING.xs, 
+              marginTop: 4, 
               background: SURFACE_ELEVATED, 
               border: `1px solid ${BORDER_COLOR}`, 
-              borderRadius: RADIUS.lg, 
-              boxShadow: SHADOW.lg, 
+              borderRadius: 16, 
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', 
               minWidth: 200,
               overflow: 'hidden'
             }}>
@@ -138,7 +202,7 @@ export function Navbar({ onNavigate, currentPath }: Props) {
                   width: '100%', 
                   justifyContent: 'flex-start',
                   borderRadius: 0,
-                  padding: `${SPACING.md}px ${SPACING.lg}px`
+                  padding: '16px 24px'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -153,7 +217,7 @@ export function Navbar({ onNavigate, currentPath }: Props) {
                   width: '100%', 
                   justifyContent: 'flex-start',
                   borderRadius: 0,
-                  padding: `${SPACING.md}px ${SPACING.lg}px`
+                  padding: '16px 24px'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -170,7 +234,7 @@ export function Navbar({ onNavigate, currentPath }: Props) {
           style={{ 
             ...linkStyle, 
             color: TEXT_SECONDARY,
-            marginLeft: SPACING.md,
+            marginLeft: 16,
             border: `1px solid ${BORDER_COLOR}`
           }}
           onMouseEnter={(e) => {
