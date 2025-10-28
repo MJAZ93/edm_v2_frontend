@@ -24,8 +24,13 @@ export default function ClientesDashboardScreen() {
   const [deficitItems, setDeficitItems] = useState<Array<{ group_id?: string; deficit?: number }>>([])
   const [deficitLoading, setDeficitLoading] = useState(false)
   const [deficitError, setDeficitError] = useState<string | null>(null)
-  // Temporal
-  const [months, setMonths] = useState<number>(6)
+  // Filtro geral: Mês e Ano (análise de um mês)
+  const now = new Date()
+  const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as const
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const [year, setYear] = useState<number>(currentYear)
+  const [month, setMonth] = useState<number>(currentMonth)
   const [minScore, setMinScore] = useState<string>('')
   const [maxScore, setMaxScore] = useState<string>('')
   const [zeroCompras, setZeroCompras] = useState(false)
@@ -98,6 +103,7 @@ export default function ClientesDashboardScreen() {
   }, [items, regiaoId, ascRegiaoId, regioes])
 
   const donutData = (filtered || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))
+  const monthLabel = `${MONTH_NAMES_PT[Math.max(1, Math.min(12, month)) - 1]} ${year}`
 
   // Carregar défice por região (mantém-se visível; filtragem aplicada na apresentação)
   useEffect(() => {
@@ -126,28 +132,37 @@ export default function ClientesDashboardScreen() {
     return (deficitWithLabels || []).filter(it => it.id === selectedRegiaoId)
   }, [deficitWithLabels, selectedRegiaoId])
 
-  // Carregar dados temporais
+  // Carregar dados temporais (apenas o mês/ano selecionado)
   useEffect(() => {
     (async () => {
       setTemporalLoading(true); setTemporalError(null)
       try {
+        const nowY = now.getFullYear()
+        const nowM = now.getMonth() + 1
+        // Número de meses a obter, do presente até incluir o alvo YYYY-MM
+        let monthsToFetch = (nowY - year) * 12 + (nowM - month) + 1
+        if (!Number.isFinite(monthsToFetch) || monthsToFetch < 1) monthsToFetch = 1
+        if (monthsToFetch > 60) monthsToFetch = 60 // segurança
         const { data } = await api.privateInspeccoesTemporalGet(
           auth,
-          months || 6,
+          Math.max(1, monthsToFetch),
           tendencia || undefined,
           minScore ? Number(minScore) : undefined,
           maxScore ? Number(maxScore) : undefined,
           zeroCompras || undefined
         )
         if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        setTemporalItems(((data as any)?.items) ?? [])
+        const allItems = (((data as any)?.items) ?? []) as Array<{ mes?: string; total?: number; deficit?: number }>
+        const key = `${year}-${String(month).padStart(2,'0')}`
+        const filtered = allItems.filter(it => String(it?.mes || '') === key)
+        setTemporalItems(filtered)
       } catch (err: any) {
         const status = err?.response?.status
         if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
         setTemporalError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar análise temporal.')
       } finally { setTemporalLoading(false) }
     })()
-  }, [api, auth, months, tendencia, minScore, maxScore, zeroCompras])
+  }, [api, auth, month, year, tendencia, minScore, maxScore, zeroCompras])
 
   // Carregar contagens por tendência (distribuição)
   useEffect(() => {
@@ -275,6 +290,44 @@ export default function ClientesDashboardScreen() {
           gap: 16
         }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Ano</span>
+            <select 
+              value={year} 
+              onChange={(e) => setYear(Number(e.target.value))} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              {[0,1,2,3,4,5].map((i) => (
+                <option key={i} value={currentYear - i}>{currentYear - i}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Mês</span>
+            <select 
+              value={month} 
+              onChange={(e) => setMonth(Number(e.target.value))} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '1px solid #d1d5db', 
+                background: '#fff',
+                fontSize: 14,
+                color: '#374151'
+              }}
+            >
+              {MONTH_NAMES_PT.map((name, idx) => (
+                <option key={name} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Região</span>
             <select 
               value={regiaoId} 
@@ -390,7 +443,7 @@ export default function ClientesDashboardScreen() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
       {!regiaoId && (
-        <Card title={`Clientes — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''}`}>
+        <Card title={`Clientes — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''} · Mês ${monthLabel}` }>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
             <div style={{ overflow: 'auto', maxHeight: 280 }}>
               {loading ? (
@@ -407,7 +460,7 @@ export default function ClientesDashboardScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <ImprovedDonutChart 
                 data={donutData} 
-                title="Distribuição por Região"
+                title={`Distribuição por Região · Mês ${monthLabel}`}
                 onSegmentClick={(idx) => {
                   const lbl = (donutData[idx] || {}).label
                   const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
@@ -428,7 +481,7 @@ export default function ClientesDashboardScreen() {
         </Card>
       )}
 
-          <Card title="Défice total">
+          <Card title={`Défice total · Mês ${monthLabel}`}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
               <div style={{ overflow: 'auto', maxHeight: 280 }}>
                 {deficitLoading ? (
@@ -445,7 +498,7 @@ export default function ClientesDashboardScreen() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <ImprovedDonutChart 
                   data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} 
-                  title="Défice por Região"
+                  title={`Défice por Região · Mês ${monthLabel}`}
                   colorScheme="red"
                   onSegmentClick={(idx) => {
                     const lbl = ((deficitFiltered || [])[idx] || {}).label
@@ -465,7 +518,7 @@ export default function ClientesDashboardScreen() {
           </Card>
 
           {regiaoId && (
-            <Card title="Clientes — ASCs da região">
+            <Card title={`Clientes — ASCs da região · Mês ${monthLabel}`}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, alignItems: 'stretch' }}>
                 <div style={{ overflow: 'auto', maxHeight: 220 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -484,7 +537,11 @@ export default function ClientesDashboardScreen() {
                           return (
                             <tr key={i}>
                               <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{a.name || a.id || '—'}</td>
-                              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{Number(c)}</td>
+                              <td style={{ padding: '10px 8px', borderBottom: '1px solid #eef2f7' }}>
+                                <span style={{ display: 'inline-block', padding: '3px 8px', lineHeight: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, fontWeight: 700, color: '#334155' }}>
+                                  {Number(c)}
+                                </span>
+                              </td>
                             </tr>
                           )
                         })
@@ -513,7 +570,7 @@ export default function ClientesDashboardScreen() {
         {/* Tendência: respeita seleção de tendência; oculta quando há região selecionada */}
         {!regiaoId && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-            <Card title="Clientes — Contagens por tendência">
+            <Card title={`Clientes — Contagens por tendência · Mês ${monthLabel}`}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 16, alignItems: 'stretch' }}>
                 <div style={{ overflowX: 'auto', maxHeight: 320 }}>
                   {tendLoading ? (
@@ -534,7 +591,7 @@ export default function ClientesDashboardScreen() {
                     data={(tendCounts || [])
                       .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
                       .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
-                    title="Distribuição por Tendência"
+                    title={`Distribuição por Tendência · Mês ${monthLabel}`}
                     colorScheme="green"
                     onSegmentClick={(idx) => {
                       const arr = (tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
@@ -566,17 +623,9 @@ export default function ClientesDashboardScreen() {
           📈 Análise Temporal
         </h2>
         
-        <Card title="Evolução temporal dos últimos meses">
+        <Card title={`Análise temporal — Mês ${monthLabel}`}>
           <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Período</span>
-                <select value={months} onChange={(e) => setMonths(Number(e.target.value))} style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 140, background: '#fff', fontSize: 14 }}>
-                  <option value={3}>3 meses</option>
-                  <option value={6}>6 meses</option>
-                  <option value={12}>12 meses</option>
-                </select>
-              </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Score mínimo</span>
                 <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120, fontSize: 14 }} />
@@ -593,7 +642,7 @@ export default function ClientesDashboardScreen() {
             <TemporalSummary data={temporalItems} loading={temporalLoading} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, alignItems: 'stretch' }}>
-            <Card title="Evolução Temporal" style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card title={`Evolução Temporal — Mês ${monthLabel}`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               {temporalLoading ? (
                 <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                   <div style={{ marginBottom: 8 }}>A carregar análise temporal…</div>
@@ -607,7 +656,7 @@ export default function ClientesDashboardScreen() {
                 <ImprovedTimeSeriesDual data={temporalItems} />
               )}
             </Card>
-            <Card title="Resumo Mensal" style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card title={`Resumo do Mês — ${monthLabel}`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ overflow: 'auto', maxHeight: 320 }}>
                 {temporalLoading ? (
                   <div style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>A carregar…</div>
@@ -635,7 +684,7 @@ export default function ClientesDashboardScreen() {
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
           {/* Ações por instalação — contagens (por região) */}
-          <Card title="Ações por instalação — Contagens por região">
+          <Card title={`Ações por instalação — Contagens por região · Mês ${monthLabel}`}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
               <div style={{ overflow: 'auto', maxHeight: 280 }}>
                 {accoesLoading ? (
@@ -652,7 +701,7 @@ export default function ClientesDashboardScreen() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <ImprovedDonutChart 
                   data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
-                  title="Ações por Região"
+                  title={`Ações por Região · Mês ${monthLabel}`}
                   colorScheme="orange"
                   onSegmentClick={(idx) => {
                     const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
@@ -673,7 +722,7 @@ export default function ClientesDashboardScreen() {
 
           {/* Valor Recuperado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-            <Card title="Melhores grupos por valor recuperado">
+            <Card title={`Melhores grupos por valor recuperado · Mês ${monthLabel}`}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20, alignItems: 'stretch' }}>
                 <div style={{ overflow: 'auto', maxHeight: 280 }}>
                   {bestLoading ? (
@@ -690,7 +739,7 @@ export default function ClientesDashboardScreen() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <ImprovedDonutChart 
                     data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
-                    title="Valor Recuperado por Região"
+                    title={`Valor Recuperado por Região · Mês ${monthLabel}`}
                     colorScheme="green"
                     onSegmentClick={(idx) => {
                       const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
@@ -720,7 +769,7 @@ export default function ClientesDashboardScreen() {
           </div>
 
           {/* Effectiveness de Ações de Cliente */}
-          <Card title="Valor Recuperado por Tipo de Ação (Clientes)">
+          <Card title={`Valor Recuperado por Tipo de Ação (Clientes) · Mês ${monthLabel}`}>
             {effectivenessLoading ? (
               <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                 <div style={{ marginBottom: 8 }}>A carregar effectiveness de instalações…</div>
@@ -1276,19 +1325,18 @@ function InspectionCountsTable({ data }: { data: CountItem[] }) {
                 borderRadius: 4, 
                 background: `hsl(${220 + i * 40}, 60%, 55%)` 
               }} />
-              <div>
-                <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || item.id || '—'}</div>
-                <div style={{ 
-                  width: Math.max(60, (item.count || 0) / maxCount * 200), 
-                  height: 4, 
-                  background: `hsl(${220 + i * 40}, 60%, 55%)`, 
-                  borderRadius: 2, 
-                  marginTop: 4,
-                  opacity: 0.7
-                }} />
-              </div>
+              <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.label || item.id || '—'}</div>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#1e293b' }}>
+            <div style={{ 
+              fontSize: 18, 
+              fontWeight: 800, 
+              color: '#1e293b',
+              padding: '4px 10px',
+              lineHeight: '22px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8
+            }}>
               {(item.count || 0).toLocaleString('pt-PT')}
             </div>
           </div>
@@ -1328,19 +1376,18 @@ function DeficitTable({ data }: { data: Array<{ label: string; value: number }> 
                 borderRadius: 4, 
                 background: `hsl(${0 + i * 10}, 70%, ${60 - i * 5}%)` 
               }} />
-              <div>
-                <div style={{ fontWeight: 600, color: '#7f1d1d' }}>{item.label}</div>
-                <div style={{ 
-                  width: Math.max(60, (item.value || 0) / maxValue * 200), 
-                  height: 4, 
-                  background: `hsl(${0 + i * 10}, 70%, ${60 - i * 5}%)`, 
-                  borderRadius: 2, 
-                  marginTop: 4,
-                  opacity: 0.8
-                }} />
-              </div>
+              <div style={{ fontWeight: 600, color: '#7f1d1d' }}>{item.label}</div>
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#dc2626' }}>
+            <div style={{ 
+              fontSize: 16, 
+              fontWeight: 800, 
+              color: '#dc2626',
+              padding: '4px 10px',
+              lineHeight: '22px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: 8
+            }}>
               {formatMoney(item.value)}
             </div>
           </div>
