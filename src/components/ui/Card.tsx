@@ -1,26 +1,118 @@
 import React from 'react'
-import { BORDER_COLOR, SHADOW_SM, RADIUS } from '../../utils/theme'
+import { BORDER_COLOR, SHADOW, RADIUS, SURFACE_ELEVATED, TEXT_PRIMARY, TEXT_SECONDARY, SPACING } from '../../utils/theme'
 
 type Props = React.PropsWithChildren<{
   title?: string
   subtitle?: string
   extra?: React.ReactNode
   style?: React.CSSProperties
+  variant?: 'default' | 'elevated' | 'bordered'
+  padding?: 'sm' | 'md' | 'lg'
 }>
 
-export function Card({ title, subtitle, extra, style, children }: Props) {
+export function Card({ 
+  title, 
+  subtitle, 
+  extra, 
+  style, 
+  children, 
+  variant = 'elevated',
+  padding = 'lg'
+}: Props) {
+  const variants = {
+    default: {
+      background: SURFACE_ELEVATED,
+      border: 'none',
+      boxShadow: 'none'
+    },
+    elevated: {
+      background: SURFACE_ELEVATED,
+      border: 'none',
+      boxShadow: SHADOW.md
+    },
+    bordered: {
+      background: SURFACE_ELEVATED,
+      border: `1px solid ${BORDER_COLOR}`,
+      boxShadow: SHADOW.sm
+    }
+  }
+
+  const paddingValues = {
+    sm: SPACING.md,
+    md: SPACING.lg,
+    lg: SPACING.xl
+  }
+
   return (
-    <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: RADIUS, padding: 20, boxShadow: SHADOW_SM, width: '100%', background: '#fff', overflow: 'visible', ...style }}>
+    <div 
+      style={{ 
+        borderRadius: RADIUS.lg, 
+        padding: paddingValues[padding], 
+        width: '100%', 
+        overflow: 'visible',
+        transition: 'all 0.2s ease-in-out',
+        ...variants[variant],
+        ...style 
+      }}
+      onMouseEnter={(e) => {
+        if (variant === 'elevated') {
+          e.currentTarget.style.boxShadow = SHADOW.lg
+          e.currentTarget.style.transform = 'translateY(-2px)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (variant === 'elevated') {
+          e.currentTarget.style.boxShadow = SHADOW.md
+          e.currentTarget.style.transform = 'translateY(0)'
+        }
+      }}
+    >
       {(title || extra) && (
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div>
-            {title && <h3 style={{ margin: 0, fontSize: 16 }}>{title}</h3>}
-            {subtitle && <div style={{ color: '#6b7280', fontSize: 12 }}>{subtitle}</div>}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          justifyContent: 'space-between', 
+          marginBottom: SPACING.md,
+          paddingBottom: title || subtitle ? SPACING.sm : 0,
+          borderBottom: title || subtitle ? `1px solid ${BORDER_COLOR}` : 'none'
+        }}>
+          <div style={{ flex: 1 }}>
+            {title && (
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: 18,
+                fontWeight: 600,
+                color: TEXT_PRIMARY,
+                lineHeight: 1.3,
+                letterSpacing: '-0.01em'
+              }}>
+                {title}
+              </h3>
+            )}
+            {subtitle && (
+              <p style={{ 
+                color: TEXT_SECONDARY, 
+                fontSize: 14,
+                margin: title ? `${SPACING.xs}px 0 0 0` : 0,
+                lineHeight: 1.4
+              }}>
+                {subtitle}
+              </p>
+            )}
           </div>
-          {extra && <div>{extra}</div>}
+          {extra && (
+            <div style={{ 
+              marginLeft: SPACING.md,
+              flexShrink: 0
+            }}>
+              {extra}
+            </div>
+          )}
         </div>
       )}
-      {children}
+      <div style={{ color: TEXT_PRIMARY }}>
+        {children}
+      </div>
     </div>
   )
 }

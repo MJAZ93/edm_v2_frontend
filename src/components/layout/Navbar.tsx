@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { PRIMARY_COLOR } from '../../utils/theme'
+import { PRIMARY_COLOR, SURFACE_ELEVATED, BORDER_COLOR, TEXT_PRIMARY, TEXT_SECONDARY, SHADOW, SPACING, RADIUS } from '../../utils/theme'
 import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
@@ -30,50 +30,160 @@ export function Navbar({ onNavigate, currentPath }: Props) {
   const linkStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    color: '#374151',
-    padding: '8px 10px',
-    borderRadius: 8
+    color: TEXT_PRIMARY,
+    padding: `${SPACING.sm}px ${SPACING.md}px`,
+    borderRadius: RADIUS.md,
+    fontSize: 14,
+    fontWeight: 500,
+    transition: 'all 0.2s ease-in-out'
   }
 
   return (
-    <nav ref={ref} style={{ padding: 10, borderBottom: `2px solid ${PRIMARY_COLOR}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ width: 12, height: 12, background: PRIMARY_COLOR, borderRadius: '50%' }} aria-hidden />
-        <strong style={{ letterSpacing: 0.3 }}>EDM</strong>
+    <nav 
+      ref={ref} 
+      style={{ 
+        padding: `${SPACING.md}px ${SPACING.lg}px`, 
+        borderBottom: `1px solid ${BORDER_COLOR}`, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        background: SURFACE_ELEVATED,
+        boxShadow: SHADOW.sm,
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.md }}>
+        <img 
+          src="/images/logo.png" 
+          alt="EDM - Electricidade de Moçambique" 
+          style={{ 
+            height: 40,
+            width: 'auto',
+            objectFit: 'contain'
+          }} 
+        />
+        <div style={{ 
+          borderLeft: `2px solid ${BORDER_COLOR}`, 
+          paddingLeft: SPACING.md,
+          height: 32
+        }}>
+          <strong style={{ 
+            letterSpacing: '0.02em',
+            fontSize: 16,
+            color: TEXT_PRIMARY,
+            fontWeight: 600
+          }}>
+            Sistema EDM
+          </strong>
+          <div style={{
+            fontSize: 12,
+            color: TEXT_SECONDARY,
+            fontWeight: 400,
+            marginTop: 2
+          }}>
+            Gestão de Vandalizações
+          </div>
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.xs }}>
         <div style={{ position: 'relative' }}>
           <button
             type="button"
             onClick={() => setOpen((o) => (o === 'sucatarias' ? null : 'sucatarias'))}
             style={{
               ...linkStyle,
-              outline: (isActive('/sucatarias') || isActive('/sucatarias/mapa')) ? `2px solid ${PRIMARY_COLOR}` : 'none'
+              background: (isActive('/sucatarias') || isActive('/sucatarias/mapa')) ? PRIMARY_COLOR : 'transparent',
+              color: (isActive('/sucatarias') || isActive('/sucatarias/mapa')) ? 'white' : TEXT_PRIMARY,
+              boxShadow: (isActive('/sucatarias') || isActive('/sucatarias/mapa')) ? SHADOW.sm : 'none'
             }}
             title="Sucatarias"
+            onMouseEnter={(e) => {
+              if (!isActive('/sucatarias') && !isActive('/sucatarias/mapa')) {
+                e.currentTarget.style.background = '#f8fafc'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive('/sucatarias') && !isActive('/sucatarias/mapa')) {
+                e.currentTarget.style.background = 'transparent'
+              }
+            }}
           >
             <IconFactory />
             <span>Sucatarias</span>
             <IconChevron open={open === 'sucatarias'} />
           </button>
           {open === 'sucatarias' && (
-            <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)', minWidth: 180 }}>
-              <button onClick={() => go('/sucatarias')} style={{ ...linkStyle, width: '100%', justifyContent: 'flex-start' }}>
+            <div style={{ 
+              position: 'absolute', 
+              right: 0, 
+              top: '100%', 
+              marginTop: SPACING.xs, 
+              background: SURFACE_ELEVATED, 
+              border: `1px solid ${BORDER_COLOR}`, 
+              borderRadius: RADIUS.lg, 
+              boxShadow: SHADOW.lg, 
+              minWidth: 200,
+              overflow: 'hidden'
+            }}>
+              <button 
+                onClick={() => go('/sucatarias')} 
+                style={{ 
+                  ...linkStyle, 
+                  width: '100%', 
+                  justifyContent: 'flex-start',
+                  borderRadius: 0,
+                  padding: `${SPACING.md}px ${SPACING.lg}px`
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
                 <IconList />
                 <span>Lista</span>
               </button>
-              <button onClick={() => go('/sucatarias/mapa')} style={{ ...linkStyle, width: '100%', justifyContent: 'flex-start' }}>
+              <button 
+                onClick={() => go('/sucatarias/mapa')} 
+                style={{ 
+                  ...linkStyle, 
+                  width: '100%', 
+                  justifyContent: 'flex-start',
+                  borderRadius: 0,
+                  padding: `${SPACING.md}px ${SPACING.lg}px`
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
                 <IconMap />
                 <span>Mapa</span>
               </button>
             </div>
           )}
         </div>
-        <button onClick={() => logout()} title="Terminar sessão" style={{ ...linkStyle, color: '#6b7280' }}>
+        <button 
+          onClick={() => logout()} 
+          title="Terminar sessão" 
+          style={{ 
+            ...linkStyle, 
+            color: TEXT_SECONDARY,
+            marginLeft: SPACING.md,
+            border: `1px solid ${BORDER_COLOR}`
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#fef2f2'
+            e.currentTarget.style.borderColor = '#fca5a5'
+            e.currentTarget.style.color = '#dc2626'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.borderColor = BORDER_COLOR
+            e.currentTarget.style.color = TEXT_SECONDARY
+          }}
+        >
           <IconLogout />
           <span>Terminar sessão</span>
         </button>
