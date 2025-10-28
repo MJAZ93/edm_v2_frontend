@@ -205,7 +205,7 @@ export default function ScrapyardsScreen() {
               <tr style={{ textAlign: 'left', color: '#6b7280' }}>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('nome')} title="Ordenar por nome">Nome {orderBy === 'nome' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>ASC</th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('nivel_confianca')} title="Ordenar por nível de confiança">Nível</th>
+                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }} onClick={() => toggleSort('nivel_confianca')} title="Ordenar por nível de desconfiança">Desconfiança</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Materiais</th>
                 <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
               </tr>

@@ -263,7 +263,7 @@ export default function ScrapyardsMapScreen() {
                       </div>
                       <div>
                         <div style={{ fontWeight: 600 }}>{s.nome || 'Sem nome'}</div>
-                        <div style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>ASC: {(s as any).asc_name || '—'} · Nível: {(typeof s.nivel_confianca === 'number' ? (s.nivel_confianca * 100).toFixed(1) + ' %' : '—')}</div>
+                        <div style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>ASC: {(s as any).asc_name || '—'} · Desconfiança: {(typeof s.nivel_confianca === 'number' ? (s.nivel_confianca * 100).toFixed(1) + ' %' : '—')}</div>
                         <div style={{ color: '#374151', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 4 }}>
                           {display}
                         </div>

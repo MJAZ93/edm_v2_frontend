@@ -173,7 +173,7 @@ export default function ScrapyardForm({ mode, initialValues, submitting = false,
           <span style={{ color: '#6b7280', fontSize: 12 }}>Pode pesquisar e selecionar múltiplos.</span>
         </div>
 
-        {/* Campo de nível de confiança oculto; valor por omissão = 50 */}
+        {/* Campo de nível de desconfiança oculto; valor por omissão = 50 */}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ fontSize: 13, color: '#374151' }}>Localização no mapa (opcional)</span>

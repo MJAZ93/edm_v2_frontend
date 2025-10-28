@@ -53,7 +53,7 @@ export default function ScrapyardDetailScreen() {
       if (!item || item.lat == null || item.long == null) return
       setOccLoading(true); setOccError(null)
       try {
-        const { data } = await occurrenceApi.privateOccurrencesGet(authHeader, 1, 10, 'created_at', 'desc', undefined, undefined, undefined, undefined, undefined, undefined, Number(item.lat), Number(item.long))
+        const { data } = await occurrenceApi.privateOccurrencesGet(authHeader, 1, 10, 'created_at', 'desc', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, Number(item.lat), Number(item.long))
         if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
         setNearOccurrences(((data as any).items ?? []) as ModelOccurrence[])
       } catch (err: any) {
@@ -95,7 +95,7 @@ export default function ScrapyardDetailScreen() {
               <Field label="ASC" value={(item as any).asc_name || item.asc_id || '-'} />
               <Field label="Latitude" value={item.lat != null ? String(item.lat) : '-'} />
               <Field label="Longitude" value={item.long != null ? String(item.long) : '-'} />
-              {(item as any).nivel_confianca != null && <Field label="Nível de confiança" value={`${(Number((item as any).nivel_confianca) * 100).toFixed(1)} %`} />}
+              {(item as any).nivel_confianca != null && <Field label="Nível de desconfiança" value={`${(Number((item as any).nivel_confianca) * 100).toFixed(1)} %`} />}
             </div>
             {Array.isArray(item.materiais) && item.materiais.length ? (
               <div style={{ marginTop: 8 }}>
@@ -105,7 +105,16 @@ export default function ScrapyardDetailScreen() {
             ) : null}
           </Card>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(360px, 1.4fr) minmax(280px, 1fr)', gap: 16, alignItems: 'start' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'minmax(360px, 1.4fr) minmax(320px, 1fr)', 
+            gap: 24, 
+            alignItems: 'start',
+            '@media (max-width: 768px)': {
+              gridTemplateColumns: '1fr',
+              gap: 16
+            }
+          }}>
             <Card title="Localização">
               {(item.lat != null && item.long != null) ? (
                 <MapPicker
@@ -127,27 +136,142 @@ export default function ScrapyardDetailScreen() {
                 <div style={{ color: '#6b7280' }}>Sem coordenadas da sucataria.</div>
               )}
             </Card>
-            <Card title="Ocorrências próximas">
-              {occLoading ? (
-                <div style={{ color: '#6b7280' }}>A carregar…</div>
-              ) : occError ? (
-                <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{occError}</div>
-              ) : !nearOccurrences.length ? (
-                <div style={{ color: '#6b7280' }}>Sem ocorrências próximas.</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {nearOccurrences.map((o) => (
-                    <div key={o.id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
-                      <div style={{ fontWeight: 600 }}>{o.local || o.id}</div>
-                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Data: {formatDate(o.data_facto)}</div>
-                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Coordenadas: {o.lat != null && o.long != null ? `${Number(o.lat).toFixed(5)}, ${Number(o.long).toFixed(5)}` : '-'}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <Button variant="secondary" onClick={() => openOccurrenceDetails(o.id)}>Ver detalhes</Button>
+            <Card title="Ocorrências próximas" style={{ height: 'fit-content' }}>
+              <div style={{ 
+                height: 360, 
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
+                {occLoading ? (
+                  <div style={{ 
+                    color: '#6b7280', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    height: '100%'
+                  }}>
+                    A carregar…
+                  </div>
+                ) : occError ? (
+                  <div style={{ 
+                    background: '#fee2e2', 
+                    color: '#991b1b', 
+                    padding: 16, 
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    textAlign: 'center'
+                  }}>
+                    {occError}
+                  </div>
+                ) : !nearOccurrences.length ? (
+                  <div style={{ 
+                    color: '#6b7280',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    textAlign: 'center',
+                    fontSize: 15
+                  }}>
+                    Sem ocorrências próximas encontradas.
+                  </div>
+                ) : (
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 12,
+                    overflowY: 'auto',
+                    paddingRight: 8,
+                    height: '100%'
+                  }}>
+                    {nearOccurrences.map((o) => (
+                      <div 
+                        key={o.id} 
+                        style={{ 
+                          border: '1px solid #e5e7eb', 
+                          borderRadius: 12, 
+                          padding: 16,
+                          background: '#fafafa',
+                          transition: 'all 0.2s ease-in-out',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#ea580c'
+                          e.currentTarget.style.background = '#fff7ed'
+                          e.currentTarget.style.transform = 'translateY(-2px)'
+                          e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e5e7eb'
+                          e.currentTarget.style.background = '#fafafa'
+                          e.currentTarget.style.transform = 'translateY(0)'
+                          e.currentTarget.style.boxShadow = 'none'
+                        }}
+                      >
+                        <div style={{ 
+                          fontWeight: 600, 
+                          fontSize: 15,
+                          color: '#18181b',
+                          marginBottom: 8,
+                          lineHeight: 1.4
+                        }}>
+                          {o.local || o.id}
+                        </div>
+                        
+                        <div style={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: 6,
+                          marginBottom: 12
+                        }}>
+                          <div style={{ 
+                            color: '#6b7280', 
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}>
+                            <span style={{ 
+                              width: 12, 
+                              height: 12, 
+                              background: '#16a34a', 
+                              borderRadius: '50%',
+                              display: 'inline-block'
+                            }} />
+                            Data: {formatDate(o.data_facto)}
+                          </div>
+                          
+                          {o.lat != null && o.long != null && (
+                            <div style={{ 
+                              color: '#6b7280', 
+                              fontSize: 13,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}>
+                              <span style={{ fontSize: 12 }}>📍</span>
+                              {`${Number(o.lat).toFixed(5)}, ${Number(o.long).toFixed(5)}`}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <Button 
+                          variant="secondary" 
+                          size="sm"
+                          onClick={() => openOccurrenceDetails(o.id)}
+                          style={{ width: '100%' }}
+                        >
+                          Ver detalhes
+                        </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </Card>
           </div>
         </>
