@@ -461,6 +461,7 @@ export default function ClientesDashboardScreen() {
               <ImprovedDonutChart 
                 data={donutData} 
                 title={`Distribuição por Região · Mês ${monthLabel}`}
+                colorScheme="purple"
                 onSegmentClick={(idx) => {
                   const lbl = (donutData[idx] || {}).label
                   const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
@@ -1295,14 +1296,15 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
 }
 
 function InspectionCountsTable({ data }: { data: CountItem[] }) {
-  const maxCount = Math.max(...data.map(d => d.count || 0), 1)
+  const rows = [...data].sort((a, b) => (b.count || 0) - (a.count || 0))
+  const maxCount = Math.max(...rows.map(d => d.count || 0), 1)
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {data.length === 0 ? (
+      {rows.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados para mostrar</div>
       ) : (
-        data.map((item, i) => (
+        rows.map((item, i) => (
           <div key={i} style={{ 
             display: 'grid', 
             gridTemplateColumns: '1fr auto', 
@@ -1347,14 +1349,15 @@ function InspectionCountsTable({ data }: { data: CountItem[] }) {
 }
 
 function DeficitTable({ data }: { data: Array<{ label: string; value: number }> }) {
-  const maxValue = Math.max(...data.map(d => d.value || 0), 1)
+  const rows = [...data].sort((a, b) => (b.value || 0) - (a.value || 0))
+  const maxValue = Math.max(...rows.map(d => d.value || 0), 1)
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {data.length === 0 ? (
+      {rows.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem défices registados</div>
       ) : (
-        data.map((item, i) => (
+        rows.map((item, i) => (
           <div key={i} style={{ 
             display: 'grid', 
             gridTemplateColumns: '1fr auto', 
@@ -1740,14 +1743,15 @@ function TemporalTable({ data }: { data: Array<{ mes?: string; total?: number; d
 }
 
 function ActionsTable({ data }: { data: CountItem[] }) {
-  const maxCount = Math.max(...data.map(d => d.count || 0), 1)
+  const rows = [...data].sort((a, b) => (b.count || 0) - (a.count || 0))
+  const maxCount = Math.max(...rows.map(d => d.count || 0), 1)
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {data.length === 0 ? (
+      {rows.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem ações registadas</div>
       ) : (
-        data.map((item, i) => (
+        rows.map((item, i) => (
           <div key={i} style={{ 
             display: 'grid', 
             gridTemplateColumns: '1fr auto', 
@@ -1792,14 +1796,15 @@ function ActionsTable({ data }: { data: CountItem[] }) {
 }
 
 function BestGroupsTable({ data }: { data: Array<{ label?: string; value?: number }> }) {
-  const maxValue = Math.max(...data.map(d => d.value || 0), 1)
+  const sorted = [...data].sort((a, b) => (b.value || 0) - (a.value || 0))
+  const maxValue = Math.max(...sorted.map(d => d.value || 0), 1)
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {data.length === 0 ? (
+      {sorted.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados de valor recuperado</div>
       ) : (
-        data.slice(0, 8).map((item, i) => (
+        sorted.slice(0, 8).map((item, i) => (
           <div key={i} style={{ 
             display: 'grid', 
             gridTemplateColumns: 'auto 1fr auto', 
