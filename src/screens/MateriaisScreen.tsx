@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Text } from '../components'
+import { Card, Button, Text, Pagination } from '../components'
 import { MaterialApi, SectorInfracaoApi, type MaterialCreateMaterialRequest, type MaterialUpdateMaterialRequest, type ModelSectorInfracao } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -182,13 +182,16 @@ export default function MateriaisScreen() {
             </tbody>
           </table>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, color: '#6b7280' }}>
-          <Text>Página {page} de {totalPages} · Total {total}</Text>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button variant="secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Anterior</Button>
-            <Button variant="secondary" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Seguinte</Button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={total}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelector={true}
+          showFirstLast={true}
+        />
       </Card>
 
       {(showCreate || editing) && (

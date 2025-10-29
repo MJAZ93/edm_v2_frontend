@@ -17,7 +17,6 @@ type Props = {
   onPageChange: (page: number) => void
   onPageSizeChange?: (size: number) => void
   showPageSizeSelector?: boolean
-  showQuickJump?: boolean
   showFirstLast?: boolean
 }
 
@@ -29,70 +28,83 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
   showPageSizeSelector = true,
-  showQuickJump = true,
   showFirstLast = true
 }: Props) {
-  const [jumpPage, setJumpPage] = useState('')
 
   // Gerar números de páginas visíveis
   const getVisiblePages = () => {
+    if (totalPages <= 1) return []
+    
     const delta = 2 // Número de páginas antes e depois da atual
     const range = []
     const rangeWithDots = []
 
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i)
+    // Se há poucas páginas, mostra todas
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        range.push(i)
+      }
+      return range
     }
 
+    // Sempre inclui a primeira página
+    rangeWithDots.push(1)
+
+    // Adiciona "..." se necessário antes do range central
     if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...')
-    } else {
-      rangeWithDots.push(1)
+      rangeWithDots.push('...')
     }
 
+    // Calcula o range central (páginas ao redor da atual)
+    const start = Math.max(2, currentPage - delta)
+    const end = Math.min(totalPages - 1, currentPage + delta)
+    
+    for (let i = start; i <= end; i++) {
+      if (i !== 1 && i !== totalPages) { // Evita duplicar primeira e última
+        range.push(i)
+      }
+    }
+    
     rangeWithDots.push(...range)
 
+    // Adiciona "..." se necessário depois do range central
     if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages)
-    } else {
-      if (totalPages > 1) rangeWithDots.push(totalPages)
+      rangeWithDots.push('...')
     }
 
-    return rangeWithDots.filter((item, index, arr) => arr.indexOf(item) === index)
+    // Sempre inclui a última página (se diferente da primeira)
+    if (totalPages > 1) {
+      rangeWithDots.push(totalPages)
+    }
+
+    // Remove duplicatas mantendo ordem
+    return rangeWithDots.filter((item, index, arr) => {
+      if (typeof item === 'string') return true // Mantém todos os "..."
+      return arr.indexOf(item) === index // Remove números duplicados
+    })
   }
 
-  const handleJumpSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const page = parseInt(jumpPage)
-    if (!isNaN(page) && page >= 1 && page <= totalPages) {
-      onPageChange(page)
-      setJumpPage('')
-    }
-  }
 
   const buttonStyle = (active = false, disabled = false): React.CSSProperties => ({
-    padding: '8px 12px',
+    padding: '10px 14px',
     border: active ? `2px solid ${PRIMARY_COLOR}` : `1px solid ${BORDER_COLOR}`,
     background: active ? PRIMARY_COLOR : SURFACE_ELEVATED,
     color: active ? 'white' : disabled ? TEXT_SECONDARY : TEXT_PRIMARY,
     borderRadius: RADIUS.md,
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontSize: 14,
-    fontWeight: active ? 600 : 500,
-    minWidth: 40,
+    fontWeight: active ? 700 : 600,
+    minWidth: 44,
+    minHeight: 44,
     textAlign: 'center',
     transition: 'all 0.2s ease-in-out',
-    opacity: disabled ? 0.5 : 1
+    opacity: disabled ? 0.5 : 1,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: active ? '0 2px 4px rgba(234, 88, 12, 0.3)' : 'none'
   })
 
-  const inputStyle: React.CSSProperties = {
-    padding: '6px 8px',
-    border: `1px solid ${BORDER_COLOR}`,
-    borderRadius: RADIUS.sm,
-    fontSize: 14,
-    width: 60,
-    textAlign: 'center'
-  }
 
   return (
     <div style={{ 
@@ -211,38 +223,6 @@ export function Pagination({
         )}
       </div>
 
-      {/* Saltar para página específica */}
-      {showQuickJump && totalPages > 10 && (
-        <form onSubmit={handleJumpSubmit} style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: SPACING.sm 
-        }}>
-          <span style={{ fontSize: 14, color: TEXT_SECONDARY }}>
-            Ir para página:
-          </span>
-          <input
-            type="number"
-            min="1"
-            max={totalPages}
-            value={jumpPage}
-            onChange={(e) => setJumpPage(e.target.value)}
-            placeholder={`1-${totalPages}`}
-            style={inputStyle}
-          />
-          <button
-            type="submit"
-            disabled={!jumpPage || parseInt(jumpPage) < 1 || parseInt(jumpPage) > totalPages}
-            style={{
-              ...buttonStyle(),
-              padding: '6px 12px',
-              fontSize: 13
-            }}
-          >
-            Ir
-          </button>
-        </form>
-      )}
     </div>
   )
 }
