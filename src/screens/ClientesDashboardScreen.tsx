@@ -132,20 +132,25 @@ export default function ClientesDashboardScreen() {
     return (deficitWithLabels || []).filter(it => it.id === selectedRegiaoId)
   }, [deficitWithLabels, selectedRegiaoId])
 
-  // Carregar dados temporais (apenas o mês/ano selecionado)
+  // Carregar dados temporais (sempre janela de 12 meses ancorada no mês/ano selecionados)
   useEffect(() => {
     (async () => {
       setTemporalLoading(true); setTemporalError(null)
       try {
         const nowY = now.getFullYear()
         const nowM = now.getMonth() + 1
-        // Número de meses a obter, do presente até incluir o alvo YYYY-MM
-        let monthsToFetch = (nowY - year) * 12 + (nowM - month) + 1
-        if (!Number.isFinite(monthsToFetch) || monthsToFetch < 1) monthsToFetch = 1
-        if (monthsToFetch > 60) monthsToFetch = 60 // segurança
+        // Diferenca de meses do "agora" até ao mês/ano alvo (incluindo o mês alvo)
+        let diffToTarget = (nowY - year) * 12 + (nowM - month) + 1
+        if (!Number.isFinite(diffToTarget) || diffToTarget < 1) diffToTarget = 1
+        // Para obter a janela completa de 12 meses até ao mês alvo, pedimos mais 11 meses para trás
+        let monthsToFetch = diffToTarget + 11
+        // Limites de segurança
+        if (monthsToFetch < 12) monthsToFetch = 12
+        if (monthsToFetch > 60) monthsToFetch = 60
+
         const { data } = await api.privateInspeccoesTemporalGet(
           auth,
-          Math.max(1, monthsToFetch),
+          Math.max(12, monthsToFetch),
           tendencia || undefined,
           minScore ? Number(minScore) : undefined,
           maxScore ? Number(maxScore) : undefined,
@@ -153,9 +158,38 @@ export default function ClientesDashboardScreen() {
         )
         if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
         const allItems = (((data as any)?.items) ?? []) as Array<{ mes?: string; total?: number; deficit?: number }>
-        const key = `${year}-${String(month).padStart(2,'0')}`
-        const filtered = allItems.filter(it => String(it?.mes || '') === key)
-        setTemporalItems(filtered)
+
+        // Construir lista de chaves YYYY-MM para os últimos 12 meses até ao alvo (inclusivo)
+        const targetY = year
+        const targetM = month
+        const keys: string[] = []
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(Date.UTC(targetY, targetM - 1, 1))
+          d.setUTCMonth(d.getUTCMonth() - i)
+          const y = d.getUTCFullYear()
+          const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+          keys.push(`${y}-${m}`)
+        }
+        // Mapear para os itens devolvidos, mantendo a ordem dos 12 meses
+        const byKey: Record<string, { mes?: string; total?: number; deficit?: number }> = {}
+        const toKey = (s: string) => {
+          try {
+            const m = /^(\d{4})-(\d{2})/.exec(s)
+            if (m) return `${m[1]}-${m[2]}`
+            const d = new Date(s)
+            const y = d.getUTCFullYear()
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+            return `${y}-${mm}`
+          } catch { return String(s).slice(0, 7) }
+        }
+        for (const it of allItems) {
+          if (it?.mes) {
+            const k = toKey(String(it.mes))
+            byKey[k] = { ...it, mes: k }
+          }
+        }
+        const window12 = keys.map((k) => byKey[k]).filter(Boolean)
+        setTemporalItems(window12)
       } catch (err: any) {
         const status = err?.response?.status
         if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
@@ -203,7 +237,7 @@ export default function ClientesDashboardScreen() {
   const [accoesCounts, setAccoesCounts] = useState<CountItem[]>([])
   const [accoesLoading, setAccoesLoading] = useState(false)
   const [accoesError, setAccoesError] = useState<string | null>(null)
-  // Melhores por valor recuperado
+  // Melhores por valor recuperado (via /valor_recuperado)
   const [bestItems, setBestItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
   const [bestLoading, setBestLoading] = useState(false)
   const [bestError, setBestError] = useState<string | null>(null)
@@ -211,10 +245,9 @@ export default function ClientesDashboardScreen() {
     (async () => {
       setBestLoading(true); setBestError(null)
       try {
-        const { data } = await accoesApi.privateInstalacaoAccoesMelhoresGet(
+        const { data } = await accoesApi.privateInstalacaoAccoesValorRecuperadoGet(
           auth,
           'regiao',
-          10,
           tendencia || undefined,
           marcacaoStatus || undefined,
           analiseStatus || undefined,
@@ -223,12 +256,15 @@ export default function ClientesDashboardScreen() {
         )
         if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
         const raw = ((data as any)?.items) ?? []
-        const mapped = raw.map((it: any) => ({ id: it?.group_id, label: it?.group_name || (regioes.find(r => r.id === it?.group_id)?.name) || it?.group_id, value: Number(it?.valor || 0) }))
+        const mapped = raw
+          .map((it: any) => ({ id: it?.group_id, label: it?.group_name || (regioes.find(r => r.id === it?.group_id)?.name) || it?.group_id, value: Number(it?.valor || it?.value || 0) }))
+          .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
+          .slice(0, 10)
         setBestItems(mapped)
       } catch (err: any) {
         const status = err?.response?.status
         if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-        setBestError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar melhores grupos por valor recuperado.')
+        setBestError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar valor recuperado por região.')
       } finally { setBestLoading(false) }
     })()
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
@@ -624,16 +660,17 @@ export default function ClientesDashboardScreen() {
           📈 Análise Temporal
         </h2>
         
-        <Card title={`Análise temporal — Mês ${monthLabel}`}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
+        <Card title={`Análise temporal — Últimos 12 meses (até ${monthLabel})`}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Score mínimo</span>
-                <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120, fontSize: 14 }} />
+              {/* Campos de Score ocultados por requisito */}
+              <label style={{ display: 'none' }}>
+                <span>Score mínimo</span>
+                <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Score máximo</span>
-                <input value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="1.0" style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #d1d5db', minWidth: 120, fontSize: 14 }} />
+              <label style={{ display: 'none' }}>
+                <span>Score máximo</span>
+                <input value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="1.0" />
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32 }}>
                 <input type="checkbox" checked={zeroCompras} onChange={(e) => setZeroCompras(e.target.checked)} style={{ width: 18, height: 18 }} />
@@ -643,7 +680,7 @@ export default function ClientesDashboardScreen() {
             <TemporalSummary data={temporalItems} loading={temporalLoading} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, alignItems: 'stretch' }}>
-            <Card title={`Evolução Temporal — Mês ${monthLabel}`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card title={`Evolução Temporal — Últimos 12 meses`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               {temporalLoading ? (
                 <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                   <div style={{ marginBottom: 8 }}>A carregar análise temporal…</div>
