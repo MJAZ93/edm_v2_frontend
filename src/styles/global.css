@@ -168,6 +168,7 @@ a:hover {
   gap: var(--space-4);
   padding: var(--space-5) var(--space-7) 0;
   backdrop-filter: blur(18px);
+  background: linear-gradient(180deg, rgba(244, 241, 234, 0.92) 0%, rgba(244, 241, 234, 0.68) 72%, rgba(244, 241, 234, 0) 100%);
 }
 
 .app-shell__header {
@@ -184,6 +185,8 @@ a:hover {
 .app-shell__content-inner {
   width: min(100%, 1560px);
   margin: 0 auto;
+  display: grid;
+  gap: var(--space-6);
 }
 
 .app-shell__menu-button {
@@ -226,7 +229,7 @@ a:hover {
 .private-sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
   height: 100%;
   padding: var(--space-6);
   background:
@@ -234,13 +237,15 @@ a:hover {
   color: #f8efe2;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 20px 0 60px rgba(38, 28, 13, 0.2);
-  overflow: auto;
+  overflow: hidden;
 }
 
 .private-sidebar__brand {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .private-sidebar__brand-mark {
@@ -276,15 +281,6 @@ a:hover {
 .private-sidebar__subtitle {
   font-size: 0.9rem;
   color: rgba(248, 239, 226, 0.76);
-}
-
-.private-sidebar__panel {
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .private-sidebar__user {
@@ -339,14 +335,25 @@ a:hover {
 }
 
 .private-sidebar__groups {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
   min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-right: -4px;
 }
 
 .private-sidebar__group {
-  display: grid;
-  gap: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .private-sidebar__group-toggle {
@@ -357,7 +364,7 @@ a:hover {
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(248, 239, 226, 0.74);
+  color: rgba(255, 248, 238, 0.82);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 0.74rem;
@@ -374,24 +381,25 @@ a:hover {
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 14px;
   border-radius: 18px;
-  border: 1px solid transparent;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 246, 235, 0.78);
   text-align: left;
 }
 
 .private-sidebar__item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   color: #fffaf5;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .private-sidebar__item.is-active {
-  background: linear-gradient(135deg, rgba(255, 223, 189, 0.18) 0%, rgba(201, 109, 31, 0.22) 100%);
-  border-color: rgba(255, 221, 187, 0.22);
+  background: linear-gradient(135deg, rgba(255, 223, 189, 0.2) 0%, rgba(201, 109, 31, 0.28) 100%);
+  border-color: rgba(255, 221, 187, 0.28);
   color: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(255, 242, 223, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 242, 223, 0.1), 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .private-sidebar__item-icon {
@@ -415,24 +423,14 @@ a:hover {
 
 .private-sidebar__footer {
   margin-top: auto;
+  flex-shrink: 0;
+  display: grid;
+  gap: var(--space-4);
   padding: var(--space-4);
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.private-sidebar__footer-label {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(248, 239, 226, 0.62);
-  margin-bottom: 8px;
-}
-
-.private-sidebar__footer-text {
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: rgba(255, 246, 235, 0.76);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.16) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .app-page-header {
@@ -443,7 +441,8 @@ a:hover {
   padding: var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: 28px;
-  background: rgba(255, 252, 247, 0.78);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.92) 0%, rgba(250, 244, 235, 0.84) 100%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -480,7 +479,7 @@ a:hover {
   min-height: 38px;
   padding: 0 14px;
   border-radius: 999px;
-  background: var(--color-surface-muted);
+  background: linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%);
   border: 1px solid var(--color-border);
   color: var(--color-text-soft);
   font-size: 0.84rem;

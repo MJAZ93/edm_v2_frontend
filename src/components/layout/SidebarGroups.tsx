@@ -63,25 +63,6 @@ export function SidebarGroups({ groups, activeKey, onSelect }: Props) {
         </div>
       </div>
 
-      <div className="private-sidebar__panel">
-        <div className="private-sidebar__user">
-          <div className="private-sidebar__avatar">{initials}</div>
-          <div style={{ minWidth: 0 }}>
-            <div className="private-sidebar__user-name">{displayName}</div>
-            <div className="private-sidebar__user-role">{user?.email || 'Sessão ativa'}</div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="private-sidebar__logout"
-        >
-          <IconLogout />
-          <span>Terminar sessão</span>
-        </button>
-      </div>
-
       <div className="private-sidebar__groups">
         {groups.map((group, index) => (
           <section key={group.label} className="private-sidebar__group">
@@ -123,8 +104,22 @@ export function SidebarGroups({ groups, activeKey, onSelect }: Props) {
       </div>
 
       <div className="private-sidebar__footer">
-        <div className="private-sidebar__footer-label">Plataforma EDM v2</div>
-        <div className="private-sidebar__footer-text">Estrutura revista para navegação privada, foco e maior densidade útil.</div>
+        <div className="private-sidebar__user">
+          <div className="private-sidebar__avatar">{initials}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="private-sidebar__user-name">{displayName}</div>
+            <div className="private-sidebar__user-role">{user?.email || 'Sessão ativa'}</div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="private-sidebar__logout"
+        >
+          <IconLogout />
+          <span>Terminar sessão</span>
+        </button>
       </div>
     </div>
   )
