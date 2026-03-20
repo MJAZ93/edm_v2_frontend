@@ -333,6 +333,7 @@ export default function DashboardScreen() {
   }
   const headerTitle = TITLE_MAP[active] || '—'
   const showHeaderTitle = active !== 'instalacoes'
+  const hasSelectedRegiao = Boolean(regiaoId)
   const headerSubtitleMap: Record<string, string> = {
     dashboard: 'Vista operacional consolidada com acesso rápido às métricas, mapas e distribuição de risco.',
     ocorrencias: 'Acompanhe registos, mapas e listagens com uma navegação mais clara e foco no contexto atual.',
@@ -397,47 +398,62 @@ export default function DashboardScreen() {
       {active === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          <Card title="Filtros">
+          <Card
+            title="Filtros"
+            subtitle="Refine o dashboard por período, geografia e tipo de infração."
+            extra={
+              <button
+                onClick={() => { setDateStart(null); setDateEnd(null); setRegiaoId(''); setAscId(''); setTipoId(''); setBucket('month') }}
+                style={secondaryActionButtonStyle}
+              >
+                Limpar filtros
+              </button>
+            }
+          >
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: 12,
+                gap: 14,
                 alignItems: 'end'
               }}
             >
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Início</span>
-                <input type="date" value={dateStart ?? ''} onChange={(e) => setDateStart(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+                <input type="date" value={dateStart ?? ''} onChange={(e) => setDateStart(e.target.value || null)} />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Fim</span>
-                <input type="date" value={dateEnd ?? ''} onChange={(e) => setDateEnd(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+                <input type="date" value={dateEnd ?? ''} onChange={(e) => setDateEnd(e.target.value || null)} />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
-                <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }}>
                   <option value="">Todas</option>
                   {regioes.map((r: any) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
                 </select>
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
-                <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                  <option value="">Todas</option>
-                  {ascs.map((a: any) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                </select>
-              </label>
+              {hasSelectedRegiao && (
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
+                  <select value={ascId} onChange={(e) => setAscId(e.target.value)}>
+                    <option value="">Todas</option>
+                    {ascs.map((a: any) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+                  </select>
+                </label>
+              )}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Tipo de Infração</span>
-                <select value={tipoId} onChange={(e) => setTipoId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                <select value={tipoId} onChange={(e) => setTipoId(e.target.value)}>
                   <option value="">Todos</option>
                   {tipos.map((t: any) => <option key={t.id} value={t.id}>{t.name || t.id}</option>)}
                 </select>
               </label>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-              <button onClick={() => { setDateStart(null); setDateEnd(null); setRegiaoId(''); setAscId(''); setTipoId(''); setBucket('month') }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpar</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+              <span style={filterChipStyle}>Intervalo: {rangeLabel}</span>
+              <span style={filterChipStyle}>Região: {regiaoId ? (regioes.find((r: any) => r.id === regiaoId)?.name || regiaoId) : 'Todas'}</span>
+              {hasSelectedRegiao ? <span style={filterChipStyle}>ASC: {ascId ? (ascs.find((a: any) => a.id === ascId)?.name || ascId) : 'Todas'}</span> : null}
             </div>
           </Card>
 
@@ -450,16 +466,16 @@ export default function DashboardScreen() {
           <Card title="Mapa Geral">
             <div style={{ width: '100%' }}>
               <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} />
-              <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
-                <div style={{ marginRight: 'auto' }}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
+                <div style={{ ...filterChipStyle, marginRight: 'auto' }}>
                   <strong>Intervalo:</strong> {rangeLabel}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
+                <div style={mapLegendChipStyle}>
+                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#b42318' }} />
                   <span>Sucatarias</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1d4ed8' }} />
+                <div style={mapLegendChipStyle}>
+                  <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0f766e' }} />
                   <span>Ocorrências</span>
                 </div>
               </div>
@@ -670,31 +686,33 @@ export default function DashboardScreen() {
               )}
             </Card>
 
-            <Card title="Distribuição por Região">
-              {loadingDash ? (
-                <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar distribuições…</div>
-              ) : (
-                <DonutChart
-                  data={(occByRegiao || []).map((it: any) => ({ 
-                    label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
-                    value: Number(it?.count || it?.value || 0) 
-                  }))}
-                  onSegmentClick={(idx) => {
-                    const it = (occByRegiao || [])[idx]
-                    if (!it) return
-                    const id = it?.regiao_id || it?.key_id
-                    if (id) { setRegiaoId(String(id)); setAscId('') }
-                  }}
-                />
-              )}
-            </Card>
+            {!hasSelectedRegiao && (
+              <Card title="Distribuição por Região">
+                {loadingDash ? (
+                  <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar distribuições…</div>
+                ) : (
+                  <DonutChart
+                    data={(occByRegiao || []).map((it: any) => ({ 
+                      label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
+                      value: Number(it?.count || it?.value || 0) 
+                    }))}
+                    onSegmentClick={(idx) => {
+                      const it = (occByRegiao || [])[idx]
+                      if (!it) return
+                      const id = it?.regiao_id || it?.key_id
+                      if (id) { setRegiaoId(String(id)); setAscId('') }
+                    }}
+                  />
+                )}
+              </Card>
+            )}
           </Grid>
 
           <Card title={`Evolução Temporal (${rangeLabel}) · Perdas vs Gastos`}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Escala:</span>
-                <select value={bucket} onChange={(e) => setBucket(e.target.value as any)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+                <select value={bucket} onChange={(e) => setBucket(e.target.value as any)} style={{ width: 140 }}>
                   <option value="day">Dia</option>
                   <option value="week">Semana</option>
                   <option value="month">Mês</option>
@@ -1066,14 +1084,14 @@ function RegionClusterMap({ height = 360, dateStart, dateEnd, regiaoId, ascId, r
 function MetricCard({ label, value, color = '#111827' }: { label: string; value: string | number; color?: string }) {
   return (
     <div style={{ 
-      padding: 16, 
-      borderRadius: 12, 
-      background: '#fff', 
-      border: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      padding: 18, 
+      borderRadius: 18, 
+      background: 'linear-gradient(180deg, rgba(255,252,247,.96) 0%, rgba(248,241,230,.9) 100%)', 
+      border: '1px solid rgba(101, 74, 32, 0.14)',
+      boxShadow: '0 12px 24px rgba(76, 57, 24, 0.08)'
     }}>
-      <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 500, marginBottom: 8 }}>{label}</div>
-      <div style={{ fontWeight: 800, fontSize: 24, color }}>{value as any}</div>
+      <div style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.08em' }}>{label}</div>
+      <div style={{ fontWeight: 800, fontSize: 26, color }}>{value as any}</div>
     </div>
   )
 }
@@ -1099,32 +1117,32 @@ function ComparisonCard({ title, before, after, changeAbs, changePct, goodWhenDe
   
   return (
     <div style={{ 
-      padding: 16, 
-      borderRadius: 12, 
-      background: '#fff',
-      border: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      padding: 18, 
+      borderRadius: 18, 
+      background: 'linear-gradient(180deg, rgba(255,252,247,.96) 0%, rgba(248,241,230,.9) 100%)',
+      border: '1px solid rgba(101, 74, 32, 0.14)',
+      boxShadow: '0 12px 24px rgba(76, 57, 24, 0.08)'
     }}>
-      <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginBottom: 12 }}>{title}</div>
+      <div style={{ fontSize: 13, color: '#5f6673', fontWeight: 700, marginBottom: 12 }}>{title}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Período Anterior</div>
+          <div style={{ fontSize: 11, color: '#7b8494', marginBottom: 4 }}>Período Anterior</div>
           <div style={{ fontWeight: 700, fontSize: 16, color: '#374151' }}>{formatMoney(b ?? undefined)}</div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Período Atual</div>
+          <div style={{ fontSize: 11, color: '#7b8494', marginBottom: 4 }}>Período Atual</div>
           <div style={{ fontWeight: 800, fontSize: 16, color }}>{formatMoney(a ?? undefined)}</div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, paddingTop: 12, borderTop: '1px solid rgba(101, 74, 32, 0.08)' }}>
         <div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Variação Absoluta</div>
+          <div style={{ fontSize: 11, color: '#7b8494', marginBottom: 2 }}>Variação Absoluta</div>
           <div style={{ fontWeight: 700, fontSize: 14, color: colorAbs }}>
             {dAbs == null ? '—' : `${sign(dAbs)}${formatMoney(Math.abs(dAbs) as any)}`}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Variação %</div>
+          <div style={{ fontSize: 11, color: '#7b8494', marginBottom: 2 }}>Variação %</div>
           <div style={{ fontWeight: 700, fontSize: 14, color: colorPct }}>
             {dPct == null ? '—' : `${sign(dPct)}${dPct.toFixed(1)}%`}
           </div>
@@ -1149,6 +1167,35 @@ function Delta({ label, value }: { label: string; value?: number }) {
 function formatMoney(n?: number) {
   if (typeof n !== 'number' || Number.isNaN(n)) return '—'
   try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` }
+}
+
+const filterChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const mapLegendChipStyle: React.CSSProperties = {
+  ...filterChipStyle,
+  gap: 8,
+}
+
+const secondaryActionButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
 }
 
 function Sparkline({ data, valueKey = 'value', labelKey = 'bucket', color = '#0ea5e9' }: { data: any[]; valueKey?: string; labelKey?: string; color?: string }) {
@@ -1352,12 +1399,12 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
         {/* Definir gradientes */}
         <defs>
           <linearGradient id="lossGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#b42318" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#b42318" stopOpacity="0.05" />
           </linearGradient>
           <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#0f766e" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#0f766e" stopOpacity="0.05" />
           </linearGradient>
         </defs>
 
@@ -1366,35 +1413,35 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
           const yv = (i / yTicks) * maxY
           const y = sy(yv)
           return (
-            <line key={`y-grid-${i}`} x1={pad} y1={y} x2={W - pad} y2={y} stroke="#f3f4f6" strokeDasharray="2,2" />
+            <line key={`y-grid-${i}`} x1={pad} y1={y} x2={W - pad} y2={y} stroke="#e8dfd2" strokeDasharray="3,4" />
           )
         })}
         
         {xTickValues.map((xv, i) => {
           const x = sx(xv)
           return (
-            <line key={`x-grid-${i}`} x1={x} y1={pad} x2={x} y2={H - pad} stroke="#f3f4f6" strokeDasharray="2,2" />
+            <line key={`x-grid-${i}`} x1={x} y1={pad} x2={x} y2={H - pad} stroke="#e8dfd2" strokeDasharray="3,4" />
           )
         })}
 
         {/* Eixos principais */}
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#d1d5db" strokeWidth="2" />
-        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#d1d5db" strokeWidth="2" />
+        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#cfbfaa" strokeWidth="2" />
+        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#cfbfaa" strokeWidth="2" />
 
         {/* Áreas preenchidas */}
         {areaSpend && <path d={areaSpend} fill="url(#spendGradient)" />}
         {areaLoss && <path d={areaLoss} fill="url(#lossGradient)" />}
 
         {/* Linhas das séries */}
-        {pathSpend && <path d={pathSpend} fill="none" stroke="#0ea5e9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-        {pathLoss && <path d={pathLoss} fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {pathSpend && <path d={pathSpend} fill="none" stroke="#0f766e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {pathLoss && <path d={pathLoss} fill="none" stroke="#b42318" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
 
         {/* Pontos de dados */}
         {lossData.map((point, i) => (
-          <circle key={`loss-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#ef4444" stroke="#fff" strokeWidth="2" />
+          <circle key={`loss-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#b42318" stroke="#fffaf2" strokeWidth="2" />
         ))}
         {spendData.map((point, i) => (
-          <circle key={`spend-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#0ea5e9" stroke="#fff" strokeWidth="2" />
+          <circle key={`spend-${i}`} cx={sx(point.x)} cy={sy(point.y)} r="4" fill="#0f766e" stroke="#fffaf2" strokeWidth="2" />
         ))}
 
         {/* Labels do eixo Y */}
@@ -1403,8 +1450,8 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
           const y = sy(yv)
           return (
             <g key={`y-label-${i}`}>
-              <line x1={pad - 6} y1={y} x2={pad} y2={y} stroke="#9ca3af" />
-              <text x={pad - 10} y={y + 4} fontSize={11} fill="#6b7280" textAnchor="end">
+              <line x1={pad - 6} y1={y} x2={pad} y2={y} stroke="#9d9487" />
+              <text x={pad - 10} y={y + 4} fontSize={11} fill="#7b8494" textAnchor="end">
                 {yv === 0 ? '0' : `${(yv / 1000000).toFixed(1)}M`}
               </text>
             </g>
@@ -1417,8 +1464,8 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
           const date = new Date(xv)
           return (
             <g key={`x-label-${i}`}>
-              <line x1={x} y1={H - pad} x2={x} y2={H - pad + 6} stroke="#9ca3af" />
-              <text x={x} y={H - pad + 18} fontSize={11} fill="#6b7280" textAnchor="middle">
+              <line x1={x} y1={H - pad} x2={x} y2={H - pad + 6} stroke="#9d9487" />
+              <text x={x} y={H - pad + 18} fontSize={11} fill="#7b8494" textAnchor="middle">
                 {date.toLocaleDateString('pt-PT', { month: 'short', year: '2-digit' })}
               </text>
             </g>
@@ -1433,27 +1480,27 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
               y1={pad} 
               x2={hoveredPoint.x} 
               y2={H - pad} 
-              stroke="#374151" 
+              stroke="#5f6673" 
               strokeWidth="1" 
               strokeDasharray="4,4"
             />
-            <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="6" fill="#374151" fillOpacity="0.1" />
+            <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="6" fill="#5f6673" fillOpacity="0.12" />
           </>
         )}
 
         {/* Legenda melhorada */}
         <g transform={`translate(${W - 200}, ${pad + 10})`}>
-          <rect x={0} y={-15} width={190} height={50} fill="#fff" stroke="#e5e7eb" rx="8" fillOpacity="0.95" />
+          <rect x={0} y={-15} width={190} height={50} fill="#fffaf2" stroke="#d9c9b4" rx="12" fillOpacity="0.98" />
           <g transform="translate(15, 5)">
-            <circle cx={8} cy={0} r={6} fill="#ef4444" />
-            <text x={20} y={4} fontSize={13} fill="#374151" fontWeight="600">Perdas</text>
-            <circle cx={8} cy={20} r={6} fill="#0ea5e9" />
-            <text x={20} y={24} fontSize={13} fill="#374151" fontWeight="600">Gastos</text>
+            <circle cx={8} cy={0} r={6} fill="#b42318" />
+            <text x={20} y={4} fontSize={13} fill="#3f4652" fontWeight="600">Perdas</text>
+            <circle cx={8} cy={20} r={6} fill="#0f766e" />
+            <text x={20} y={24} fontSize={13} fill="#3f4652" fontWeight="600">Gastos</text>
           </g>
         </g>
 
         {/* Título do eixo Y */}
-        <text x={15} y={pad - 15} fontSize={12} fill="#6b7280" fontWeight="600">MT (Milhões)</text>
+        <text x={15} y={pad - 15} fontSize={12} fill="#7b8494" fontWeight="600">MT (Milhões)</text>
       </svg>
 
       {/* Tooltip */}
@@ -1463,33 +1510,33 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
             position: 'absolute',
             left: Math.min(hoveredPoint.x + 10, W - 200),
             top: Math.max(hoveredPoint.y - 80, 10),
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
+            background: '#fffaf2',
+            border: '1px solid #d9c9b4',
+            borderRadius: '12px',
             padding: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            boxShadow: '0 16px 32px rgba(76, 57, 24, 0.16)',
             fontSize: '13px',
             minWidth: '160px',
             zIndex: 10
           }}
         >
-          <div style={{ fontWeight: '600', marginBottom: '8px', color: '#374151' }}>
+          <div style={{ fontWeight: '700', marginBottom: '8px', color: '#3f4652' }}>
             {hoveredPoint.date}
           </div>
           {hoveredPoint.loss !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444', marginRight: '8px' }} />
-              <span style={{ color: '#6b7280' }}>Perdas:</span>
-              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#ef4444' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#b42318', marginRight: '8px' }} />
+              <span style={{ color: '#7b8494' }}>Perdas:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#b42318' }}>
                 {formatMoney(hoveredPoint.loss)}
               </span>
             </div>
           )}
           {hoveredPoint.spend !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#0ea5e9', marginRight: '8px' }} />
-              <span style={{ color: '#6b7280' }}>Gastos:</span>
-              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#0ea5e9' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#0f766e', marginRight: '8px' }} />
+              <span style={{ color: '#7b8494' }}>Gastos:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#0f766e' }}>
                 {formatMoney(hoveredPoint.spend)}
               </span>
             </div>
@@ -1510,7 +1557,7 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
   const cy = H / 2
   const rOuter = 100
   const rInner = 60
-  const palette = ['#ef4444', '#0ea5e9', '#10b981', '#f59e0b', '#6366f1', '#14b8a6', '#f97316', '#84cc16']
+  const palette = ['#c96d1f', '#0f766e', '#b42318', '#8d4a17', '#3b7a57', '#c2410c', '#6b8a3a', '#7c5a2b']
   let angle = -Math.PI / 2
 
   const toXY = (r: number, a: number) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]
@@ -1538,10 +1585,10 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
   })
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'center' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(220px, 1fr)', gap: 16, alignItems: 'center' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Donut chart">
-        <circle cx={cx} cy={cy} r={rOuter} fill="#f3f4f6" />
-        <circle cx={cx} cy={cy} r={rInner} fill="#fff" />
+        <circle cx={cx} cy={cy} r={rOuter} fill="#f6ecde" />
+        <circle cx={cx} cy={cy} r={rInner} fill="#fffaf2" />
         {segments.map((s, i) => {
           const mid = (s.start + s.end) / 2
           const isHover = hoverIdx === i
@@ -1556,7 +1603,7 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
               key={i}
               d={arcPath(s.start, s.end)}
               fill={s.color}
-              stroke="#fff"
+              stroke="#fffaf2"
               strokeWidth={1}
               style={{ cursor: onSegmentClick ? 'pointer' : 'default', transform: `translate(${dx}px, ${dy}px) scale(${scale})`, transformOrigin: `${cx}px ${cy}px`, transition: 'transform 160ms ease, opacity 160ms ease', opacity }}
               onMouseEnter={() => setHoverIdx(i)}
@@ -1565,10 +1612,10 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
             />
           )
         })}
-        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={18} fill="#111827" fontWeight={800}>
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={20} fill="#1f2937" fontWeight={800}>
           {total}
         </text>
-        <text x={cx} y={cy + 18} textAnchor="middle" dominantBaseline="hanging" fontSize={11} fill="#6b7280">
+        <text x={cx} y={cy + 18} textAnchor="middle" dominantBaseline="hanging" fontSize={11} fill="#7b8494">
           total
         </text>
       </svg>
@@ -1579,18 +1626,18 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
           return (
             <div
               key={i}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: onSegmentClick ? 'pointer' : 'default', background: isHover ? '#f3f4f6' : 'transparent', borderRadius: 6, padding: isHover ? '4px 6px' : '0', transition: 'background 120ms ease, padding 120ms ease' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: onSegmentClick ? 'pointer' : 'default', background: isHover ? '#f6ecde' : 'transparent', borderRadius: 12, padding: isHover ? '8px 10px' : '4px 0', transition: 'background 120ms ease, padding 120ms ease' }}
               onMouseEnter={() => setHoverIdx(i)}
               onMouseLeave={() => setHoverIdx(null)}
               onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: 'inline-block' }} />
-                <span style={{ color: '#374151', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: isHover ? 700 as any : 400 as any }}>{s.label}</span>
+                <span style={{ color: '#3f4652', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: isHover ? 700 as any : 500 as any }}>{s.label}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <strong>{s.value}</strong>
-                <span style={{ color: '#6b7280', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
+                <strong style={{ color: '#1f2937' }}>{s.value}</strong>
+                <span style={{ color: '#7b8494', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
               </div>
             </div>
           )
@@ -1723,6 +1770,16 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
         mapTypeControl: false,
         fullscreenControl: false,
         streetViewControl: false,
+        styles: [
+          { elementType: 'geometry', stylers: [{ color: '#efe7da' }] },
+          { elementType: 'labels.text.fill', stylers: [{ color: '#5f6673' }] },
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f4ec' }] },
+          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+          { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e2d6c6' }] },
+          { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e8dfd2' }] },
+          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cde7df' }] },
+          { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#c8b9a4' }] },
+        ],
       })
     }
     init()
@@ -1740,18 +1797,18 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
     const scrapyardIcon: any = {
       path: g.SymbolPath.CIRCLE,
       scale: 7,
-      fillColor: '#ef4444', // vermelho (Sucatarias)
+      fillColor: '#b42318', // vermelho (Sucatarias)
       fillOpacity: 0.95,
-      strokeColor: '#ffffff',
-      strokeWeight: 1,
+      strokeColor: '#fffaf2',
+      strokeWeight: 2,
     }
     const infractionIcon: any = {
       path: g.SymbolPath.CIRCLE,
       scale: 7,
-      fillColor: '#1d4ed8', // azul (Ocorrências)
+      fillColor: '#0f766e', // verde/teal (Ocorrências)
       fillOpacity: 0.95,
-      strokeColor: '#ffffff',
-      strokeWeight: 1,
+      strokeColor: '#fffaf2',
+      strokeWeight: 2,
     }
 
     // sucatarias (vermelho)
@@ -1827,8 +1884,8 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
 
   return (
     <div>
-      {error ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8, marginBottom: 8 }}>{error}</div> : null}
-      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+      {error ? <div style={{ background: '#fff1e8', color: '#8d4a17', padding: 10, borderRadius: 12, marginBottom: 10, border: '1px solid rgba(141, 74, 23, 0.18)' }}>{error}</div> : null}
+      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(101, 74, 32, 0.14)', background: '#efe7da', boxShadow: '0 18px 36px rgba(76, 57, 24, 0.08)' }} />
     </div>
   )
 }
