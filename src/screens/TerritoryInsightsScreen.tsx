@@ -35,6 +35,7 @@ function TerritoryInsightsScreen({ mode }: Props) {
   const [spendSeries, setSpendSeries] = useState<Array<{ ts: string; total: number }>>([])
   const [animatingCardId, setAnimatingCardId] = useState<string | null>(null)
   const detailsRef = useRef<HTMLDivElement | null>(null)
+  const contextCardRef = useRef<HTMLDivElement | null>(null)
 
   const now = new Date()
   const defaultStart = new Date(Date.UTC(now.getUTCFullYear() - 1, 0, 1))
@@ -166,9 +167,9 @@ function TerritoryInsightsScreen({ mode }: Props) {
     if (!selectedId) return
 
     const timeoutId = window.setTimeout(() => {
-      const element = detailsRef.current
+      const element = contextCardRef.current || detailsRef.current
       if (!element) return
-      const top = window.scrollY + element.getBoundingClientRect().top - 24
+      const top = window.scrollY + element.getBoundingClientRect().top - 8
       window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
       if (typeof element.animate === 'function') {
         element.animate(
@@ -342,13 +343,15 @@ function TerritoryInsightsScreen({ mode }: Props) {
       ) : (
         <div ref={detailsRef} style={{ display: 'grid', gap: 16 }}>
           <Grid minColumnWidth={240} gap={16}>
-            <Card title="Contexto atual" subtitle={selectedName}>
-              <div style={{ display: 'grid', gap: 12 }}>
-                <StatPill label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} tone="teal" />
-                <StatPill label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} tone="danger" />
-                <StatPill label="Infractores" value={(kpis as any)?.nr_infractors ?? '—'} tone="amber" />
-              </div>
-            </Card>
+            <div ref={contextCardRef}>
+              <Card title="Contexto atual" subtitle={selectedName}>
+                <div style={{ display: 'grid', gap: 12 }}>
+                  <StatPill label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} tone="teal" />
+                  <StatPill label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} tone="danger" />
+                  <StatPill label="Infractores" value={(kpis as any)?.nr_infractors ?? '—'} tone="amber" />
+                </div>
+              </Card>
+            </div>
 
             <Card title="Indicadores financeiros" subtitle="Perdas e gasto operacional da seleção">
               <div style={{ display: 'grid', gap: 12 }}>
