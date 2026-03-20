@@ -306,8 +306,10 @@ export default function OcorrenciaCreateScreen() {
           </div>
         </div>
         <div style={createHeroActionsStyle}>
-          <Button variant="secondary" onClick={cancelar}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar ocorrência'}</Button>
+          <Button variant="secondary" onClick={cancelar}>
+            <IconClose />
+            <span>Cancelar</span>
+          </Button>
         </div>
       </div>
 
@@ -320,139 +322,173 @@ export default function OcorrenciaCreateScreen() {
 
       {submitError ? <div style={createErrorBannerStyle}>{submitError}</div> : null}
 
-      <Card title="Dados da ocorrência" subtitle="Defina o enquadramento base do registo antes de descer para as infrações.">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260, flex: 1 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Local</span>
-              <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Data da ocorrência</span>
-              <input type="date" value={dataFacto} onChange={(e) => setDataFacto(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
-            </label>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Factores que contribuíram</span>
-            <textarea
-              value={condicoesFavoreceram}
-              onChange={(e) => setCondicoesFavoreceram(e.target.value)}
-              placeholder="Descreva condições/factores que favoreceram a vandalização"
-              rows={3}
-              style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', resize: 'vertical' }}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input type="checkbox" checked={procCriminal} onChange={(e) => setProcCriminal(e.target.checked)} />
-              <span style={{ fontSize: 13, color: '#374151' }}>Processo criminal aberto</span>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input type="checkbox" checked={transportes} onChange={(e) => { setTransportes(e.target.checked); setRegiaoId(''); setAscId(''); setProvinceId(''); setDirecaoId('') }} />
-              <span style={{ fontSize: 13, color: '#374151' }}>Transportes</span>
-            </label>
-          </div>
-          {procCriminal && (
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-                <span style={{ fontSize: 13, color: '#374151' }}>Dados do auto</span>
-                <input value={autoTexto} onChange={(e) => setAutoTexto(e.target.value)} placeholder="Número/descrição do auto" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+      <Card subtitle="Preencha o contexto, a geografia e a localização antes de descer para as infrações.">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={createSectionCardStyle}>
+            <SectionHeading icon={<IconInfo />} title="Contexto base" subtitle="Defina o registo principal, a data do facto e a descrição operacional." />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260, gridColumn: 'span 2' }}>
+                <span style={createFieldLabelStyle}>Local</span>
+                <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Rua X, Bairro Y" style={createInputStyle} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260 }}>
-                <span style={{ fontSize: 13, color: '#374151' }}>Anexo do auto (imagem)</span>
-                <input type="file" accept="image/*" onChange={async (e) => {
-                  const f = e.target.files?.[0]
-                  if (!f) { setAutoImagem(''); return }
-                  const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader()
-                    reader.onload = () => resolve(String(reader.result))
-                    reader.onerror = () => reject(reader.error)
-                    reader.readAsDataURL(file)
-                  })
-                  try { setAutoImagem(await toDataUrl(f)) } catch { setAutoImagem('') }
-                }} />
-                {autoImagem ? (
-                  <img src={autoImagem} alt="Auto" style={{ marginTop: 6, width: 160, height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-                ) : null}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                <span style={createFieldLabelStyle}>Data da ocorrência</span>
+                <div style={createInputWithIconStyle}>
+                  <span style={createInputIconStyle}><IconCalendar /></span>
+                  <input type="date" value={dataFacto} onChange={(e) => setDataFacto(e.target.value)} style={createDateInputStyle} />
+                </div>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                <span style={createFieldLabelStyle}>Forma de conhecimento</span>
+                <select value={formaId} onChange={(e) => setFormaId(e.target.value)} style={createInputStyle}>
+                  <option value="">Selecionar</option>
+                  {formas.map((f) => <option key={f.id} value={f.id}>{f.name || f.id}</option>)}
+                </select>
               </label>
             </div>
-          )}
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Descrição</span>
-            <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição da ocorrência" rows={4} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', resize: 'vertical' }} />
-          </label>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {!transportes ? (
-              <>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-                  <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
-                  <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                    <option value="">— Selecionar —</option>
-                    {regioes.map((r) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
-                  </select>
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-                  <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
-                  <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                    <option value="">— Selecionar —</option>
-                    {ascs.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
-                  </select>
-                </label>
-              </>
-            ) : (
-              <>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-                  <span style={{ fontSize: 13, color: '#374151' }}>Província</span>
-                  <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                    <option value="">— Selecionar —</option>
-                    {provincias.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
-                  </select>
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 240 }}>
-                  <span style={{ fontSize: 13, color: '#374151' }}>Direção de Transporte</span>
-                  <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} required style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                    <option value="">— Selecionar —</option>
-                    {direcoes.map((d) => <option key={d.id} value={d.id}>{d.name || d.id}</option>)}
-                  </select>
-                </label>
-              </>
-            )}
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Forma de conhecimento</span>
-              <select value={formaId} onChange={(e) => setFormaId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-                <option value="">— Selecionar —</option>
-                {formas.map((f) => <option key={f.id} value={f.id}>{f.name || f.id}</option>)}
-              </select>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={createFieldLabelStyle}>Factores que contribuíram</span>
+              <textarea
+                value={condicoesFavoreceram}
+                onChange={(e) => setCondicoesFavoreceram(e.target.value)}
+                placeholder="Descreva condições ou factores que favoreceram a vandalização"
+                rows={3}
+                style={createTextareaStyle}
+              />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Latitude</span>
-              <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-25.96" inputMode="decimal" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-              <span style={{ fontSize: 13, color: '#374151' }}>Longitude</span>
-              <input value={long} onChange={(e) => setLong(e.target.value)} placeholder="32.58" inputMode="decimal" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={createFieldLabelStyle}>Descrição</span>
+              <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição da ocorrência" rows={4} style={createTextareaStyle} />
             </label>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Localização no mapa</span>
-            <MapPicker
-              value={{ lat: lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined, lng: long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined }}
-              onChange={(pos) => { setLat(String(pos.lat)); setLong(String(pos.lng)) }}
-              height={300}
-              zoom={6}
-            />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button type="button" variant="secondary" onClick={() => {
-                const occLat = lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined
-                const occLong = long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined
-                setInfractions((arr) => arr.map((it) => ({ ...it, lat: occLat as any, long: occLong as any })))
-              }}>Aplicar localização da ocorrência a todas as infrações</Button>
+
+          <div style={createSectionCardStyle}>
+            <SectionHeading icon={<IconToggle />} title="Classificação e processo" subtitle="Escolha o modo do registo e ative o processo criminal apenas quando aplicável." />
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <TogglePill
+                checked={procCriminal}
+                label="Processo criminal aberto"
+                description="Ative para revelar os dados do auto e o respetivo anexo."
+                onChange={(next) => setProcCriminal(next)}
+              />
+              <TogglePill
+                checked={transportes}
+                label="Modo transportes"
+                description="Troca Região/ASC por Província/Direção de Transporte."
+                onChange={(next) => { setTransportes(next); setRegiaoId(''); setAscId(''); setProvinceId(''); setDirecaoId('') }}
+              />
+            </div>
+
+            {procCriminal && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
+                  <span style={createFieldLabelStyle}>Dados do auto</span>
+                  <input value={autoTexto} onChange={(e) => setAutoTexto(e.target.value)} placeholder="Número ou descrição do auto" style={createInputStyle} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260 }}>
+                  <span style={createFieldLabelStyle}>Anexo do auto</span>
+                  <input type="file" accept="image/*" onChange={async (e) => {
+                    const f = e.target.files?.[0]
+                    if (!f) { setAutoImagem(''); return }
+                    const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+                      const reader = new FileReader()
+                      reader.onload = () => resolve(String(reader.result))
+                      reader.onerror = () => reject(reader.error)
+                      reader.readAsDataURL(file)
+                    })
+                    try { setAutoImagem(await toDataUrl(f)) } catch { setAutoImagem('') }
+                  }} />
+                  {autoImagem ? (
+                    <div style={createPreviewCardStyle}>
+                      <img src={autoImagem} alt="Auto" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 12, border: '1px solid rgba(101, 74, 32, 0.12)' }} />
+                    </div>
+                  ) : null}
+                </label>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1.1fr)', gap: 16 }}>
+            <div style={createSectionCardStyle}>
+              <SectionHeading icon={transportes ? <IconRoute /> : <IconMapPin />} title={transportes ? 'Contexto transportes' : 'Contexto territorial'} subtitle="Agrupe aqui os campos geográficos e operacionais do registo." />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+                {!transportes ? (
+                  <>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={createFieldLabelStyle}>Região</span>
+                      <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={createInputStyle}>
+                        <option value="">Selecionar</option>
+                        {regioes.map((r) => <option key={r.id} value={r.id}>{r.name || r.id}</option>)}
+                      </select>
+                    </label>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={createFieldLabelStyle}>ASC</span>
+                      <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={createInputStyle}>
+                        <option value="">Selecionar</option>
+                        {ascs.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+                      </select>
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={createFieldLabelStyle}>Província</span>
+                      <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)} style={createInputStyle}>
+                        <option value="">Selecionar</option>
+                        {provincias.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+                      </select>
+                    </label>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={createFieldLabelStyle}>Direção de Transporte</span>
+                      <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} style={createInputStyle}>
+                        <option value="">Selecionar</option>
+                        {direcoes.map((d) => <option key={d.id} value={d.id}>{d.name || d.id}</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div style={createSectionCardStyle}>
+              <SectionHeading icon={<IconTarget />} title="Localização" subtitle="Use o mapa para definir coordenadas com mais precisão e reaproveitá-las nas infrações." />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(120px, 1fr))', gap: 14 }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={createFieldLabelStyle}>Latitude</span>
+                  <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-25.96" inputMode="decimal" style={createInputStyle} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={createFieldLabelStyle}>Longitude</span>
+                  <input value={long} onChange={(e) => setLong(e.target.value)} placeholder="32.58" inputMode="decimal" style={createInputStyle} />
+                </label>
+              </div>
+              <MapPicker
+                value={{ lat: lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined, lng: long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined }}
+                onChange={(pos) => { setLat(String(pos.lat)); setLong(String(pos.lng)) }}
+                height={300}
+                zoom={6}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button size="sm" type="button" variant="secondary" onClick={() => {
+                  const occLat = lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined
+                  const occLong = long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined
+                  setInfractions((arr) => arr.map((it) => ({ ...it, lat: occLat as any, long: occLong as any })))
+                }}>
+                  Aplicar localização a todas as infrações
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card title="Infrações" subtitle="Organize as infrações por bloco, com materiais, fotografias e coordenadas próprias.">
+      <Card
+        title="Infrações"
+        subtitle="Organize as infrações por bloco, com materiais, fotografias e coordenadas próprias."
+        extra={<span style={createCardIconBadgeStyle}><IconWarn /></span>}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {infractions.map((inf, idx) => (
             <div key={idx} style={createInfractionCardStyle}>
@@ -531,19 +567,27 @@ export default function OcorrenciaCreateScreen() {
                     const occLat = lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined
                     const occLong = long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined
                     updateInf(idx, { lat: occLat as any, long: occLong as any })
-                  }}>Usar localização da ocorrência</Button>
+                  }}>
+                    <IconTarget />
+                    <span>Usar localização da ocorrência</span>
+                  </Button>
                 </div>
               </div>
 
               <div style={{ marginTop: 10 }}>
-                <strong>Fotografias</strong>
+                <div style={createSubsectionTitleStyle}>
+                  <IconCamera />
+                  <strong>Fotografias</strong>
+                </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                   {(inf.fotografias ?? []).map((img, i) => {
                     const src = img.startsWith('data:') ? img : `data:image/*;base64,${img}`
                     return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #e5e7eb', borderRadius: 8, padding: 6 }}>
+                      <div key={i} style={createMediaChipStyle}>
                         <img src={src} alt="Foto" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 6 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.3' }} />
-                        <Button size="sm" variant="danger" onClick={() => removePhoto(idx, i)}>Remover</Button>
+                        <Button size="sm" variant="danger" onClick={() => removePhoto(idx, i)}>
+                          <IconTrash />
+                        </Button>
                       </div>
                     )
                   })}
@@ -570,7 +614,8 @@ export default function OcorrenciaCreateScreen() {
                       <>
                         <input id={fileInputId} type="file" accept="image/*" multiple onChange={(e) => handleFiles(idx, e.target.files)} style={{ display: 'none' }} />
                         <Button size="sm" type="button" variant="secondary" onClick={() => (document.getElementById(fileInputId) as HTMLInputElement)?.click()}>
-                          Escolher ficheiros…
+                          <IconUpload />
+                          <span>Escolher ficheiros…</span>
                         </Button>
                         <span style={{ color: '#6b7280', fontSize: 12 }}>Pode selecionar múltiplas imagens</span>
                       </>
@@ -580,9 +625,15 @@ export default function OcorrenciaCreateScreen() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
-                <Button size="sm" type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>Remover infração</Button>
+                <Button size="sm" type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>
+                  <IconTrash />
+                  <span>Remover infração</span>
+                </Button>
                 {idx === infractions.length - 1 && (
-                  <Button size="sm" type="button" variant="secondary" onClick={addInf}>Adicionar infração</Button>
+                  <Button size="sm" type="button" variant="secondary" onClick={addInf}>
+                    <IconPlus />
+                    <span>Adicionar infração</span>
+                  </Button>
                 )}
               </div>
             </div>
@@ -590,7 +641,11 @@ export default function OcorrenciaCreateScreen() {
         </div>
       </Card>
 
-      <Card title="Infractores (opcional)" subtitle="Se necessário, adicione intervenientes associados à ocorrência.">
+      <Card
+        title="Infractores (opcional)"
+        subtitle="Se necessário, adicione intervenientes associados à ocorrência."
+        extra={<span style={createCardIconBadgeStyle}><IconPeople /></span>}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(infractors.length === 0) ? <div style={createMutedBannerStyle}>Sem infractores adicionados.</div> : null}
           {infractors.map((it, idx) => (
@@ -607,18 +662,30 @@ export default function OcorrenciaCreateScreen() {
                 <span style={{ fontSize: 13, color: '#374151' }}>Tipo de identificação</span>
                 <input value={it.tipo_identificacao ?? ''} onChange={(e) => updateInfractor(idx, { tipo_identificacao: e.target.value })} placeholder="BI, Passaporte…" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
               </label>
-              <Button size="sm" type="button" variant="danger" onClick={() => removeInfractor(idx)}>Remover</Button>
+              <Button size="sm" type="button" variant="danger" onClick={() => removeInfractor(idx)}>
+                <IconTrash />
+                <span>Remover</span>
+              </Button>
             </div>
           ))}
           <div>
-            <Button size="sm" type="button" variant="secondary" onClick={addInfractor}>Adicionar infractor</Button>
+            <Button size="sm" type="button" variant="secondary" onClick={addInfractor}>
+              <IconPlus />
+              <span>Adicionar infractor</span>
+            </Button>
           </div>
         </div>
       </Card>
 
       <div style={createFooterActionsStyle}>
-        <Button variant="secondary" onClick={cancelar}>Cancelar</Button>
-        <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar ocorrência'}</Button>
+        <Button variant="secondary" onClick={cancelar}>
+          <IconClose />
+          <span>Cancelar</span>
+        </Button>
+        <Button onClick={submit} disabled={submitting}>
+          <IconSave />
+          <span>{submitting ? 'A guardar…' : 'Guardar ocorrência'}</span>
+        </Button>
       </div>
     </div>
   )
@@ -630,11 +697,11 @@ const createHeroStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: 16,
   flexWrap: 'wrap',
-  padding: 24,
-  borderRadius: 28,
-  background: 'linear-gradient(135deg, rgba(255, 249, 240, 0.98) 0%, rgba(247, 237, 222, 0.96) 100%)',
+  padding: 20,
+  borderRadius: 24,
+  background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
   border: '1px solid rgba(101, 74, 32, 0.12)',
-  boxShadow: '0 24px 44px rgba(101, 74, 32, 0.08)',
+  boxShadow: '0 18px 36px rgba(101, 74, 32, 0.08)',
 }
 
 const createEyebrowStyle: React.CSSProperties = {
@@ -656,6 +723,7 @@ const createHeroActionsStyle: React.CSSProperties = {
   display: 'flex',
   gap: 10,
   flexWrap: 'wrap',
+  alignItems: 'center',
 }
 
 const createSummaryChipStyle: React.CSSProperties = {
@@ -678,6 +746,96 @@ const createErrorBannerStyle: React.CSSProperties = {
   border: '1px solid rgba(200, 60, 60, 0.18)',
   color: '#991b1b',
   fontWeight: 700,
+}
+
+const createSectionCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+  padding: 18,
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)',
+  boxShadow: '0 14px 28px rgba(101, 74, 32, 0.05)',
+}
+
+const createFieldLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.08em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const createInputStyle: React.CSSProperties = {
+  minHeight: 46,
+  padding: '0 14px',
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'rgba(255,255,255,0.94)',
+  color: '#1f2937',
+  boxShadow: '0 8px 18px rgba(101, 74, 32, 0.04)',
+}
+
+const createTextareaStyle: React.CSSProperties = {
+  minHeight: 112,
+  padding: 14,
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'rgba(255,255,255,0.94)',
+  color: '#1f2937',
+  resize: 'vertical' as const,
+  boxShadow: '0 8px 18px rgba(101, 74, 32, 0.04)',
+}
+
+const createInputWithIconStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  minHeight: 46,
+  paddingLeft: 12,
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'rgba(255,255,255,0.94)',
+  boxShadow: '0 8px 18px rgba(101, 74, 32, 0.04)',
+}
+
+const createInputIconStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 28,
+  height: 28,
+  color: '#8d4a17',
+}
+
+const createDateInputStyle: React.CSSProperties = {
+  flex: 1,
+  minHeight: 44,
+  padding: '0 14px 0 8px',
+  border: 'none',
+  background: 'transparent',
+  color: '#1f2937',
+  outline: 'none',
+}
+
+const createPreviewCardStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  marginTop: 6,
+  padding: 8,
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'rgba(255,255,255,0.92)',
+}
+
+const createCardIconBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 38,
+  height: 38,
+  borderRadius: 14,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
 }
 
 const createInfractionCardStyle: React.CSSProperties = {
@@ -717,6 +875,23 @@ const createInfractionMetaStyle: React.CSSProperties = {
   fontWeight: 700,
 }
 
+const createSubsectionTitleStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  color: '#1f2937',
+}
+
+const createMediaChipStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: 8,
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'rgba(255,255,255,0.94)',
+}
+
 const createMutedBannerStyle: React.CSSProperties = {
   padding: '14px 16px',
   borderRadius: 18,
@@ -746,6 +921,142 @@ const createFooterActionsStyle: React.CSSProperties = {
   borderRadius: 22,
   border: '1px solid rgba(101, 74, 32, 0.12)',
   background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+  boxShadow: '0 18px 36px rgba(101, 74, 32, 0.08)',
+}
+
+function SectionHeading({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+      <div style={{ ...createInputIconStyle, width: 36, height: 36, borderRadius: 12, background: 'rgba(168, 113, 51, 0.1)' }}>
+        {icon}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <strong style={{ color: '#1f2937', fontSize: 18 }}>{title}</strong>
+        <span style={{ color: '#5f6673', lineHeight: 1.55 }}>{subtitle}</span>
+      </div>
+    </div>
+  )
+}
+
+function TogglePill({ checked, label, description, onChange }: { checked: boolean; label: string; description: string; onChange: (value: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      aria-pressed={checked}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '14px 16px',
+        borderRadius: 18,
+        border: checked ? '1px solid rgba(201, 109, 31, 0.24)' : '1px solid rgba(101, 74, 32, 0.12)',
+        background: checked
+          ? 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)'
+          : 'rgba(255,255,255,0.94)',
+        boxShadow: checked ? '0 12px 24px rgba(201, 109, 31, 0.10)' : '0 8px 18px rgba(101, 74, 32, 0.04)',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'relative',
+          display: 'inline-flex',
+          alignItems: 'center',
+          width: 48,
+          height: 28,
+          borderRadius: 999,
+          background: checked ? '#c96d1f' : '#d8dde6',
+          transition: 'background 0.18s ease',
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute',
+            top: 3,
+            left: checked ? 23 : 3,
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
+            background: '#fff',
+            boxShadow: '0 4px 10px rgba(31, 41, 55, 0.18)',
+            transition: 'left 0.18s ease',
+          }}
+        />
+      </span>
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ color: '#1f2937', fontWeight: 800, lineHeight: 1.2 }}>{label}</span>
+        <span style={{ color: '#5f6673', fontSize: 13, lineHeight: 1.45 }}>{description}</span>
+      </span>
+    </button>
+  )
+}
+
+function CreateIconBase({ children }: { children: React.ReactNode }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  )
+}
+
+function IconInfo() {
+  return <CreateIconBase><circle cx="12" cy="12" r="8" /><path d="M12 10v5" /><circle cx="12" cy="7.5" r=".6" fill="currentColor" stroke="none" /></CreateIconBase>
+}
+
+function IconCalendar() {
+  return <CreateIconBase><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></CreateIconBase>
+}
+
+function IconToggle() {
+  return <CreateIconBase><rect x="3" y="8" width="18" height="8" rx="4" /><circle cx="16" cy="12" r="3" fill="currentColor" stroke="none" /></CreateIconBase>
+}
+
+function IconMapPin() {
+  return <CreateIconBase><path d="M12 20s6-5.4 6-10a6 6 0 1 0-12 0c0 4.6 6 10 6 10Z" /><circle cx="12" cy="10" r="2.2" /></CreateIconBase>
+}
+
+function IconRoute() {
+  return <CreateIconBase><circle cx="6" cy="18" r="2" /><path d="M8 18h5a3 3 0 0 0 3-3V9" /><circle cx="17" cy="6" r="2" /></CreateIconBase>
+}
+
+function IconTarget() {
+  return <CreateIconBase><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2.2" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2" /></CreateIconBase>
+}
+
+function IconWarn() {
+  return <CreateIconBase><path d="M12 4 20 19H4L12 4Z" /><path d="M12 9v4" /><circle cx="12" cy="16" r=".7" fill="currentColor" stroke="none" /></CreateIconBase>
+}
+
+function IconPeople() {
+  return <CreateIconBase><circle cx="9" cy="9" r="3" /><path d="M4.5 18c1.4-2.4 7.6-2.4 9 0" /><path d="M17 8.5a2.4 2.4 0 1 1 0 4.8" /><path d="M18.5 17c-.5-1-1.4-1.8-2.7-2.2" /></CreateIconBase>
+}
+
+function IconCamera() {
+  return <CreateIconBase><path d="M5 8h14v10H5z" /><path d="M9 8 10.5 6h3L15 8" /><circle cx="12" cy="13" r="2.8" /></CreateIconBase>
+}
+
+function IconUpload() {
+  return <CreateIconBase><path d="M12 16V7" /><path d="m8.5 10.5 3.5-3.5 3.5 3.5" /><path d="M5 18h14" /></CreateIconBase>
+}
+
+function IconTrash() {
+  return <CreateIconBase><path d="M5 7h14" /><path d="M9 4h6" /><path d="m7 7 .8 11h8.4L17 7" /><path d="M10 11v4M14 11v4" /></CreateIconBase>
+}
+
+function IconPlus() {
+  return <CreateIconBase><path d="M12 5v14M5 12h14" /></CreateIconBase>
+}
+
+function IconClose() {
+  return <CreateIconBase><path d="m7 7 10 10M17 7 7 17" /></CreateIconBase>
+}
+
+function IconSave() {
+  return <CreateIconBase><path d="M5 5h12l2 2v12H5z" /><path d="M9 5v5h6V5" /><path d="M9 19v-5h6v5" /></CreateIconBase>
 }
 
 function appendCreatedParam(search: string) {
