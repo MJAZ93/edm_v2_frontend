@@ -449,10 +449,7 @@ a:hover {
 }
 
 .app-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-6);
+  display: block;
   padding: var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: 28px;
@@ -476,7 +473,8 @@ a:hover {
 
 .app-page-header__subtitle {
   margin-top: 10px;
-  max-width: 70ch;
+  max-width: none;
+  width: 100%;
 }
 
 .app-page-header__meta {
@@ -541,7 +539,6 @@ a:hover {
   }
 
   .app-page-header {
-    flex-direction: column;
     padding: var(--space-5);
   }
 

@@ -393,14 +393,6 @@ export default function DashboardScreen() {
               {headerSubtitleMap[active] || 'Estrutura privada revista com maior clareza visual, melhor hierarquia e mais espaço útil.'}
             </p>
           </div>
-
-          <div className="app-page-header__meta">
-            <span className="app-page-header__badge">
-              <span className="app-page-header__badge-dot" />
-              <span>Secção ativa</span>
-            </span>
-            <span className="app-page-header__badge">{headerTitle}</span>
-          </div>
         </div>
       ) : undefined}
       >
@@ -584,7 +576,6 @@ export default function DashboardScreen() {
                   <thead>
                     <tr style={{ borderBottom: '2px solid rgba(101, 74, 32, 0.12)' }}>
                       <th style={{ padding: '12px 8px', textAlign: 'left', color: '#3f4652', fontWeight: 700 }}>Sucataria</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#3f4652', fontWeight: 700 }}>ASC</th>
                       <th style={{ padding: '12px 8px', textAlign: 'center', color: '#3f4652', fontWeight: 700 }}>Nível Risco</th>
                       <th style={{ padding: '12px 8px', textAlign: 'center', color: '#3f4652', fontWeight: 700 }}>Ações</th>
                     </tr>
@@ -597,9 +588,6 @@ export default function DashboardScreen() {
                         <tr key={i} style={{ borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
                           <td style={{ padding: '12px 8px' }}>
                             <div style={{ fontWeight: 600, color: '#111827' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
-                          </td>
-                          <td style={{ padding: '12px 8px', color: '#7b8494' }}>
-                            {s?.asc_name || s?.asc_id || '—'}
                           </td>
                           <td style={{ padding: '12px 8px', textAlign: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -1822,6 +1810,12 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
     markersRef.current = []
 
     const info = new g.InfoWindow()
+    const escapeHtml = (value: any) => String(value ?? '—')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
 
     const scrapyardIcon: any = {
       path: g.SymbolPath.CIRCLE,
@@ -1852,10 +1846,17 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
           const materiais = Array.isArray(s.materiais) && s.materiais.length
             ? (s.materiais.map((m: any) => m?.name).filter(Boolean).join(', '))
             : '—'
-          const html = `<div style="max-width:260px">
-            <strong>${s.nome || 'Sucataria'}</strong><br/>
-            ASC: ${asc}<br/>
-            Materiais: ${materiais}
+          const detailUrl = `/sucatarias/${encodeURIComponent(String(s?.scrapyard_id || s?.id || ''))}`
+          const html = `<div style="max-width:280px;font-family:Manrope,'Segoe UI',sans-serif;background:linear-gradient(180deg,#fffaf2 0%,#f6ecde 100%);border:1px solid rgba(101,74,32,.14);border-radius:18px;padding:14px;box-shadow:0 14px 28px rgba(76,57,24,.12);color:#1f2937">
+            <div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8d4a17;margin-bottom:6px">Sucataria</div>
+            <div style="font-size:16px;font-weight:800;line-height:1.2;margin-bottom:10px">${escapeHtml(s.nome || 'Sucataria')}</div>
+            <div style="display:grid;gap:6px;margin-bottom:12px">
+              <div style="font-size:12px;color:#5f6673"><strong style="color:#3f4652">ASC:</strong> ${escapeHtml(asc)}</div>
+              <div style="font-size:12px;color:#5f6673"><strong style="color:#3f4652">Materiais:</strong> ${escapeHtml(materiais)}</div>
+            </div>
+            <a href="${detailUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:12px;border:1px solid rgba(101,74,32,.14);background:linear-gradient(180deg,#fffaf2 0%,#f6ecde 100%);color:#8d4a17;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 8px 18px rgba(76,57,24,.08)">
+              Abrir detalhe
+            </a>
           </div>`
           info.setContent(html)
           info.open({ anchor: marker, map: mapRef.current })
@@ -1873,10 +1874,17 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
         if (interactive) marker.addListener('click', () => {
           const when = (o as any)?.data_facto || o?.created_at
           const whenTxt = when ? new Date(when).toLocaleString('pt-PT') : '—'
-          const html = `<div style="max-width:240px">
-            <strong>Ocorrência</strong><br/>
-            Local: ${(o?.local || '—').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}<br/>
-            Data: ${whenTxt}
+          const detailUrl = `/ocorrencias/${encodeURIComponent(String(o?.id || ''))}`
+          const html = `<div style="max-width:280px;font-family:Manrope,'Segoe UI',sans-serif;background:linear-gradient(180deg,#fffaf2 0%,#f6ecde 100%);border:1px solid rgba(101,74,32,.14);border-radius:18px;padding:14px;box-shadow:0 14px 28px rgba(76,57,24,.12);color:#1f2937">
+            <div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0f766e;margin-bottom:6px">Ocorrência</div>
+            <div style="font-size:16px;font-weight:800;line-height:1.2;margin-bottom:10px">${escapeHtml(o?.local || 'Ocorrência')}</div>
+            <div style="display:grid;gap:6px;margin-bottom:12px">
+              <div style="font-size:12px;color:#5f6673"><strong style="color:#3f4652">Data:</strong> ${escapeHtml(whenTxt)}</div>
+              <div style="font-size:12px;color:#5f6673"><strong style="color:#3f4652">ID:</strong> ${escapeHtml(o?.id || '—')}</div>
+            </div>
+            <a href="${detailUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:12px;border:1px solid rgba(15,118,110,.18);background:linear-gradient(180deg,#eef8f5 0%,#ddf0eb 100%);color:#0f766e;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 8px 18px rgba(15,118,110,.10)">
+              Abrir detalhe
+            </a>
           </div>`
           info.setContent(html)
           info.open({ anchor: marker, map: mapRef.current })
