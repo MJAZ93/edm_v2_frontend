@@ -45,8 +45,8 @@ function TerritoryInsightsScreen({ mode }: Props) {
     const day = String(d.getUTCDate()).padStart(2, '0')
     return `${y}-${m}-${day}`
   }
-  const [dateStart] = useState<string>(formatDateInput(defaultStart))
-  const [dateEnd] = useState<string>(formatDateInput(now))
+  const [dateStart, setDateStart] = useState<string>(formatDateInput(defaultStart))
+  const [dateEnd, setDateEnd] = useState<string>(formatDateInput(now))
 
   const pageTitle = mode === 'regiao' ? 'Análise por Região' : 'Análise por ASC'
   const pageSubtitle = mode === 'regiao'
@@ -247,10 +247,20 @@ function TerritoryInsightsScreen({ mode }: Props) {
       <Card
         title={pageTitle}
         subtitle={pageSubtitle}
-        extra={mode === 'asc' ? (
-          <div style={{ minWidth: 220 }}>
+        extra={<span style={contextChipStyle}>Atualização dinâmica por seleção</span>}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: mode === 'asc' ? 'repeat(auto-fit, minmax(180px, 1fr))' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 14 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={filterLabelStyle}>Início</span>
+            <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={filterLabelStyle}>Fim</span>
+            <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} />
+          </label>
+          {mode === 'asc' ? (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700 }}>Filtrar cards por região</span>
+              <span style={filterLabelStyle}>Filtrar cards por região</span>
               <select
                 value={regionScopeId}
                 onChange={(e) => updateSearch('', e.target.value)}
@@ -261,13 +271,11 @@ function TerritoryInsightsScreen({ mode }: Props) {
                 ))}
               </select>
             </label>
-          </div>
-        ) : (
-          <span style={contextChipStyle}>Período: Últimos 12 meses</span>
-        )}
-      >
+          ) : null}
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <span style={contextChipStyle}>{mode === 'regiao' ? 'Selecione uma região' : 'Selecione uma ASC'}</span>
+          <span style={contextChipStyle}>{dateStart} até {dateEnd}</span>
           {mode === 'asc' && regionScopeId ? (
             <span style={contextChipStyle}>
               Região base: {regioes.find((item: any) => item.id === regionScopeId)?.name || regionScopeId}
@@ -442,6 +450,7 @@ function DistributionBars({ data }: { data: Array<{ label: string; value: number
 function CompactTrendChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string; total: number }>; spend?: Array<{ ts: string; total: number }> }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [width, setWidth] = useState(900)
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; loss?: number; spend?: number; date?: string } | null>(null)
   const height = 280
   const pad = 34
 
@@ -471,9 +480,47 @@ function CompactTrendChart({ loss = [], spend = [] }: { loss?: Array<{ ts: strin
   const sy = (y: number) => height - pad - (y / maxY) * chartHeight
   const path = (items: Array<{ x: number; y: number }>) => items.map((item, index) => `${index === 0 ? 'M' : 'L'} ${sx(item.x)} ${sy(item.y)}`).join(' ')
 
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    if (mouseX < pad || mouseX > Math.max(320, width) - pad || mouseY < pad || mouseY > height - pad) {
+      setHoveredPoint(null)
+      return
+    }
+
+    const hoveredTime = minX + ((mouseX - pad) / chartWidth) * (maxX - minX)
+    const findClosest = (items: Array<{ x: number; y: number }>) => {
+      if (!items.length) return null
+      return items.reduce((prev, current) => Math.abs(current.x - hoveredTime) < Math.abs(prev.x - hoveredTime) ? current : prev)
+    }
+
+    const closestLoss = findClosest(lossData)
+    const closestSpend = findClosest(spendData)
+    const reference = closestLoss || closestSpend
+    if (!reference) return
+
+    setHoveredPoint({
+      x: sx(reference.x),
+      y: mouseY,
+      loss: closestLoss?.y,
+      spend: closestSpend?.y,
+      date: new Date(reference.x).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }),
+    })
+  }
+
   return (
-    <div ref={containerRef} style={{ width: '100%' }}>
-      <svg width={Math.max(320, width)} height={height} role="img" aria-label="Evolução financeira">
+    <div ref={containerRef} style={{ width: '100%', position: 'relative' }}>
+      <svg
+        width={Math.max(320, width)}
+        height={height}
+        role="img"
+        aria-label="Evolução financeira"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredPoint(null)}
+        style={{ cursor: 'crosshair' }}
+      >
         <defs>
           <linearGradient id="territoryLossGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#b42318" stopOpacity="0.22" />
@@ -497,6 +544,18 @@ function CompactTrendChart({ loss = [], spend = [] }: { loss?: Array<{ ts: strin
         {spendData.length > 1 ? <path d={`${path(spendData)} L ${sx(spendData[spendData.length - 1].x)} ${height - pad} L ${sx(spendData[0].x)} ${height - pad} Z`} fill="url(#territorySpendGradient)" /> : null}
         {lossData.length > 1 ? <path d={path(lossData)} fill="none" stroke="#b42318" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /> : null}
         {spendData.length > 1 ? <path d={path(spendData)} fill="none" stroke="#0f766e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /> : null}
+        {lossData.map((item, index) => (
+          <circle key={`loss-${index}`} cx={sx(item.x)} cy={sy(item.y)} r="4" fill="#b42318" stroke="#fffaf2" strokeWidth="2" />
+        ))}
+        {spendData.map((item, index) => (
+          <circle key={`spend-${index}`} cx={sx(item.x)} cy={sy(item.y)} r="4" fill="#0f766e" stroke="#fffaf2" strokeWidth="2" />
+        ))}
+        {hoveredPoint ? (
+          <>
+            <line x1={hoveredPoint.x} y1={pad} x2={hoveredPoint.x} y2={height - pad} stroke="#5f6673" strokeWidth="1" strokeDasharray="4,4" />
+            <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="6" fill="#5f6673" fillOpacity="0.12" />
+          </>
+        ) : null}
 
         <g transform={`translate(${pad}, 14)`}>
           <rect x={0} y={0} width={170} height={42} rx={12} fill="#fffaf2" stroke="#d9c9b4" />
@@ -506,6 +565,40 @@ function CompactTrendChart({ loss = [], spend = [] }: { loss?: Array<{ ts: strin
           <text x={30} y={34} fontSize={12} fill="#3f4652" fontWeight="700">Gastos</text>
         </g>
       </svg>
+
+      {hoveredPoint ? (
+        <div
+          style={{
+            position: 'absolute',
+            left: Math.min(hoveredPoint.x + 12, Math.max(320, width) - 200),
+            top: Math.max(hoveredPoint.y - 84, 8),
+            background: '#fffaf2',
+            border: '1px solid #d9c9b4',
+            borderRadius: 12,
+            padding: 12,
+            boxShadow: '0 16px 32px rgba(76, 57, 24, 0.16)',
+            fontSize: 13,
+            minWidth: 160,
+            zIndex: 4,
+          }}
+        >
+          <div style={{ fontWeight: 700, marginBottom: 8, color: '#3f4652' }}>{hoveredPoint.date}</div>
+          {hoveredPoint.loss !== undefined ? (
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#b42318', marginRight: 8 }} />
+              <span style={{ color: '#7b8494' }}>Perdas:</span>
+              <span style={{ marginLeft: 8, fontWeight: 600, color: '#b42318' }}>{formatMoney(hoveredPoint.loss)}</span>
+            </div>
+          ) : null}
+          {hoveredPoint.spend !== undefined ? (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0f766e', marginRight: 8 }} />
+              <span style={{ color: '#7b8494' }}>Gastos:</span>
+              <span style={{ marginLeft: 8, fontWeight: 600, color: '#0f766e' }}>{formatMoney(hoveredPoint.spend)}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -526,6 +619,14 @@ const contextChipStyle: React.CSSProperties = {
   color: '#5f6673',
   fontSize: 12,
   fontWeight: 700,
+}
+
+const filterLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#7b8494',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
 }
 
 const countBadgeStyle: React.CSSProperties = {
