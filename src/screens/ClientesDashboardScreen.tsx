@@ -21,9 +21,15 @@ export default function ClientesDashboardScreen() {
   const [marcacaoStatus, setMarcacaoStatus] = useState('')
   const [analiseStatus, setAnaliseStatus] = useState('')
   const [ascCounts, setAscCounts] = useState<CountItem[]>([])
+  const [itemsASC, setItemsASC] = useState<CountItem[]>([])
+  const [loadingASC, setLoadingASC] = useState(false)
+  const [errorASC, setErrorASC] = useState<string | null>(null)
   const [deficitItems, setDeficitItems] = useState<Array<{ group_id?: string; deficit?: number }>>([])
   const [deficitLoading, setDeficitLoading] = useState(false)
   const [deficitError, setDeficitError] = useState<string | null>(null)
+  const [deficitItemsASC, setDeficitItemsASC] = useState<Array<{ group_id?: string; deficit?: number }>>([])
+  const [deficitLoadingASC, setDeficitLoadingASC] = useState(false)
+  const [deficitErrorASC, setDeficitErrorASC] = useState<string | null>(null)
   // Filtro geral: Mês e Ano (análise de um mês)
   const now = new Date()
   const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as const
@@ -45,6 +51,27 @@ export default function ClientesDashboardScreen() {
   const [effectivenessData, setEffectivenessData] = useState<any[]>([])
   const [effectivenessLoading, setEffectivenessLoading] = useState(false)
   const [effectivenessError, setEffectivenessError] = useState<string | null>(null)
+  // Contagens de ações por instalação (por região)
+  const [accoesCounts, setAccoesCounts] = useState<CountItem[]>([])
+  const [accoesLoading, setAccoesLoading] = useState(false)
+  const [accoesError, setAccoesError] = useState<string | null>(null)
+  // Contagens de ações por instalação (por ASC)
+  const [accoesCountsASC, setAccoesCountsASC] = useState<CountItem[]>([])
+  const [accoesLoadingASC, setAccoesLoadingASC] = useState(false)
+  const [accoesErrorASC, setAccoesErrorASC] = useState<string | null>(null)
+  // Melhores por valor recuperado (via /valor_recuperado)
+  const [bestItems, setBestItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
+  const [bestLoading, setBestLoading] = useState(false)
+  const [bestError, setBestError] = useState<string | null>(null)
+  // Melhores por valor recuperado (por ASC)
+  const [bestItemsASC, setBestItemsASC] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
+  const [bestLoadingASC, setBestLoadingASC] = useState(false)
+  const [bestErrorASC, setBestErrorASC] = useState<string | null>(null)
+  // Toggles para alternar entre região e ASC
+  const [clientesGroupBy, setClientesGroupBy] = useState<'regiao' | 'asc'>('regiao')
+  const [deficitGroupBy, setDeficitGroupBy] = useState<'regiao' | 'asc'>('regiao')
+  const [accoesGroupBy, setAccoesGroupBy] = useState<'regiao' | 'asc'>('regiao')
+  const [bestGroupBy, setBestGroupBy] = useState<'regiao' | 'asc'>('regiao')
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -57,6 +84,7 @@ export default function ClientesDashboardScreen() {
     } catch { return false }
   }
 
+  // Carregar contagens de clientes por região
   useEffect(() => {
     (async () => {
       setLoading(true); setError(null)
@@ -73,6 +101,24 @@ export default function ClientesDashboardScreen() {
       } finally { setLoading(false) }
     })()
   }, [api, auth, tendencia])
+
+  // Carregar contagens de clientes por ASC
+  useEffect(() => {
+    (async () => {
+      setLoadingASC(true); setErrorASC(null)
+      try {
+        const { data } = await api.privateInspeccoesContagensGet(auth, 'asc' as any, tendencia || undefined)
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped: CountItem[] = raw.map((it: any) => ({ id: it?.group_id, label: (ascs.find(a => a.id === it?.group_id)?.name) || it?.group_name, count: it?.total }))
+        setItemsASC(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setErrorASC(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar contagens de inspeções por ASC.')
+      } finally { setLoadingASC(false) }
+    })()
+  }, [api, auth, tendencia, ascs])
 
   // Carregar filtros (Regiões e ASCs)
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
@@ -94,13 +140,18 @@ export default function ClientesDashboardScreen() {
     })()
   }, [api, auth, tendencia, regiaoId])
 
-  // Aplicar filtros localmente (agrupado por Região)
+  // Aplicar filtros localmente (agrupado por Região/ASC)
   const ascRegiaoId = useMemo(() => (ascs.find(a => a.id === ascId)?.regiao_id) || '', [ascs, ascId])
   const filtered = useMemo(() => {
+    const currentItems = clientesGroupBy === 'regiao' ? items : itemsASC
     const rId = regiaoId || ascRegiaoId || ''
-    if (!rId) return items
-    return (items || []).filter((it) => (it.id === rId || it.label === (regioes.find(r => r.id === rId)?.name)))
-  }, [items, regiaoId, ascRegiaoId, regioes])
+    if (!rId) return currentItems
+    if (clientesGroupBy === 'regiao') {
+      return (currentItems || []).filter((it) => (it.id === rId || it.label === (regioes.find(r => r.id === rId)?.name)))
+    } else {
+      return (currentItems || []).filter((it) => (it.id === ascId || it.label === (ascs.find(a => a.id === ascId)?.name)))
+    }
+  }, [items, itemsASC, regiaoId, ascRegiaoId, ascId, regioes, ascs, clientesGroupBy])
 
   const donutData = (filtered || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))
   const monthLabel = `${MONTH_NAMES_PT[Math.max(1, Math.min(12, month)) - 1]} ${year}`
@@ -121,16 +172,37 @@ export default function ClientesDashboardScreen() {
     })()
   }, [api, auth, tendencia])
 
+  // Carregar défice por ASC
+  useEffect(() => {
+    (async () => {
+      setDeficitLoadingASC(true); setDeficitErrorASC(null)
+      try {
+        const { data } = await api.privateInspeccoesDeficitGet(auth, 'asc' as any, tendencia || undefined)
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setDeficitItemsASC((((data as any)?.items) ?? []))
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setDeficitErrorASC(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar défices por ASC.')
+      } finally { setDeficitLoadingASC(false) }
+    })()
+  }, [api, auth, tendencia])
+
   const deficitWithLabels = useMemo(() => {
     const byId = new Map((regioes || []).map(r => [r.id, r.name]))
     return (deficitItems || []).map(it => ({ id: it.group_id || '', label: byId.get(it.group_id || '') || (it.group_id || '—'), value: Number(it.deficit || 0) }))
   }, [deficitItems, regioes])
-  const deficitDonut = (deficitWithLabels || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))
+  const deficitWithLabelsASC = useMemo(() => {
+    const byId = new Map((ascs || []).map(a => [a.id, a.name]))
+    return (deficitItemsASC || []).map(it => ({ id: it.group_id || '', label: byId.get(it.group_id || '') || (it.group_id || '—'), value: Number(it.deficit || 0) }))
+  }, [deficitItemsASC, ascs])
+  const deficitDonut = (deficitGroupBy === 'regiao' ? deficitWithLabels : deficitWithLabelsASC || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))
   const selectedRegiaoId = regiaoId || ascRegiaoId || ''
   const deficitFiltered = useMemo(() => {
-    if (!selectedRegiaoId) return deficitWithLabels
-    return (deficitWithLabels || []).filter(it => it.id === selectedRegiaoId)
-  }, [deficitWithLabels, selectedRegiaoId])
+    const currentDeficitData = deficitGroupBy === 'regiao' ? deficitWithLabels : deficitWithLabelsASC
+    if (!selectedRegiaoId) return currentDeficitData
+    return (currentDeficitData || []).filter(it => it.id === selectedRegiaoId)
+  }, [deficitWithLabels, deficitWithLabelsASC, selectedRegiaoId, deficitGroupBy])
 
   // Carregar dados temporais (sempre janela de 12 meses ancorada no mês/ano selecionados)
   useEffect(() => {
@@ -233,14 +305,7 @@ export default function ClientesDashboardScreen() {
     })()
   }, [accoesApi, auth])
 
-  // Contagens de ações por instalação (por região)
-  const [accoesCounts, setAccoesCounts] = useState<CountItem[]>([])
-  const [accoesLoading, setAccoesLoading] = useState(false)
-  const [accoesError, setAccoesError] = useState<string | null>(null)
-  // Melhores por valor recuperado (via /valor_recuperado)
-  const [bestItems, setBestItems] = useState<Array<{ id?: string; label?: string; value?: number }>>([])
-  const [bestLoading, setBestLoading] = useState(false)
-  const [bestError, setBestError] = useState<string | null>(null)
+  // Carregar valor recuperado por região
   useEffect(() => {
     (async () => {
       setBestLoading(true); setBestError(null)
@@ -269,6 +334,36 @@ export default function ClientesDashboardScreen() {
     })()
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
 
+  // Carregar valor recuperado por ASC
+  useEffect(() => {
+    (async () => {
+      setBestLoadingASC(true); setBestErrorASC(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesValorRecuperadoGet(
+          auth,
+          'asc' as any,
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          ascId || undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped = raw
+          .map((it: any) => ({ id: it?.group_id, label: it?.group_name || (ascs.find(a => a.id === it?.group_id)?.name) || it?.group_id, value: Number(it?.valor || it?.value || 0) }))
+          .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
+          .slice(0, 10)
+        setBestItemsASC(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setBestErrorASC(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar valor recuperado por ASC.')
+      } finally { setBestLoadingASC(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, ascId, ascs])
+
+  // Carregar contagens de ações por região
   useEffect(() => {
     (async () => {
       setAccoesLoading(true); setAccoesError(null)
@@ -293,6 +388,32 @@ export default function ClientesDashboardScreen() {
       } finally { setAccoesLoading(false) }
     })()
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, regioes])
+
+  // Carregar contagens de ações por ASC
+  useEffect(() => {
+    (async () => {
+      setAccoesLoadingASC(true); setAccoesErrorASC(null)
+      try {
+        const { data } = await accoesApi.privateInstalacaoAccoesContagensGet(
+          auth,
+          'asc' as any,
+          tendencia || undefined,
+          marcacaoStatus || undefined,
+          analiseStatus || undefined,
+          regiaoId || undefined,
+          ascId || undefined
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const raw = ((data as any)?.items) ?? []
+        const mapped: CountItem[] = raw.map((it: any) => ({ id: it?.group_id, label: (ascs.find(a => a.id === it?.group_id)?.name) || it?.group_id, count: it?.total }))
+        setAccoesCountsASC(mapped)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setAccoesErrorASC(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar contagens de ações por ASC.')
+      } finally { setAccoesLoadingASC(false) }
+    })()
+  }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, ascId, ascs])
 
   return (
     <div style={{ 
@@ -479,10 +600,42 @@ export default function ClientesDashboardScreen() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
       {!regiaoId && (
-        <Card title={`Clientes — Contagens${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''} · Mês ${monthLabel}` }>
+        <Card title={`Clientes — Contagens (${clientesGroupBy === 'regiao' ? 'por região' : 'por ASC'})${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''} · Mês ${monthLabel}` }>
+          <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setClientesGroupBy('regiao')}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                background: clientesGroupBy === 'regiao' ? '#8b5cf6' : '#f3f4f6',
+                color: clientesGroupBy === 'regiao' ? 'white' : '#6b7280'
+              }}
+            >
+              Por Região
+            </button>
+            <button
+              onClick={() => setClientesGroupBy('asc')}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                background: clientesGroupBy === 'asc' ? '#8b5cf6' : '#f3f4f6',
+                color: clientesGroupBy === 'asc' ? 'white' : '#6b7280'
+              }}
+            >
+              Por ASC
+            </button>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
             <div style={{ overflow: 'auto', maxHeight: 280 }}>
-              {loading ? (
+              {(clientesGroupBy === 'regiao' ? loading : loadingASC) ? (
                 <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                   <div style={{ marginBottom: 8 }}>A carregar…</div>
                   <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
@@ -496,14 +649,19 @@ export default function ClientesDashboardScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <ImprovedDonutChart 
                 data={donutData} 
-                title={`Distribuição por Região · Mês ${monthLabel}`}
+                title={`Distribuição por ${clientesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                 colorScheme="purple"
                 onSegmentClick={(idx) => {
                   const lbl = (donutData[idx] || {}).label
-                  const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                  if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId(''); return }
-                  const it = (items || []).find(i => (i.label || i.id) === lbl)
-                  if (it && it.id != null) { setRegiaoId(String(it.id)); setAscId('') }
+                  if (clientesGroupBy === 'regiao') {
+                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId(''); return }
+                    const it = (items || []).find(i => (i.label || i.id) === lbl)
+                    if (it && it.id != null) { setRegiaoId(String(it.id)); setAscId('') }
+                  } else {
+                    const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                    if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                  }
                 }}
               />
               <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
@@ -514,14 +672,46 @@ export default function ClientesDashboardScreen() {
               </div>
             </div>
           </div>
-          {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{error}</div> : null}
+          {(clientesGroupBy === 'regiao' ? error : errorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{clientesGroupBy === 'regiao' ? error : errorASC}</div> : null}
         </Card>
       )}
 
-          <Card title={`Défice total · Mês ${monthLabel}`}>
+          <Card title={`Défice total (${deficitGroupBy === 'regiao' ? 'por região' : 'por ASC'}) · Mês ${monthLabel}`}>
+            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setDeficitGroupBy('regiao')}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: deficitGroupBy === 'regiao' ? '#ef4444' : '#f3f4f6',
+                  color: deficitGroupBy === 'regiao' ? 'white' : '#6b7280'
+                }}
+              >
+                Por Região
+              </button>
+              <button
+                onClick={() => setDeficitGroupBy('asc')}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: deficitGroupBy === 'asc' ? '#ef4444' : '#f3f4f6',
+                  color: deficitGroupBy === 'asc' ? 'white' : '#6b7280'
+                }}
+              >
+                Por ASC
+              </button>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
               <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                {deficitLoading ? (
+                {(deficitGroupBy === 'regiao' ? deficitLoading : deficitLoadingASC) ? (
                   <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                     <div style={{ marginBottom: 8 }}>A carregar défices…</div>
                     <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
@@ -535,12 +725,17 @@ export default function ClientesDashboardScreen() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <ImprovedDonutChart 
                   data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} 
-                  title={`Défice por Região · Mês ${monthLabel}`}
+                  title={`Défice por ${deficitGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                   colorScheme="red"
                   onSegmentClick={(idx) => {
                     const lbl = ((deficitFiltered || [])[idx] || {}).label
-                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                    if (deficitGroupBy === 'regiao') {
+                      const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                      if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                    } else {
+                      const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                      if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                    }
                   }}
                 />
                 <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
@@ -551,7 +746,7 @@ export default function ClientesDashboardScreen() {
                 </div>
               </div>
             </div>
-            {deficitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{deficitError}</div> : null}
+            {(deficitGroupBy === 'regiao' ? deficitError : deficitErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{deficitGroupBy === 'regiao' ? deficitError : deficitErrorASC}</div> : null}
           </Card>
 
           {regiaoId && (
@@ -721,11 +916,43 @@ export default function ClientesDashboardScreen() {
         </h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
-          {/* Ações por instalação — contagens (por região) */}
-          <Card title={`Ações por instalação — Contagens por região · Mês ${monthLabel}`}>
+          {/* Ações por instalação — contagens (por região/ASC) */}
+          <Card title={`Ações por instalação — Contagens por ${accoesGroupBy === 'regiao' ? 'região' : 'ASC'} · Mês ${monthLabel}`}>
+            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setAccoesGroupBy('regiao')}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: accoesGroupBy === 'regiao' ? '#f59e0b' : '#f3f4f6',
+                  color: accoesGroupBy === 'regiao' ? 'white' : '#6b7280'
+                }}
+              >
+                Por Região
+              </button>
+              <button
+                onClick={() => setAccoesGroupBy('asc')}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: accoesGroupBy === 'asc' ? '#f59e0b' : '#f3f4f6',
+                  color: accoesGroupBy === 'asc' ? 'white' : '#6b7280'
+                }}
+              >
+                Por ASC
+              </button>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
               <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                {accoesLoading ? (
+                {(accoesGroupBy === 'regiao' ? accoesLoading : accoesLoadingASC) ? (
                   <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                     <div style={{ marginBottom: 8 }}>A carregar ações…</div>
                     <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
@@ -733,37 +960,75 @@ export default function ClientesDashboardScreen() {
                     </div>
                   </div>
                 ) : (
-                  <ActionsTable data={accoesCounts} />
+                  <ActionsTable data={accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC} />
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <ImprovedDonutChart 
-                  data={(accoesCounts || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
-                  title={`Ações por Região · Mês ${monthLabel}`}
+                  data={(accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
+                  title={`Ações por ${accoesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                   colorScheme="orange"
                   onSegmentClick={(idx) => {
-                    const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
-                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                    if (accoesGroupBy === 'regiao') {
+                      const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
+                      const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                      if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                    } else {
+                      const lbl = ((accoesCountsASC || [])[idx] || {}).label || ((accoesCountsASC || [])[idx] || {}).id
+                      const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                      if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                    }
                   }}
                 />
                 <div style={{ padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fed7aa' }}>
                   <div style={{ fontSize: 12, color: '#92400e', marginBottom: 4 }}>Total de Ações</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: '#ea580c' }}>
-                    {(accoesCounts || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
+                    {(accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
                   </div>
                 </div>
               </div>
             </div>
-            {accoesError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesError}</div> : null}
+            {(accoesGroupBy === 'regiao' ? accoesError : accoesErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesGroupBy === 'regiao' ? accoesError : accoesErrorASC}</div> : null}
           </Card>
 
           {/* Valor Recuperado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-            <Card title={`Melhores grupos por valor recuperado · Mês ${monthLabel}`}>
+            <Card title={`Melhores grupos por valor recuperado (${bestGroupBy === 'regiao' ? 'por região' : 'por ASC'}) · Mês ${monthLabel}`}>
+              <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setBestGroupBy('regiao')}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    background: bestGroupBy === 'regiao' ? '#10b981' : '#f3f4f6',
+                    color: bestGroupBy === 'regiao' ? 'white' : '#6b7280'
+                  }}
+                >
+                  Por Região
+                </button>
+                <button
+                  onClick={() => setBestGroupBy('asc')}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    background: bestGroupBy === 'asc' ? '#10b981' : '#f3f4f6',
+                    color: bestGroupBy === 'asc' ? 'white' : '#6b7280'
+                  }}
+                >
+                  Por ASC
+                </button>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20, alignItems: 'stretch' }}>
                 <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                  {bestLoading ? (
+                  {(bestGroupBy === 'regiao' ? bestLoading : bestLoadingASC) ? (
                     <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
                       <div style={{ marginBottom: 8 }}>A carregar melhores grupos…</div>
                       <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
@@ -771,37 +1036,43 @@ export default function ClientesDashboardScreen() {
                       </div>
                     </div>
                   ) : (
-                    <BestGroupsTable data={bestItems} />
+                    <BestGroupsTable data={bestGroupBy === 'regiao' ? bestItems : bestItemsASC} />
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <ImprovedDonutChart 
-                    data={(bestItems || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
-                    title={`Valor Recuperado por Região · Mês ${monthLabel}`}
+                    data={(bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
+                    title={`Valor Recuperado por ${bestGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                     colorScheme="green"
                     onSegmentClick={(idx) => {
-                      const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
-                      const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                      if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                      if (bestGroupBy === 'regiao') {
+                        const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
+                        const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                        if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                      } else {
+                        const lbl = ((bestItemsASC || [])[idx] || {}).label || ((bestItemsASC || [])[idx] || {}).id
+                        const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                        if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                      }
                     }}
                   />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                       <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Total Recuperado</div>
                       <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
-                        {formatMoney((bestItems || []).reduce((sum, item) => sum + (item.value || 0), 0))}
+                        {formatMoney((bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).reduce((sum, item) => sum + (item.value || 0), 0))}
                       </div>
                     </div>
                     <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
-                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Regiões Ativas</div>
+                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>{bestGroupBy === 'regiao' ? 'Regiões' : 'ASCs'} Ativas</div>
                       <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
-                        {(bestItems || []).filter(item => (item.value || 0) > 0).length}
+                        {(bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).filter(item => (item.value || 0) > 0).length}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              {bestError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestError}</div> : null}
+              {(bestGroupBy === 'regiao' ? bestError : bestErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestGroupBy === 'regiao' ? bestError : bestErrorASC}</div> : null}
             </Card>
 
           </div>
