@@ -368,10 +368,10 @@ export default function OcorrenciaEditScreen() {
           </div>
         </div>
         <div style={editActionRowStyle}>
-          <Button variant="secondary" onClick={cancelar}>
+          <button type="button" onClick={cancelar} style={editSecondaryActionStyle}>
             <IconClose />
             <span>Cancelar</span>
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -680,14 +680,14 @@ export default function OcorrenciaEditScreen() {
       </Card>
 
       <div style={editFooterActionsStyle}>
-        <Button variant="secondary" onClick={cancelar}>
+        <button type="button" onClick={cancelar} style={editSecondaryActionStyle}>
           <IconClose />
           <span>Cancelar</span>
-        </Button>
-        <Button onClick={submit} disabled={submitting}>
+        </button>
+        <button type="button" onClick={submit} disabled={submitting} style={editPrimaryActionStyle(submitting)}>
           <IconSave />
           <span>{submitting ? 'A guardar…' : 'Guardar alterações'}</span>
-        </Button>
+        </button>
       </div>
     </div>
   )
@@ -920,6 +920,46 @@ const editFooterActionsStyle: React.CSSProperties = {
   borderRadius: 22,
   border: '1px solid rgba(101, 74, 32, 0.12)',
   background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+}
+
+const editSecondaryActionStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+  minHeight: 46,
+  padding: '0 18px',
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#8d4a17',
+  fontSize: 14,
+  fontWeight: 800,
+  boxShadow: '0 12px 24px rgba(76, 57, 24, 0.08)',
+  cursor: 'pointer',
+}
+
+function editPrimaryActionStyle(disabled?: boolean): React.CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    minHeight: 46,
+    padding: '0 18px',
+    borderRadius: 16,
+    border: '1px solid rgba(201, 109, 31, 0.18)',
+    background: disabled
+      ? 'linear-gradient(135deg, rgba(201,109,31,0.55) 0%, rgba(168,92,28,0.55) 100%)'
+      : 'linear-gradient(135deg, #c96d1f 0%, #a85c1c 100%)',
+    color: '#fff8ef',
+    fontSize: 14,
+    fontWeight: 800,
+    letterSpacing: '.01em',
+    boxShadow: disabled ? 'none' : '0 18px 34px rgba(201, 109, 31, 0.22)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.72 : 1,
+  }
 }
 
 function SectionHeading({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
