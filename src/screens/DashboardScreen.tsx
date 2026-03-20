@@ -45,9 +45,12 @@ import ClientesDashboardScreen from './ClientesDashboardScreen'
 import ClientesInspeccoesDashboardScreen from './ClientesInspeccoesDashboardScreen'
 import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
 import AccaoEditScreen from './AccaoEditScreen'
+import { AscsInsightsScreen, RegioesInsightsScreen } from './TerritoryInsightsScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
+  { key: 'dashboardRegioes', label: 'Regiões' },
+  { key: 'dashboardAscs', label: 'ASCs' },
   { key: 'ocorrencias', label: 'Ocorrências' },
   { key: 'infracoes', label: 'Infrações' },
   { key: 'infractores', label: 'Infractores' },
@@ -65,6 +68,8 @@ export default function DashboardScreen() {
   const { ensureAuthorizedResponse, ensureAuthorizedError } = useUnauthorizedHandlers()
   const KEY_TO_PATH = useMemo(() => ({
     dashboard: '/dashboard',
+    dashboardRegioes: '/dashboard/regioes',
+    dashboardAscs: '/dashboard/ascs',
     ocorrencias: '/ocorrencias',
     infracoes: '/infracoes',
     infractores: '/infractores',
@@ -309,6 +314,8 @@ export default function DashboardScreen() {
 
   const TITLE_MAP: Record<string, string> = {
     dashboard: 'Dashboard',
+    dashboardRegioes: 'Dashboard · Regiões',
+    dashboardAscs: 'Dashboard · ASCs',
     ocorrencias: 'Ocorrências',
     infracoes: 'Infrações',
     infractores: 'Infractores',
@@ -336,6 +343,8 @@ export default function DashboardScreen() {
   const hasSelectedRegiao = Boolean(regiaoId)
   const headerSubtitleMap: Record<string, string> = {
     dashboard: 'Vista operacional consolidada com acesso rápido às métricas, mapas e distribuição de risco.',
+    dashboardRegioes: 'Análise territorial por região, com seleção por cards e leitura detalhada do território.',
+    dashboardAscs: 'Análise dedicada às ASCs, com foco em desempenho local e indicadores operacionais.',
     ocorrencias: 'Acompanhe registos, mapas e listagens com uma navegação mais clara e foco no contexto atual.',
     infracoes: 'Gerir infrações com espaço visual mais limpo e leitura mais previsível.',
     infractores: 'Aceda aos registos de infractores dentro da mesma estrutura privada revista.',
@@ -503,23 +512,23 @@ export default function DashboardScreen() {
                 <div style={{ color: '#6b7280', padding: 20, textAlign: 'center' }}>A carregar dados…</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div style={{ padding: 16, borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca' }}>
-                      <div style={{ fontSize: 12, color: '#991b1b', fontWeight: 600, marginBottom: 4 }}>Total Perdas</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#dc2626' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))', gap: 12 }}>
+                    <div style={{ padding: 16, borderRadius: 16, background: '#fbe9e7', border: '1px solid #e9b7b2', minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: '#9f2d1f', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.06em' }}>Total Perdas</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#b42318', lineHeight: 1.25, overflowWrap: 'anywhere' }}>
                         {formatMoney((kpis as any)?.total_valor_infractions)}
                       </div>
                     </div>
-                    <div style={{ padding: 16, borderRadius: 12, background: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                      <div style={{ fontSize: 12, color: '#1e40af', fontWeight: 600, marginBottom: 4 }}>Gastos Ações</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#2563eb' }}>
+                    <div style={{ padding: 16, borderRadius: 16, background: '#e6f4f1', border: '1px solid #b8ddd4', minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: '#0f766e', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.06em' }}>Gastos Ações</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#0f766e', lineHeight: 1.25, overflowWrap: 'anywhere' }}>
                         {formatMoney((financeTotals as any)?.actions_spend_total)}
                       </div>
                     </div>
                   </div>
-                  <div style={{ padding: 12, borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Média por Infração</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#334155' }}>
+                  <div style={{ padding: 14, borderRadius: 16, background: '#f6ecde', border: '1px solid rgba(101, 74, 32, 0.12)' }}>
+                    <div style={{ fontSize: 12, color: '#7b8494', marginBottom: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Média por Infração</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4652', overflowWrap: 'anywhere' }}>
                       {formatMoney((kpis as any)?.avg_valor_infraction)}
                     </div>
                   </div>
@@ -573,11 +582,11 @@ export default function DashboardScreen() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#374151', fontWeight: 600 }}>Sucataria</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#374151', fontWeight: 600 }}>ASC</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#374151', fontWeight: 600 }}>Nível Risco</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#374151', fontWeight: 600 }}>Ações</th>
+                    <tr style={{ borderBottom: '2px solid rgba(101, 74, 32, 0.12)' }}>
+                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#3f4652', fontWeight: 700 }}>Sucataria</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'left', color: '#3f4652', fontWeight: 700 }}>ASC</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#3f4652', fontWeight: 700 }}>Nível Risco</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', color: '#3f4652', fontWeight: 700 }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -585,11 +594,11 @@ export default function DashboardScreen() {
                       const pct = riskPercent(s?.nivel_confianca)
                       const col = riskColor(pct)
                       return (
-                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr key={i} style={{ borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
                           <td style={{ padding: '12px 8px' }}>
                             <div style={{ fontWeight: 600, color: '#111827' }}>{s?.nome || s?.scrapyard_id || '—'}</div>
                           </td>
-                          <td style={{ padding: '12px 8px', color: '#6b7280' }}>
+                          <td style={{ padding: '12px 8px', color: '#7b8494' }}>
                             {s?.asc_name || s?.asc_id || '—'}
                           </td>
                           <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -597,7 +606,7 @@ export default function DashboardScreen() {
                               <div style={{ 
                                 width: 60, 
                                 height: 8, 
-                                background: '#f3f4f6', 
+                                background: '#efe4d4', 
                                 borderRadius: 4, 
                                 overflow: 'hidden',
                                 position: 'relative'
@@ -613,8 +622,8 @@ export default function DashboardScreen() {
                                 fontSize: 12, 
                                 fontWeight: 600,
                                 color: col,
-                                padding: '2px 6px',
-                                borderRadius: 6,
+                                padding: '4px 8px',
+                                borderRadius: 999,
                                 background: `${col}15`
                               }}>
                                 {pct.toFixed(1)}%
@@ -631,14 +640,16 @@ export default function DashboardScreen() {
                                 } 
                               }}
                               style={{ 
-                                padding: '6px 12px', 
-                                borderRadius: 6, 
-                                border: '1px solid #d1d5db', 
-                                background: '#fff', 
-                                color: '#374151', 
+                                minHeight: 38,
+                                padding: '0 14px', 
+                                borderRadius: 12, 
+                                border: '1px solid rgba(101, 74, 32, 0.14)', 
+                                background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)', 
+                                color: '#8d4a17', 
                                 cursor: 'pointer',
                                 fontSize: 12,
-                                fontWeight: 500
+                                fontWeight: 700,
+                                boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)'
                               }}
                             >
                               Ver detalhes
@@ -680,7 +691,12 @@ export default function DashboardScreen() {
                     const it = (occByAsc || [])[idx]
                     if (!it) return
                     const id = it?.asc_id || it?.key_id
-                    if (id) setAscId(String(id))
+                    if (id) {
+                      const params = new URLSearchParams()
+                      if (regiaoId) params.set('regiaoId', String(regiaoId))
+                      params.set('ascId', String(id))
+                      navigateToPath(`/dashboard/ascs?${params.toString()}`)
+                    }
                   }}
                 />
               )}
@@ -697,14 +713,14 @@ export default function DashboardScreen() {
                       value: Number(it?.count || it?.value || 0) 
                     }))}
                     onSegmentClick={(idx) => {
-                      const it = (occByRegiao || [])[idx]
-                      if (!it) return
-                      const id = it?.regiao_id || it?.key_id
-                      if (id) { setRegiaoId(String(id)); setAscId('') }
-                    }}
-                  />
-                )}
-              </Card>
+                    const it = (occByRegiao || [])[idx]
+                    if (!it) return
+                    const id = it?.regiao_id || it?.key_id
+                    if (id) navigateToPath(`/dashboard/regioes?regiaoId=${encodeURIComponent(String(id))}`)
+                  }}
+                />
+              )}
+            </Card>
             )}
           </Grid>
 
@@ -738,6 +754,7 @@ export default function DashboardScreen() {
                     label: it?.asc_name || it?.asc_id || '—', 
                     value: Number(it?.loss_total || 0) 
                   }))}
+                  valueFormatter={(value) => formatMoney(value)}
                 />
               </div>
             )}
@@ -745,6 +762,9 @@ export default function DashboardScreen() {
 
         </div>
       )}
+
+      {active === 'dashboardRegioes' && <RegioesInsightsScreen />}
+      {active === 'dashboardAscs' && <AscsInsightsScreen />}
 
       {/* Placeholder removido a pedido: não mostrar conteúdo a implementar */}
 
@@ -1547,7 +1567,15 @@ function TimeSeriesChart({ loss = [], spend = [] }: { loss?: Array<{ ts: string;
   )
 }
 
-function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; value: number }>; onSegmentClick?: (index: number) => void }) {
+function DonutChart({
+  data,
+  onSegmentClick,
+  valueFormatter,
+}: {
+  data: Array<{ label: string; value: number }>
+  onSegmentClick?: (index: number) => void
+  valueFormatter?: (value: number) => string
+}) {
   const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
   const clean = Array.isArray(data) ? data.filter(d => Number.isFinite(d.value) && d.value > 0) : []
   const total = clean.reduce((s, d) => s + d.value, 0)
@@ -1583,6 +1611,7 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
     angle = end
     return { label: d.label, value: d.value, start, end, color: palette[i % palette.length], pct: frac * 100 }
   })
+  const formatValue = valueFormatter ?? ((value: number) => value.toLocaleString('pt-PT'))
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(220px, 1fr)', gap: 16, alignItems: 'center' }}>
@@ -1636,7 +1665,7 @@ function DonutChart({ data, onSegmentClick }: { data: Array<{ label: string; val
                 <span style={{ color: '#3f4652', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: isHover ? 700 as any : 500 as any }}>{s.label}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <strong style={{ color: '#1f2937' }}>{s.value}</strong>
+                <strong style={{ color: '#1f2937' }}>{formatValue(s.value)}</strong>
                 <span style={{ color: '#7b8494', fontSize: 12 }}>{s.pct.toFixed(1)}%</span>
               </div>
             </div>
