@@ -205,28 +205,35 @@ export default function OcorrenciasScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card title="Filtros">
+      <Card
+        title="Filtros"
+        subtitle="Refine as ocorrências por termo, território, origem de conhecimento e período."
+        extra={
+          <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null) }}>
+            Limpar filtros
+          </Button>
+        }
+      >
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 12,
+            gap: 14,
             alignItems: 'end'
           }}
         >
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Pesquisar</span>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Pesquisar</span>
             <input
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
               placeholder="Pesquisar por termo…"
-              style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}
             />
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Região</span>
-            <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Região</span>
+            <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }}>
               <option value="">Todas</option>
               {regioes.map((r) => (
                 <option key={r.id} value={r.id}>{r.name || r.id}</option>
@@ -235,8 +242,8 @@ export default function OcorrenciasScreen() {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>ASC</span>
-            <select value={ascId} onChange={(e) => setAscId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>ASC</span>
+            <select value={ascId} onChange={(e) => setAscId(e.target.value)}>
               <option value="">Todas</option>
               {ascs.map((a) => (
                 <option key={a.id} value={a.id}>{a.name || a.id}</option>
@@ -245,8 +252,8 @@ export default function OcorrenciasScreen() {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Direção de Produção</span>
-            <select value={direcaoTransportesId} onChange={(e) => setDirecaoTransportesId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Direção de Produção</span>
+            <select value={direcaoTransportesId} onChange={(e) => setDirecaoTransportesId(e.target.value)}>
               <option value="">Todas</option>
               {direcoes.map((d) => (
                 <option key={d.id} value={d.id}>{d.name || d.id}</option>
@@ -255,8 +262,8 @@ export default function OcorrenciasScreen() {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Forma de conhecimento</span>
-            <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Forma de conhecimento</span>
+            <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)}>
               <option value="">Todas</option>
               {formas.map((f) => (
                 <option key={f.id} value={f.id}>{f.name || f.id}</option>
@@ -265,18 +272,18 @@ export default function OcorrenciasScreen() {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Início</span>
-            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Início</span>
+            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} />
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Fim</span>
-            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }} />
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Fim</span>
+            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} />
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Itens por página</span>
-            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
+            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Itens por página</span>
+            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
@@ -284,15 +291,21 @@ export default function OcorrenciasScreen() {
           </label>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-          <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null) }}>Limpar</Button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <span style={occChipStyle}>Resultados: {total.toLocaleString('pt-PT')}</span>
+          <span style={occChipStyle}>Página: {page}/{totalPages}</span>
+          {regiaoId ? <span style={occChipStyle}>Região: {resolveNome(regioes, regiaoId)}</span> : null}
+          {ascId ? <span style={occChipStyle}>ASC: {resolveNome(ascs, ascId)}</span> : null}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
           <Button onClick={() => { if (window.location.pathname !== '/ocorrencias/novo') window.history.pushState({}, '', '/ocorrencias/novo'); window.dispatchEvent(new Event('popstate')); window.dispatchEvent(new Event('locationchange')) }}>Nova ocorrência</Button>
         </div>
         {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginTop: 10 }}>{ui.error}</div> : null}
         {flash ? <div style={{ background: '#ecfdf5', color: '#065f46', padding: 10, borderRadius: 8, marginTop: 10 }}>{flash}</div> : null}
       </Card>
 
-      <Card>
+      <Card title="Resultados" subtitle="Lista paginada e ordenável de ocorrências.">
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -303,24 +316,24 @@ export default function OcorrenciasScreen() {
                 <Th label="ASC" active={false} />
                 <Th label="Direção de Produção" active={false} />
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 260 }}>Ações</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', width: 260, color: '#3f4652' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={7} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>A carregar…</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 16, color: '#6b7280' }}>Sem ocorrências para mostrar.</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>Sem ocorrências para mostrar.</td></tr>
               ) : (
                 items.map((o) => (
                   <tr key={o.id}>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(o.data_facto)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{o.local || '-'}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(regioes, o.regiao_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(ascs, o.asc_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(direcoes, o.direcao_transportes_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(o.created_at)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{formatDate(o.data_facto)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{o.local || '-'}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(regioes, o.regiao_id)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(ascs, o.asc_id)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(direcoes, o.direcao_transportes_id)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{formatDate(o.created_at)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>
                       <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}/editar`); window.dispatchEvent(new Event('locationchange')) } }}>Editar</Button>
                       <Button variant="danger" onClick={() => o.id && handleDelete(o.id)}>Eliminar</Button>
@@ -352,7 +365,7 @@ function Th({ label, active, direction, onClick }: { label: string; active: bool
   return (
     <th
       onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default', userSelect: 'none', textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}
+      style={{ cursor: onClick ? 'pointer' : 'default', userSelect: 'none', textAlign: 'left', padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', color: '#3f4652' }}
       aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
       <span>{label}</span>{' '}
@@ -374,6 +387,19 @@ function resolveNome(arr: { id?: string; name?: string }[], id?: string) {
   if (!id) return '-'
   const it = arr.find((x) => x.id === id)
   return it?.name || id
+}
+
+const occChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
 }
 
 function OcorrenciaForm({ defaultValue, regioes, ascs, formas, setores, tiposInf, submitting, onSubmit, onCancel, mode }: {

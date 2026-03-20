@@ -766,28 +766,14 @@ export default function DashboardScreen() {
           <OcorrenciaDetailScreen />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button
                 onClick={() => setOccTab('dash')}
-                style={{
-                  padding: '10px 12px',
-                  border: 'none',
-                  background: occTab === 'dash' ? '#fff' : 'transparent',
-                  borderBottom: `2px solid ${occTab === 'dash' ? '#0ea5e9' : 'transparent'}`,
-                  color: occTab === 'dash' ? '#0ea5e9' : '#374151',
-                  cursor: 'pointer',
-                }}
+                style={occTab === 'dash' ? occTabButtonActiveStyle : occTabButtonStyle}
               >Dashboard</button>
               <button
                 onClick={() => setOccTab('list')}
-                style={{
-                  padding: '10px 12px',
-                  border: 'none',
-                  background: occTab === 'list' ? '#fff' : 'transparent',
-                  borderBottom: `2px solid ${occTab === 'list' ? '#0ea5e9' : 'transparent'}`,
-                  color: occTab === 'list' ? '#0ea5e9' : '#374151',
-                  cursor: 'pointer',
-                }}
+                style={occTab === 'list' ? occTabButtonActiveStyle : occTabButtonStyle}
               >Listagens</button>
             </div>
 
@@ -796,45 +782,65 @@ export default function DashboardScreen() {
                 <Card title="Mapa de Ocorrências">
                   <div style={{ width: '100%' }}>
                     <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} interactive={false} />
-                    <div style={{ display: 'flex', gap: 16, marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
-                      <div style={{ marginRight: 'auto' }}>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
+                      <div style={{ ...filterChipStyle, marginRight: 'auto' }}>
                         <strong>Intervalo:</strong> {rangeLabel}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
+                      <div style={mapLegendChipStyle}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#b42318' }} />
                         <span>Sucatarias</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1d4ed8' }} />
+                      <div style={mapLegendChipStyle}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0f766e' }} />
                         <span>Ocorrências</span>
                       </div>
                     </div>
                   </div>
                 </Card>
-                <Grid minColumnWidth={300} gap={16}>
-                  <Card title="Resumo">
+                <div style={{ display: 'grid', gap: 16 }}>
+                  <Card title="Resumo" subtitle="Indicadores principais do período e da seleção atual.">
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                       <MetricCard label="Ocorrências" value={(kpis as any)?.nr_occurrences ?? '—'} color="#0ea5e9" />
                       <MetricCard label="Infrações" value={(kpis as any)?.nr_infractions ?? '—'} color="#ef4444" />
                     </div>
                   </Card>
-                  <Card title="Distribuição por Região">
-                    <DonutChart
-                      data={(occByRegiao || []).map((it: any) => ({ 
-                        label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
-                        value: Number(it?.count || it?.value || 0) 
-                      }))}
-                    />
-                  </Card>
-                  <Card title="Distribuição por ASC">
-                    <DonutChart
-                      data={(occByAsc || []).map((it: any) => ({ 
-                        label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', 
-                        value: Number(it?.count || it?.value || 0) 
-                      }))}
-                    />
-                  </Card>
-                </Grid>
+                  <Grid columns={2} gap={16}>
+                    <Card title="Distribuição por Região" subtitle="Clique numa região para abrir a análise territorial.">
+                      <DonutChart
+                        data={(occByRegiao || []).map((it: any) => ({ 
+                          label: it?.regiao_name || it?.regiao_id || it?.key_name || it?.key_id || '—', 
+                          value: Number(it?.count || it?.value || 0) 
+                        }))}
+                        onSegmentClick={(idx) => {
+                          const it = (occByRegiao || [])[idx]
+                          if (!it) return
+                          const id = it?.regiao_id || it?.key_id
+                          if (id) navigateToPath(`/dashboard/regioes?regiaoId=${encodeURIComponent(String(id))}`)
+                        }}
+                      />
+                    </Card>
+                    <Card title="Distribuição por ASC" subtitle="Clique numa ASC para abrir a análise detalhada.">
+                      <DonutChart
+                        data={(occByAsc || []).map((it: any) => ({ 
+                          label: it?.asc_name || it?.asc_id || it?.key_name || it?.key_id || '—', 
+                          value: Number(it?.count || it?.value || 0) 
+                        }))}
+                        onSegmentClick={(idx) => {
+                          const it = (occByAsc || [])[idx]
+                          if (!it) return
+                          const id = it?.asc_id || it?.key_id
+                          const regId = it?.regiao_id
+                          if (id) {
+                            const params = new URLSearchParams()
+                            if (regId) params.set('regiaoId', String(regId))
+                            params.set('ascId', String(id))
+                            navigateToPath(`/dashboard/ascs?${params.toString()}`)
+                          }
+                        }}
+                      />
+                    </Card>
+                  </Grid>
+                </div>
               </>
             ) : (
               <OcorrenciasScreen />
@@ -1204,6 +1210,25 @@ const secondaryActionButtonStyle: React.CSSProperties = {
   color: '#8d4a17',
   fontWeight: 700,
   boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
+}
+
+const occTabButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#5f6673',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.06)',
+}
+
+const occTabButtonActiveStyle: React.CSSProperties = {
+  ...occTabButtonStyle,
+  border: '1px solid rgba(201, 109, 31, 0.28)',
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  color: '#8d4a17',
+  boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
 }
 
 function Sparkline({ data, valueKey = 'value', labelKey = 'bucket', color = '#0ea5e9' }: { data: any[]; valueKey?: string; labelKey?: string; color?: string }) {
