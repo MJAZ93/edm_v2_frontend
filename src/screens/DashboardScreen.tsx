@@ -333,6 +333,18 @@ export default function DashboardScreen() {
   }
   const headerTitle = TITLE_MAP[active] || '—'
   const showHeaderTitle = active !== 'instalacoes'
+  const headerSubtitleMap: Record<string, string> = {
+    dashboard: 'Vista operacional consolidada com acesso rápido às métricas, mapas e distribuição de risco.',
+    ocorrencias: 'Acompanhe registos, mapas e listagens com uma navegação mais clara e foco no contexto atual.',
+    infracoes: 'Gerir infrações com espaço visual mais limpo e leitura mais previsível.',
+    infractores: 'Aceda aos registos de infractores dentro da mesma estrutura privada revista.',
+    accoes: 'Centralize o acompanhamento das ações com melhor separação entre navegação e conteúdo.',
+    sucatarias: 'Explore sucatarias e respetivos detalhes com uma área de trabalho mais ampla.',
+    utilizadores: 'Administração da plataforma com densidade visual mais controlada.',
+    config: 'Parâmetros e catálogos da aplicação organizados numa shell consistente.',
+    instalacoesDashboard: 'Análise dedicada a clientes e instalações num layout mais respirado.',
+    inspeccoesDashboard: 'Indicadores de inspeções apresentados numa shell privada mais moderna.',
+  }
 
   const instalacaoAccoesRoute = useMemo(() => {
     if (/^\/instalacoes\/accoes\/[^/]+$/.test(path)) return 'detail'
@@ -363,8 +375,22 @@ export default function DashboardScreen() {
         />
       )}
       header={showHeaderTitle ? (
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'sticky', top: 0, zIndex: 5 }}>
-          <Heading level={2}>{headerTitle}</Heading>
+        <div className="app-page-header">
+          <div>
+            <div className="app-page-header__eyebrow">Navegação privada</div>
+            <Heading level={2} className="app-page-header__title">{headerTitle}</Heading>
+            <p className="app-page-header__subtitle">
+              {headerSubtitleMap[active] || 'Estrutura privada revista com maior clareza visual, melhor hierarquia e mais espaço útil.'}
+            </p>
+          </div>
+
+          <div className="app-page-header__meta">
+            <span className="app-page-header__badge">
+              <span className="app-page-header__badge-dot" />
+              <span>Secção ativa</span>
+            </span>
+            <span className="app-page-header__badge">{headerTitle}</span>
+          </div>
         </div>
       ) : undefined}
       >

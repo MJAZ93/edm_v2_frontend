@@ -22,12 +22,12 @@ export function Card({
   const variants = {
     default: {
       background: SURFACE_ELEVATED,
-      border: 'none',
+      border: `1px solid ${BORDER_COLOR}`,
       boxShadow: 'none'
     },
     elevated: {
       background: SURFACE_ELEVATED,
-      border: 'none',
+      border: `1px solid ${BORDER_COLOR}`,
       boxShadow: SHADOW.md
     },
     bordered: {
@@ -46,12 +46,13 @@ export function Card({
   return (
     <div 
       style={{ 
-        borderRadius: RADIUS.lg, 
+        borderRadius: RADIUS.xl, 
         padding: paddingValues[padding], 
         width: '100%', 
         overflow: 'visible',
-        transition: 'all 0.2s ease-in-out',
+        transition: 'box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out',
         ...variants[variant],
+        position: 'relative',
         ...style 
       }}
       onMouseEnter={(e) => {
@@ -72,19 +73,20 @@ export function Card({
           display: 'flex', 
           alignItems: 'flex-start', 
           justifyContent: 'space-between', 
-          marginBottom: SPACING.md,
-          paddingBottom: title || subtitle ? SPACING.sm : 0,
+          gap: SPACING.md,
+          marginBottom: SPACING.lg,
+          paddingBottom: title || subtitle ? SPACING.md : 0,
           borderBottom: title || subtitle ? `1px solid ${BORDER_COLOR}` : 'none'
         }}>
           <div style={{ flex: 1 }}>
             {title && (
               <h3 style={{ 
                 margin: 0, 
-                fontSize: 18,
-                fontWeight: 600,
+                fontSize: 19,
+                fontWeight: 700,
                 color: TEXT_PRIMARY,
                 lineHeight: 1.3,
-                letterSpacing: '-0.01em'
+                letterSpacing: '-0.02em'
               }}>
                 {title}
               </h3>
@@ -110,7 +112,7 @@ export function Card({
           )}
         </div>
       )}
-      <div style={{ color: TEXT_PRIMARY }}>
+      <div style={{ color: TEXT_PRIMARY, minWidth: 0 }}>
         {children}
       </div>
     </div>
