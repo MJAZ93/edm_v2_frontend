@@ -135,12 +135,13 @@ export default function OcorrenciaDetailScreen() {
   }
 
   function voltar() {
-    if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias')
+    const search = window.location.search || ''
+    if (window.location.pathname !== '/ocorrencias' || search) window.history.pushState({}, '', `/ocorrencias${search}`)
     window.dispatchEvent(new Event('locationchange'))
   }
   function editar() {
     if (id) {
-      window.history.pushState({}, '', `/ocorrencias/${id}/editar`)
+      window.history.pushState({}, '', `/ocorrencias/${id}/editar${window.location.search}`)
       window.dispatchEvent(new Event('locationchange'))
     }
   }
@@ -162,16 +163,24 @@ export default function OcorrenciaDetailScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      {/* Título removido para evitar duplicação com o header */}
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div style={screenHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={screenEyebrowStyle}>Ocorrências</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.05, color: '#1f2937' }}>Detalhe da ocorrência</h2>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+              Consulte o contexto territorial, localização, infrações registadas e entidades próximas.
+            </p>
+          </div>
+        </div>
+        <div style={screenActionRowStyle}>
           <Button variant="secondary" onClick={voltar}>Voltar</Button>
-          <Button onClick={editar}>Editar</Button>
+          <Button onClick={editar}>Editar ocorrência</Button>
         </div>
       </div>
 
-      {loading && <div style={{ color: '#6b7280' }}>A carregar…</div>}
-      {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div>}
+      {loading && <div style={infoBannerStyle}>A carregar…</div>}
+      {error && <div style={errorBannerStyle}>{error}</div>}
       {!loading && !error && item && (
         <>
           <Card title="Dados gerais">
@@ -246,15 +255,15 @@ export default function OcorrenciaDetailScreen() {
           </Card>
           <Card title="Sucatarias próximas">
             {scrapyardsLoading ? (
-              <div style={{ color: '#6b7280' }}>A carregar…</div>
+              <div style={infoBannerStyle}>A carregar…</div>
             ) : scrapyardsError ? (
-              <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{scrapyardsError}</div>
+              <div style={errorBannerStyle}>{scrapyardsError}</div>
             ) : !scrapyards.length ? (
-              <div style={{ color: '#6b7280' }}>Sem sucatarias próximas.</div>
+              <div style={infoBannerStyle}>Sem sucatarias próximas.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {scrapyards.map((s) => (
-                  <div key={s.id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+                  <div key={s.id} style={contextCardStyle}>
                     <div style={{ fontWeight: 600 }}>{s.nome || s.id}</div>
                     <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>ASC: {s.asc_name || s.asc_id || '-'}</div>
                     <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Coordenadas: {s.lat != null && s.long != null ? `${s.lat.toFixed(5)}, ${s.long.toFixed(5)}` : '-'}</div>
@@ -278,7 +287,7 @@ export default function OcorrenciaDetailScreen() {
 
           <Card title="Infrações">
             {!(item.infractions ?? []).length ? (
-              <div style={{ color: '#6b7280' }}>Sem infrações.</div>
+              <div style={infoBannerStyle}>Sem infrações.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {(item.infractions ?? []).map((inf, i) => {
@@ -292,7 +301,7 @@ export default function OcorrenciaDetailScreen() {
                   const tipoLabel = tipoId ? (tipoNameById[tipoId] || (inf as any).tipo_infracao?.name || tipoId) : ((inf as any).tipo_infracao?.name || '-')
                   const materialLabel = matId ? (materialNameById[matId] || (inf as any).material?.name || matId) : (((inf as any).material?.name) || (inf as any).tipo_material || '-')
                   return (
-                    <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+                    <div key={i} style={contextCardStyle}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
                         <Field label="Sector" value={sectorLabel} />
                         <Field label="Tipo" value={tipoLabel} />
@@ -327,7 +336,7 @@ export default function OcorrenciaDetailScreen() {
                           <div style={{ fontWeight: 600, marginBottom: 6 }}>Infractores</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {infractors.map((x: any, idx: number) => (
-                              <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, border: '1px dashed #e5e7eb', padding: 8, borderRadius: 8 }}>
+                              <div key={idx} style={innerDashedCardStyle}>
                                 <Field label="Nome" value={x.nome || '-'} />
                                 <Field label="Documento" value={x.nr_identificacao || '-'} />
                                 <Field label="Tipo de identificação" value={x.tipo_identificacao || '-'} />
@@ -349,15 +358,15 @@ export default function OcorrenciaDetailScreen() {
         role="dialog"
         aria-modal="true"
         onClick={() => setLightbox(null)}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(24, 31, 42, 0.76)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
       >
         <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
-          <img src={lightbox.images[lightbox.index]} alt={`Foto ${lightbox.index + 1}`} style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 10, boxShadow: '0 10px 25px rgba(0,0,0,.5)' }} />
+          <img src={lightbox.images[lightbox.index]} alt={`Foto ${lightbox.index + 1}`} style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 22, boxShadow: '0 30px 70px rgba(0,0,0,.42)' }} />
           <button
             type="button"
             aria-label="Fechar"
             onClick={() => setLightbox(null)}
-            style={{ position: 'absolute', top: -12, right: -12, background: '#111827', color: '#fff', border: 'none', borderRadius: '9999px', width: 36, height: 36, cursor: 'pointer' }}
+            style={lightboxCloseButtonStyle}
           >×</button>
           {lightbox.images.length > 1 && (
             <>
@@ -365,13 +374,13 @@ export default function OcorrenciaDetailScreen() {
                 type="button"
                 aria-label="Anterior"
                 onClick={() => setLightbox((lb) => (lb ? { ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length } : lb))}
-                style={{ position: 'absolute', top: '50%', left: -52, transform: 'translateY(-50%)', background: '#111827', color: '#fff', border: 'none', borderRadius: 8, width: 40, height: 40, cursor: 'pointer' }}
+                style={{ ...lightboxNavButtonStyle, left: -56 }}
               >‹</button>
               <button
                 type="button"
                 aria-label="Seguinte"
                 onClick={() => setLightbox((lb) => (lb ? { ...lb, index: (lb.index + 1) % lb.images.length } : lb))}
-                style={{ position: 'absolute', top: '50%', right: -52, transform: 'translateY(-50%)', background: '#111827', color: '#fff', border: 'none', borderRadius: 8, width: 40, height: 40, cursor: 'pointer' }}
+                style={{ ...lightboxNavButtonStyle, right: -56 }}
               >›</button>
             </>
           )}
@@ -384,11 +393,134 @@ export default function OcorrenciaDetailScreen() {
 
 function Field({ label, value }: { label: string; value?: string }) {
   return (
-    <div>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
-      <div style={{ fontWeight: 500 }}>{value || '-'}</div>
+    <div style={fieldCardStyle}>
+      <div style={fieldLabelStyle}>{label}</div>
+      <div style={fieldValueStyle}>{value || '-'}</div>
     </div>
   )
+}
+
+const screenHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: 24,
+  borderRadius: 28,
+  background: 'linear-gradient(135deg, rgba(255, 249, 240, 0.98) 0%, rgba(247, 237, 222, 0.96) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  boxShadow: '0 24px 44px rgba(101, 74, 32, 0.08)',
+}
+
+const screenEyebrowStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  width: 'fit-content',
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+}
+
+const screenActionRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+}
+
+const infoBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 249, 240, 0.92)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#6b7280',
+  fontWeight: 600,
+}
+
+const errorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#991b1b',
+  fontWeight: 700,
+}
+
+const fieldCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+  minHeight: 72,
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(250,246,239,0.92) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+}
+
+const fieldLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.1em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const fieldValueStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontWeight: 700,
+  lineHeight: 1.45,
+}
+
+const contextCardStyle: React.CSSProperties = {
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  borderRadius: 20,
+  padding: 14,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)',
+  boxShadow: '0 14px 28px rgba(101, 74, 32, 0.06)',
+}
+
+const innerDashedCardStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+  gap: 8,
+  padding: 10,
+  borderRadius: 16,
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  background: 'rgba(255, 252, 246, 0.9)',
+}
+
+const lightboxCloseButtonStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: -14,
+  right: -14,
+  width: 42,
+  height: 42,
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: '9999px',
+  background: 'rgba(24, 31, 42, 0.88)',
+  color: '#fff',
+  cursor: 'pointer',
+  boxShadow: '0 16px 32px rgba(0,0,0,.3)',
+}
+
+const lightboxNavButtonStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  width: 44,
+  height: 44,
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: 14,
+  background: 'rgba(24, 31, 42, 0.88)',
+  color: '#fff',
+  cursor: 'pointer',
+  boxShadow: '0 16px 32px rgba(0,0,0,.3)',
 }
 
 function formatDateTime(iso?: string) {

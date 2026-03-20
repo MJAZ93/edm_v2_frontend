@@ -206,7 +206,7 @@ export default function DashboardScreen() {
     if (/^\/ocorrencias\/[^/]+$/.test(path)) return 'detail'
     return 'list'
   }, [path]) as 'create' | 'edit' | 'detail' | 'list'
-  const [occTab, setOccTab] = useState<'dash' | 'list'>('dash')
+  const [occTab, setOccTab] = useState<'dash' | 'list'>('list')
 
   function toRfc3339(d?: string | null, endOfDay?: boolean): string | undefined {
     if (!d) return undefined
@@ -387,7 +387,6 @@ export default function DashboardScreen() {
       header={showHeaderTitle ? (
         <div className="app-page-header">
           <div>
-            <div className="app-page-header__eyebrow">Navegação privada</div>
             <Heading level={2} className="app-page-header__title">{headerTitle}</Heading>
             <p className="app-page-header__subtitle">
               {headerSubtitleMap[active] || 'Estrutura privada revista com maior clareza visual, melhor hierarquia e mais espaço útil.'}
@@ -766,22 +765,32 @@ export default function DashboardScreen() {
           <OcorrenciaDetailScreen />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setOccTab('list')}
+                  style={occTab === 'list' ? occTabButtonActiveStyle : occTabButtonStyle}
+                >Listagens</button>
+                <button
+                  onClick={() => setOccTab('dash')}
+                  style={occTab === 'dash' ? occTabButtonActiveStyle : occTabButtonStyle}
+                >Mapa</button>
+              </div>
               <button
-                onClick={() => setOccTab('dash')}
-                style={occTab === 'dash' ? occTabButtonActiveStyle : occTabButtonStyle}
-              >Dashboard</button>
-              <button
-                onClick={() => setOccTab('list')}
-                style={occTab === 'list' ? occTabButtonActiveStyle : occTabButtonStyle}
-              >Listagens</button>
+                type="button"
+                style={occCreateCtaStyle}
+                onClick={() => { if (window.location.pathname !== '/ocorrencias/novo') window.history.pushState({}, '', `/ocorrencias/novo${window.location.search}`); window.dispatchEvent(new Event('popstate')); window.dispatchEvent(new Event('locationchange')) }}
+              >
+                <span style={occCreateCtaIconStyle}>+</span>
+                <span>Nova ocorrência</span>
+              </button>
             </div>
 
             {occTab === 'dash' ? (
               <>
                 <Card title="Mapa de Ocorrências">
                   <div style={{ width: '100%' }}>
-                    <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} interactive={false} />
+                    <DashboardMap height={420} dateStart={dateStart} dateEnd={dateEnd} regiaoId={regiaoId} ascId={ascId} tipoId={tipoId} interactive={true} />
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, padding: '8px 0', color: '#6b7280', fontSize: 13 }}>
                       <div style={{ ...filterChipStyle, marginRight: 'auto' }}>
                         <strong>Intervalo:</strong> {rangeLabel}
@@ -1229,6 +1238,36 @@ const occTabButtonActiveStyle: React.CSSProperties = {
   background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
   color: '#8d4a17',
   boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
+}
+
+const occCreateCtaStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+  minHeight: 44,
+  padding: '0 18px',
+  border: '1px solid rgba(201, 109, 31, 0.18)',
+  borderRadius: 16,
+  background: 'linear-gradient(135deg, #c96d1f 0%, #a85c1c 100%)',
+  color: '#fff8ef',
+  fontSize: 15,
+  fontWeight: 800,
+  letterSpacing: '.01em',
+  boxShadow: '0 18px 34px rgba(201, 109, 31, 0.22)',
+  cursor: 'pointer',
+}
+
+const occCreateCtaIconStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 22,
+  height: 22,
+  borderRadius: 999,
+  background: 'rgba(255, 248, 239, 0.18)',
+  fontSize: 18,
+  lineHeight: 1,
 }
 
 function Sparkline({ data, valueKey = 'value', labelKey = 'bucket', color = '#0ea5e9' }: { data: any[]; valueKey?: string; labelKey?: string; color?: string }) {

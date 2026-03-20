@@ -336,7 +336,7 @@ export default function OcorrenciaEditScreen() {
       }
 
       // Done -> go to details
-      if (id) { window.history.pushState({}, '', `/ocorrencias/${id}`); window.dispatchEvent(new Event('locationchange')) }
+      if (id) { window.history.pushState({}, '', `/ocorrencias/${id}${window.location.search}`); window.dispatchEvent(new Event('locationchange')) }
     } catch (err: any) {
       const status = err?.response?.status
       if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
@@ -345,8 +345,8 @@ export default function OcorrenciaEditScreen() {
   }
 
   function cancelar() {
-    if (id) { window.history.pushState({}, '', `/ocorrencias/${id}`); window.dispatchEvent(new Event('locationchange')) }
-    else { window.history.pushState({}, '', `/ocorrencias`); window.dispatchEvent(new Event('locationchange')) }
+    if (id) { window.history.pushState({}, '', `/ocorrencias/${id}${window.location.search}`); window.dispatchEvent(new Event('locationchange')) }
+    else { window.history.pushState({}, '', `/ocorrencias${window.location.search}`); window.dispatchEvent(new Event('locationchange')) }
   }
 
   function renderPhotoSrc(s: string): string {
@@ -357,16 +357,24 @@ export default function OcorrenciaEditScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Editar ocorrência</Heading>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div style={editHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={editEyebrowStyle}>Ocorrências</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Heading level={2}>Editar ocorrência</Heading>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+              Atualize os dados gerais, coordenadas, processo criminal e infrações associadas.
+            </p>
+          </div>
+        </div>
+        <div style={editActionRowStyle}>
           <Button variant="secondary" onClick={cancelar}>Voltar</Button>
-          <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar'}</Button>
+          <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar alterações'}</Button>
         </div>
       </div>
 
-      {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div> : null}
-      {submitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{submitError}</div> : null}
+      {error ? <div style={editErrorBannerStyle}>{error}</div> : null}
+      {submitError ? <div style={editErrorBannerStyle}>{submitError}</div> : null}
 
       <Card title="Dados da ocorrência">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -460,7 +468,7 @@ export default function OcorrenciaEditScreen() {
       <Card title="Infrações">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {infractions.map((inf, idx) => (
-            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+            <div key={idx} style={infractionCardStyle}>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
                   <span style={{ fontSize: 13, color: '#374151' }}>Sector de Infração</span>
@@ -538,7 +546,7 @@ export default function OcorrenciaEditScreen() {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #e5e7eb', borderRadius: 8, padding: 6 }}>
                       <img src={renderPhotoSrc(img)} alt="Foto" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 6 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.3' }} />
                       {!img.startsWith('data:') ? <span style={{ fontSize: 12, color: '#374151' }}>{img}</span> : null}
-                      <Button variant="danger" onClick={() => removePhoto(idx, i)}>Remover</Button>
+                      <Button size="sm" variant="danger" onClick={() => removePhoto(idx, i)}>Remover</Button>
                     </div>
                   ))}
                 </div>
@@ -563,7 +571,7 @@ export default function OcorrenciaEditScreen() {
                     return (
                       <>
                         <input id={fileInputId} type="file" accept="image/*" multiple onChange={(e) => handleFiles(idx, e.target.files)} style={{ display: 'none' }} />
-                        <Button type="button" variant="secondary" onClick={() => (document.getElementById(fileInputId) as HTMLInputElement)?.click()}>
+                        <Button size="sm" type="button" variant="secondary" onClick={() => (document.getElementById(fileInputId) as HTMLInputElement)?.click()}>
                           Escolher ficheiros…
                         </Button>
                         <span style={{ color: '#6b7280', fontSize: 12 }}>Pode selecionar múltiplas imagens</span>
@@ -592,18 +600,18 @@ export default function OcorrenciaEditScreen() {
                       <span style={{ fontSize: 13, color: '#374151' }}>Tipo de identificação</span>
                       <input value={it.tipo_identificacao ?? ''} onChange={(e) => updateInfractor(idx, k, { tipo_identificacao: e.target.value })} placeholder="BI, Passaporte…" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
                     </label>
-                    <Button type="button" variant="danger" onClick={() => removeInfractor(idx, k)}>Remover</Button>
+                    <Button size="sm" type="button" variant="danger" onClick={() => removeInfractor(idx, k)}>Remover</Button>
                   </div>
                 ))}
                 <div style={{ marginTop: 8 }}>
-                  <Button type="button" variant="secondary" onClick={() => addInfractor(idx)}>Adicionar infractor</Button>
+                  <Button size="sm" type="button" variant="secondary" onClick={() => addInfractor(idx)}>Adicionar infractor</Button>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-                <Button type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>Remover infração</Button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
+                <Button size="sm" type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>Remover infração</Button>
                 {idx === infractions.length - 1 && (
-                  <Button type="button" variant="secondary" onClick={addInf}>Adicionar infração</Button>
+                  <Button size="sm" type="button" variant="secondary" onClick={addInf}>Adicionar infração</Button>
                 )}
               </div>
             </div>
@@ -611,10 +619,72 @@ export default function OcorrenciaEditScreen() {
         </div>
       </Card>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={editFooterActionsStyle}>
         <Button variant="secondary" onClick={cancelar}>Voltar</Button>
-        <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar'}</Button>
+        <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar alterações'}</Button>
       </div>
     </div>
   )
+}
+
+const editHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: 24,
+  borderRadius: 28,
+  background: 'linear-gradient(135deg, rgba(255, 249, 240, 0.98) 0%, rgba(247, 237, 222, 0.96) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  boxShadow: '0 24px 44px rgba(101, 74, 32, 0.08)',
+}
+
+const editEyebrowStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  width: 'fit-content',
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+}
+
+const editActionRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+}
+
+const editErrorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#991b1b',
+  fontWeight: 700,
+}
+
+const infractionCardStyle: React.CSSProperties = {
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  borderRadius: 22,
+  padding: 16,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)',
+  boxShadow: '0 16px 32px rgba(101, 74, 32, 0.06)',
+}
+
+const editFooterActionsStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 10,
+  flexWrap: 'wrap',
+  padding: 20,
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
 }

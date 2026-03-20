@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Card, Button, Text, Pagination } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
 import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, DirecaoTransportesApi, type ModelOccurrence, type OccurrenceCreateOccurrenceRequest, type OccurrenceUpdateOccurrenceRequest, type OccurrenceCreateOccurrenceInfraction, type OccurrenceCreateOccurrenceInfractor, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelDirecaoTransportes } from '../services'
@@ -6,7 +6,23 @@ import { useAuth } from '../contexts/AuthContext'
 
 type UiState = { loading: boolean; error: string | null }
 
+type OcorrenciasListState = {
+  texto: string
+  regiaoId: string
+  ascId: string
+  formaConhecimentoId: string
+  direcaoTransportesId: string
+  dataInicio: string | null
+  dataFim: string | null
+  page: number
+  pageSize: number
+  orderBy: 'created_at' | 'data_facto' | 'local'
+  orderDirection: 'asc' | 'desc'
+}
+
 export default function OcorrenciasScreen() {
+  const initialListState = useMemo(() => readOcorrenciasListStateFromUrl(), [])
+  const didMountRef = useRef(false)
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
   const regiaoApi = useMemo(() => new RegiaoApi(getApiConfig()), [getApiConfig])
@@ -18,21 +34,21 @@ export default function OcorrenciasScreen() {
   const direcaoApi = useMemo(() => new DirecaoTransportesApi(getApiConfig()), [getApiConfig])
 
   const [items, setItems] = useState<ModelOccurrence[]>([])
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(initialListState.page)
+  const [pageSize, setPageSize] = useState(initialListState.pageSize)
   const [total, setTotal] = useState(0)
   const [ui, setUi] = useState<UiState>({ loading: false, error: null })
 
-  const [orderBy, setOrderBy] = useState<'created_at' | 'data_facto' | 'local'>('created_at')
-  const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc')
+  const [orderBy, setOrderBy] = useState<'created_at' | 'data_facto' | 'local'>(initialListState.orderBy)
+  const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>(initialListState.orderDirection)
 
-  const [texto, setTexto] = useState('')
-  const [regiaoId, setRegiaoId] = useState('')
-  const [ascId, setAscId] = useState('')
-  const [formaConhecimentoId, setFormaConhecimentoId] = useState('')
-  const [direcaoTransportesId, setDirecaoTransportesId] = useState('')
-  const [dataInicio, setDataInicio] = useState<string | null>(null)
-  const [dataFim, setDataFim] = useState<string | null>(null)
+  const [texto, setTexto] = useState(initialListState.texto)
+  const [regiaoId, setRegiaoId] = useState(initialListState.regiaoId)
+  const [ascId, setAscId] = useState(initialListState.ascId)
+  const [formaConhecimentoId, setFormaConhecimentoId] = useState(initialListState.formaConhecimentoId)
+  const [direcaoTransportesId, setDirecaoTransportesId] = useState(initialListState.direcaoTransportesId)
+  const [dataInicio, setDataInicio] = useState<string | null>(initialListState.dataInicio)
+  const [dataFim, setDataFim] = useState<string | null>(initialListState.dataFim)
 
   const [regioes, setRegioes] = useState<ModelRegiao[]>([])
   const [ascs, setAscs] = useState<ModelASC[]>([])
@@ -45,6 +61,9 @@ export default function OcorrenciasScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [flash, setFlash] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -101,14 +120,36 @@ export default function OcorrenciasScreen() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('created') === '1') return
+    const search = buildOcorrenciasListSearch({
+      texto,
+      regiaoId,
+      ascId,
+      formaConhecimentoId,
+      direcaoTransportesId,
+      dataInicio,
+      dataFim,
+      page,
+      pageSize,
+      orderBy,
+      orderDirection,
+    })
+    const nextUrl = `${window.location.pathname}${search}`
+    const currentUrl = `${window.location.pathname}${window.location.search}`
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', nextUrl)
+    }
+  }, [texto, regiaoId, ascId, formaConhecimentoId, direcaoTransportesId, dataInicio, dataFim, page, pageSize, orderBy, orderDirection])
+
   // Mensagem de sucesso ao voltar da criação
   useEffect(() => {
     try {
       const sp = new URLSearchParams(window.location.search)
       if (sp.get('created') === '1') {
         setFlash('Ocorrência criada com sucesso.')
-        const path = window.location.pathname
-        window.history.replaceState({}, '', path)
+        const nextSearch = stripCreatedParamFromSearch(window.location.search)
+        window.history.replaceState({}, '', `${window.location.pathname}${nextSearch}`)
         window.setTimeout(() => setFlash(null), 5000)
       }
     } catch {}
@@ -166,9 +207,16 @@ export default function OcorrenciasScreen() {
   })() }, [tipoApi, authHeader])
 
   // Reinicia página quando filtros/ordenacao mudam
-  useEffect(() => { setPage(1) }, [texto, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, dataInicio, dataFim, pageSize, orderBy, orderDirection])
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+    setPage(1)
+  }, [texto, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, dataInicio, dataFim, pageSize, orderBy, orderDirection])
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const activeFilterCount = [texto, regiaoId, ascId, direcaoTransportesId, formaConhecimentoId, dataInicio, dataFim].filter(Boolean).length
 
   function toggleSort(key: 'created_at' | 'data_facto' | 'local') {
     if (orderBy === key) setOrderDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -180,7 +228,6 @@ export default function OcorrenciasScreen() {
     try {
       const { data } = await api.privateOccurrencesPost(authHeader, input)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      setShowCreate(false)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
@@ -192,14 +239,15 @@ export default function OcorrenciasScreen() {
   // handleUpdate removido; edição será tratada em OcorrenciaEditScreen
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Tem a certeza que pretende eliminar esta ocorrência?')) return
     try {
       await api.privateOccurrencesIdDelete(id, authHeader)
+      setPendingDeleteId(null)
+      setDeleteError(null)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
       if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      alert(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao eliminar.' : 'Falha ao eliminar ocorrência.')
+      setDeleteError(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao eliminar.' : 'Falha ao eliminar ocorrência.')
     }
   }
 
@@ -209,87 +257,99 @@ export default function OcorrenciasScreen() {
         title="Filtros"
         subtitle="Refine as ocorrências por termo, território, origem de conhecimento e período."
         extra={
-          <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null) }}>
-            Limpar filtros
-          </Button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setFiltersOpen((open) => !open)}>
+              {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+            </Button>
+            <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null); setPage(1) }}>
+              Limpar filtros
+            </Button>
+          </div>
         }
       >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 14,
-            alignItems: 'end'
-          }}
-        >
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Pesquisar</span>
-            <input
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              placeholder="Pesquisar por termo…"
-            />
-          </label>
+        {filtersOpen ? (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 14,
+              alignItems: 'end'
+            }}
+          >
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Pesquisar</span>
+              <input
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Pesquisar por termo…"
+              />
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Região</span>
-            <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }}>
-              <option value="">Todas</option>
-              {regioes.map((r) => (
-                <option key={r.id} value={r.id}>{r.name || r.id}</option>
-              ))}
-            </select>
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Região</span>
+              <select value={regiaoId} onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }}>
+                <option value="">Todas</option>
+                {regioes.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name || r.id}</option>
+                ))}
+              </select>
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>ASC</span>
-            <select value={ascId} onChange={(e) => setAscId(e.target.value)}>
-              <option value="">Todas</option>
-              {ascs.map((a) => (
-                <option key={a.id} value={a.id}>{a.name || a.id}</option>
-              ))}
-            </select>
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>ASC</span>
+              <select value={ascId} onChange={(e) => setAscId(e.target.value)}>
+                <option value="">Todas</option>
+                {ascs.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name || a.id}</option>
+                ))}
+              </select>
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Direção de Produção</span>
-            <select value={direcaoTransportesId} onChange={(e) => setDirecaoTransportesId(e.target.value)}>
-              <option value="">Todas</option>
-              {direcoes.map((d) => (
-                <option key={d.id} value={d.id}>{d.name || d.id}</option>
-              ))}
-            </select>
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Direção de Produção</span>
+              <select value={direcaoTransportesId} onChange={(e) => setDirecaoTransportesId(e.target.value)}>
+                <option value="">Todas</option>
+                {direcoes.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name || d.id}</option>
+                ))}
+              </select>
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Forma de conhecimento</span>
-            <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)}>
-              <option value="">Todas</option>
-              {formas.map((f) => (
-                <option key={f.id} value={f.id}>{f.name || f.id}</option>
-              ))}
-            </select>
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Forma de conhecimento</span>
+              <select value={formaConhecimentoId} onChange={(e) => setFormaConhecimentoId(e.target.value)}>
+                <option value="">Todas</option>
+                {formas.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name || f.id}</option>
+                ))}
+              </select>
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Início</span>
-            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} />
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Início</span>
+              <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} />
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Fim</span>
-            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} />
-          </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Fim</span>
+              <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} />
+            </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Itens por página</span>
-            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </label>
-        </div>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#7b8494', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Itens por página</span>
+              <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </label>
+          </div>
+        ) : (
+          <div style={collapsedFiltersHintStyle}>
+            <span>Filtros recolhidos para dar mais espaço à listagem.</span>
+            <span>{activeFilterCount > 0 ? `${activeFilterCount} filtro(s) ativo(s)` : 'Sem filtros ativos'}</span>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
           <span style={occChipStyle}>Resultados: {total.toLocaleString('pt-PT')}</span>
@@ -298,9 +358,6 @@ export default function OcorrenciasScreen() {
           {ascId ? <span style={occChipStyle}>ASC: {resolveNome(ascs, ascId)}</span> : null}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
-          <Button onClick={() => { if (window.location.pathname !== '/ocorrencias/novo') window.history.pushState({}, '', '/ocorrencias/novo'); window.dispatchEvent(new Event('popstate')); window.dispatchEvent(new Event('locationchange')) }}>Nova ocorrência</Button>
-        </div>
         {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginTop: 10 }}>{ui.error}</div> : null}
         {flash ? <div style={{ background: '#ecfdf5', color: '#065f46', padding: 10, borderRadius: 8, marginTop: 10 }}>{flash}</div> : null}
       </Card>
@@ -327,16 +384,46 @@ export default function OcorrenciasScreen() {
               ) : (
                 items.map((o) => (
                   <tr key={o.id}>
-                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{formatDate(o.data_facto)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
+                      <span style={occDateBadgeStyle}>{formatDate(o.data_facto)}</span>
+                    </td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{o.local || '-'}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(regioes, o.regiao_id)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(ascs, o.asc_id)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(direcoes, o.direcao_transportes_id)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{formatDate(o.created_at)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>
-                      <Button variant="secondary" onClick={() => { if (o.id) { window.history.pushState({}, '', `/ocorrencias/${o.id}/editar`); window.dispatchEvent(new Event('locationchange')) } }}>Editar</Button>
-                      <Button variant="danger" onClick={() => o.id && handleDelete(o.id)}>Eliminar</Button>
+                      <ActionIconButton
+                        label="Ver detalhes"
+                        variant="secondary"
+                        onClick={() => {
+                          if (o.id) {
+                            window.history.pushState({}, '', `/ocorrencias/${o.id}${window.location.search}`)
+                            window.dispatchEvent(new Event('locationchange'))
+                          }
+                        }}
+                      >
+                        <EyeIcon />
+                      </ActionIconButton>
+                      <ActionIconButton
+                        label="Editar"
+                        variant="secondary"
+                        onClick={() => {
+                          if (o.id) {
+                            window.history.pushState({}, '', `/ocorrencias/${o.id}/editar${window.location.search}`)
+                            window.dispatchEvent(new Event('locationchange'))
+                          }
+                        }}
+                      >
+                        <PencilIcon />
+                      </ActionIconButton>
+                      <ActionIconButton
+                        label="Eliminar"
+                        variant="danger"
+                        onClick={() => { setDeleteError(null); setPendingDeleteId(o.id || null) }}
+                      >
+                        <TrashIcon />
+                      </ActionIconButton>
                     </td>
                   </tr>
                 ))
@@ -355,6 +442,15 @@ export default function OcorrenciasScreen() {
           showFirstLast={true}
         />
       </Card>
+
+      {pendingDeleteId ? (
+        <DeleteConfirmModal
+          loading={ui.loading}
+          error={deleteError}
+          onCancel={() => { setPendingDeleteId(null); setDeleteError(null) }}
+          onConfirm={() => handleDelete(pendingDeleteId)}
+        />
+      ) : null}
 
       {/* Edição deslocada para OcorrenciaEditScreen (rota dedicada) */}
     </div>
@@ -400,6 +496,268 @@ const occChipStyle: React.CSSProperties = {
   color: '#5f6673',
   fontSize: 12,
   fontWeight: 700,
+}
+
+const occDateBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 10px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  border: '1px solid rgba(201, 109, 31, 0.20)',
+  color: '#8d4a17',
+  fontSize: 12,
+  fontWeight: 800,
+  whiteSpace: 'nowrap',
+}
+
+const occActionButtonStyle: React.CSSProperties = {
+  width: 36,
+  minWidth: 36,
+  minHeight: 36,
+  height: 36,
+  padding: 0,
+  borderRadius: 12,
+}
+
+const occActionButtonBaseStyle: React.CSSProperties = {
+  ...occActionButtonStyle,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: '#fffdf8',
+  color: '#4b5563',
+  boxShadow: '0 10px 24px rgba(101, 74, 32, 0.08)',
+  cursor: 'pointer',
+  transition: 'transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease',
+}
+
+const occActionButtonHoverStyle: Record<'secondary' | 'danger', React.CSSProperties> = {
+  secondary: {
+    background: '#f8efe2',
+    borderColor: 'rgba(201, 109, 31, 0.28)',
+    color: '#8d4a17',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 14px 28px rgba(201, 109, 31, 0.12)',
+  },
+  danger: {
+    background: '#fff1f1',
+    borderColor: 'rgba(200, 60, 60, 0.28)',
+    color: '#b42318',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 14px 28px rgba(180, 35, 24, 0.14)',
+  },
+}
+
+const occModalBackdropStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 80,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 24,
+  background: 'rgba(24, 31, 42, 0.42)',
+  backdropFilter: 'blur(8px)',
+}
+
+const occModalCardStyle: React.CSSProperties = {
+  width: 'min(100%, 520px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
+  padding: 24,
+  borderRadius: 24,
+  background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  boxShadow: '0 28px 70px rgba(55, 34, 8, 0.18)',
+}
+
+const occModalEyebrowStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  width: 'fit-content',
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+}
+
+const occModalErrorStyle: React.CSSProperties = {
+  padding: '12px 14px',
+  borderRadius: 16,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#b42318',
+  fontSize: 14,
+  fontWeight: 700,
+}
+
+const collapsedFiltersHintStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  flexWrap: 'wrap',
+  minHeight: 52,
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.9)',
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  color: '#5f6673',
+  fontSize: 14,
+  fontWeight: 600,
+}
+
+function ActionIconButton({
+  label,
+  variant,
+  children,
+  onClick,
+}: {
+  label: string
+  variant: 'secondary' | 'danger'
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...occActionButtonBaseStyle,
+        ...(hovered ? occActionButtonHoverStyle[variant] : null),
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function DeleteConfirmModal({
+  loading,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  loading: boolean
+  error: string | null
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div style={occModalBackdropStyle} role="dialog" aria-modal="true" aria-labelledby="occ-delete-title">
+      <div style={occModalCardStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={occModalEyebrowStyle}>Confirmação</span>
+          <h3 id="occ-delete-title" style={{ margin: 0, fontSize: 24, lineHeight: 1.1, color: '#1f2937' }}>
+            Eliminar ocorrência
+          </h3>
+          <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+            Esta ação remove a ocorrência selecionada. Confirme apenas se pretende eliminar definitivamente este registo.
+          </p>
+        </div>
+
+        {error ? <div style={occModalErrorStyle}>{error}</div> : null}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>Cancelar</Button>
+          <Button variant="danger" onClick={onConfirm} disabled={loading}>
+            {loading ? 'A eliminar…' : 'Eliminar ocorrência'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M2 12C3.9 8.6 7.5 6.5 12 6.5C16.5 6.5 20.1 8.6 22 12C20.1 15.4 16.5 17.5 12 17.5C7.5 17.5 3.9 15.4 2 12Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function PencilIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 20L7.8 19.2L18.4 8.6C19.2 7.8 19.2 6.6 18.4 5.8L18.2 5.6C17.4 4.8 16.2 4.8 15.4 5.6L4.8 16.2L4 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.8 7.2L16.8 10.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9.5 3.5H14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M18 7L17.2 18.1C17.1 19.2 16.2 20 15.1 20H8.9C7.8 20 6.9 19.2 6.8 18.1L6 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 11V16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M14 11V16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function readOcorrenciasListStateFromUrl(): OcorrenciasListState {
+  const sp = new URLSearchParams(window.location.search)
+  const orderBy = sp.get('orderBy')
+  const orderDirection = sp.get('orderDirection')
+  const page = Number(sp.get('page') || '1')
+  const pageSize = Number(sp.get('pageSize') || '10')
+
+  return {
+    texto: sp.get('texto') || '',
+    regiaoId: sp.get('regiaoId') || '',
+    ascId: sp.get('ascId') || '',
+    formaConhecimentoId: sp.get('formaConhecimentoId') || '',
+    direcaoTransportesId: sp.get('direcaoTransportesId') || '',
+    dataInicio: sp.get('dataInicio') || null,
+    dataFim: sp.get('dataFim') || null,
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+    pageSize: [10, 20, 50].includes(pageSize) ? pageSize : 10,
+    orderBy: orderBy === 'data_facto' || orderBy === 'local' ? orderBy : 'created_at',
+    orderDirection: orderDirection === 'asc' ? 'asc' : 'desc',
+  }
+}
+
+function buildOcorrenciasListSearch(state: OcorrenciasListState) {
+  const sp = new URLSearchParams()
+  if (state.texto) sp.set('texto', state.texto)
+  if (state.regiaoId) sp.set('regiaoId', state.regiaoId)
+  if (state.ascId) sp.set('ascId', state.ascId)
+  if (state.formaConhecimentoId) sp.set('formaConhecimentoId', state.formaConhecimentoId)
+  if (state.direcaoTransportesId) sp.set('direcaoTransportesId', state.direcaoTransportesId)
+  if (state.dataInicio) sp.set('dataInicio', state.dataInicio)
+  if (state.dataFim) sp.set('dataFim', state.dataFim)
+  if (state.page > 1) sp.set('page', String(state.page))
+  if (state.pageSize !== 10) sp.set('pageSize', String(state.pageSize))
+  if (state.orderBy !== 'created_at') sp.set('orderBy', state.orderBy)
+  if (state.orderDirection !== 'desc') sp.set('orderDirection', state.orderDirection)
+  const query = sp.toString()
+  return query ? `?${query}` : ''
+}
+
+function stripCreatedParamFromSearch(search: string) {
+  const sp = new URLSearchParams(search)
+  sp.delete('created')
+  const query = sp.toString()
+  return query ? `?${query}` : ''
 }
 
 function OcorrenciaForm({ defaultValue, regioes, ascs, formas, setores, tiposInf, submitting, onSubmit, onCancel, mode }: {

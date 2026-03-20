@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { 
   PRIMARY_COLOR, 
   SURFACE_ELEVATED, 
@@ -84,37 +84,18 @@ export function Pagination({
     })
   }
 
-
-  const buttonStyle = (active = false, disabled = false): React.CSSProperties => ({
-    padding: '10px 14px',
-    border: active ? `2px solid ${PRIMARY_COLOR}` : `1px solid ${BORDER_COLOR}`,
-    background: active ? PRIMARY_COLOR : SURFACE_ELEVATED,
-    color: active ? 'white' : disabled ? TEXT_SECONDARY : TEXT_PRIMARY,
-    borderRadius: RADIUS.md,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: 14,
-    fontWeight: active ? 700 : 600,
-    minWidth: 44,
-    minHeight: 44,
-    textAlign: 'center',
-    transition: 'all 0.2s ease-in-out',
-    opacity: disabled ? 0.5 : 1,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: active ? '0 2px 4px rgba(234, 88, 12, 0.3)' : 'none'
-  })
-
-
   return (
     <div style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       gap: SPACING.md,
-      alignItems: 'center',
-      marginTop: SPACING.lg
+      marginTop: SPACING.lg,
+      padding: 18,
+      borderRadius: 22,
+      border: '1px solid rgba(101, 74, 32, 0.12)',
+      background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+      boxShadow: '0 18px 40px rgba(101, 74, 32, 0.08)'
     }}>
-      {/* Informações e seletor de tamanho da página */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
@@ -123,31 +104,28 @@ export function Pagination({
         flexWrap: 'wrap',
         gap: SPACING.md
       }}>
-        <div style={{ color: TEXT_SECONDARY, fontSize: 14 }}>
-          Página {currentPage} de {totalPages} • Total: {totalItems} itens
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <span style={summaryChipStyle}>Página {currentPage} de {totalPages}</span>
+          <span style={summaryChipStyle}>Total: {totalItems} itens</span>
         </div>
         
         {showPageSizeSelector && onPageSizeChange && (
-          <select
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            style={{
-              padding: '8px 12px',
-              border: `1px solid ${BORDER_COLOR}`,
-              borderRadius: RADIUS.md,
-              fontSize: 14,
-              background: SURFACE_ELEVATED
-            }}
-          >
-            <option value={10}>10 por página</option>
-            <option value={20}>20 por página</option>
-            <option value={50}>50 por página</option>
-            <option value={100}>100 por página</option>
-          </select>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={selectLabelStyle}>Itens por página</span>
+            <select
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              style={pageSizeSelectStyle}
+            >
+              <option value={10}>10 por página</option>
+              <option value={20}>20 por página</option>
+              <option value={50}>50 por página</option>
+              <option value={100}>100 por página</option>
+            </select>
+          </label>
         )}
       </div>
 
-      {/* Controles de navegação */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
@@ -160,7 +138,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            style={buttonStyle(false, currentPage === 1)}
+            style={pageButtonStyle(false, currentPage === 1)}
             title="Primeira página"
           >
             <DoubleChevronLeftIcon />
@@ -171,7 +149,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage <= 1}
-          style={buttonStyle(false, currentPage <= 1)}
+          style={pageButtonStyle(false, currentPage <= 1)}
           title="Página anterior"
         >
           <ChevronLeftIcon />
@@ -192,7 +170,7 @@ export function Pagination({
             <button
               key={page}
               onClick={() => onPageChange(page as number)}
-              style={buttonStyle(page === currentPage)}
+              style={pageButtonStyle(page === currentPage)}
               title={`Página ${page}`}
             >
               {page}
@@ -204,7 +182,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage >= totalPages}
-          style={buttonStyle(false, currentPage >= totalPages)}
+          style={pageButtonStyle(false, currentPage >= totalPages)}
           title="Página seguinte"
         >
           <ChevronRightIcon />
@@ -215,7 +193,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            style={buttonStyle(false, currentPage === totalPages)}
+            style={pageButtonStyle(false, currentPage === totalPages)}
             title="Última página"
           >
             <DoubleChevronRightIcon />
@@ -225,6 +203,63 @@ export function Pagination({
 
     </div>
   )
+}
+
+const summaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const selectLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const pageSizeSelectStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 14px',
+  border: `1px solid ${BORDER_COLOR}`,
+  borderRadius: 14,
+  fontSize: 14,
+  fontWeight: 600,
+  color: TEXT_PRIMARY,
+  background: 'rgba(255,255,255,0.9)',
+  boxShadow: '0 10px 24px rgba(101, 74, 32, 0.06)',
+}
+
+function pageButtonStyle(active = false, disabled = false): React.CSSProperties {
+  return {
+    minWidth: 44,
+    minHeight: 44,
+    padding: '0 14px',
+    border: active ? '1px solid rgba(201, 109, 31, 0.24)' : `1px solid ${BORDER_COLOR}`,
+    background: active
+      ? 'linear-gradient(135deg, #c96d1f 0%, #a85c1c 100%)'
+      : 'rgba(255,255,255,0.92)',
+    color: active ? '#fff8ef' : disabled ? TEXT_SECONDARY : TEXT_PRIMARY,
+    borderRadius: 14,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontSize: 14,
+    fontWeight: active ? 800 : 700,
+    textAlign: 'center',
+    transition: 'all 0.2s ease-in-out',
+    opacity: disabled ? 0.48 : 1,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: active ? '0 14px 26px rgba(201, 109, 31, 0.24)' : '0 10px 22px rgba(101, 74, 32, 0.06)'
+  }
 }
 
 // Ícones SVG

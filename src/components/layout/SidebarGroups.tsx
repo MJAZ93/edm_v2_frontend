@@ -57,7 +57,6 @@ export function SidebarGroups({ groups, activeKey, onSelect }: Props) {
         </div>
 
         <div style={{ minWidth: 0 }}>
-          <div className="private-sidebar__eyebrow">Área privada</div>
           <div className="private-sidebar__title">Sistema EDM</div>
           <div className="private-sidebar__subtitle">Monitorização operacional</div>
         </div>

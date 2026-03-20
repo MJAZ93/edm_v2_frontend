@@ -250,7 +250,8 @@ export default function OcorrenciaCreateScreen() {
       const { data } = await api.privateOccurrencesPost(auth, body)
       if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
       // voltar à lista
-      if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias?created=1')
+      const nextSearch = appendCreatedParam(window.location.search)
+      if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', `/ocorrencias${nextSearch}`)
       window.dispatchEvent(new Event('popstate'))
       window.dispatchEvent(new Event('locationchange'))
     } catch (err: any) {
@@ -261,7 +262,7 @@ export default function OcorrenciaCreateScreen() {
   }
 
   function cancelar() {
-    if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', '/ocorrencias')
+    if (window.location.pathname !== '/ocorrencias') window.history.pushState({}, '', `/ocorrencias${window.location.search}`)
     window.dispatchEvent(new Event('popstate'))
     window.dispatchEvent(new Event('locationchange'))
   }
@@ -287,15 +288,39 @@ export default function OcorrenciaCreateScreen() {
     }
   }, [materialsBySector, materialApi, getAuthorizationHeaderValueAsync, refreshTokenIfNeeded])
 
+  const contextModeLabel = transportes ? 'Transportes' : 'Território'
+  const contextDetailLabel = transportes
+    ? (direcoes.find((d) => d.id === direcaoId)?.name || provincias.find((p) => p.id === provinceId)?.name || 'Por definir')
+    : (ascs.find((a) => a.id === ascId)?.name || regioes.find((r) => r.id === regiaoId)?.name || 'Por definir')
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Nova ocorrência</Heading>
+      <div style={createHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={createEyebrowStyle}>Ocorrências</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Heading level={2}>Nova ocorrência</Heading>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6, maxWidth: 760 }}>
+              Registe a ocorrência com contexto territorial, localização, processo criminal e infrações associadas. A estrutura foi organizada para acelerar o preenchimento e reduzir passos soltos.
+            </p>
+          </div>
+        </div>
+        <div style={createHeroActionsStyle}>
+          <Button variant="secondary" onClick={cancelar}>Cancelar</Button>
+          <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar ocorrência'}</Button>
+        </div>
       </div>
 
-      {submitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{submitError}</div> : null}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <span style={createSummaryChipStyle}>Modo: {contextModeLabel}</span>
+        <span style={createSummaryChipStyle}>Contexto: {contextDetailLabel}</span>
+        <span style={createSummaryChipStyle}>Infrações: {infractions.length}</span>
+        <span style={createSummaryChipStyle}>Infractores: {infractors.length}</span>
+      </div>
 
-      <Card title="Dados da ocorrência">
+      {submitError ? <div style={createErrorBannerStyle}>{submitError}</div> : null}
+
+      <Card title="Dados da ocorrência" subtitle="Defina o enquadramento base do registo antes de descer para as infrações.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 260, flex: 1 }}>
@@ -427,10 +452,19 @@ export default function OcorrenciaCreateScreen() {
         </div>
       </Card>
 
-      <Card title="Infrações">
+      <Card title="Infrações" subtitle="Organize as infrações por bloco, com materiais, fotografias e coordenadas próprias.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {infractions.map((inf, idx) => (
-            <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+            <div key={idx} style={createInfractionCardStyle}>
+              <div style={createInfractionHeaderStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={createInfractionEyebrowStyle}>Bloco {idx + 1}</span>
+                  <strong style={{ color: '#1f2937', fontSize: 18 }}>Infração</strong>
+                </div>
+                <span style={createInfractionMetaStyle}>
+                  {(inf.fotografias ?? []).length} foto(s)
+                </span>
+              </div>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
                   <span style={{ fontSize: 13, color: '#374151' }}>Sector de Infração</span>
@@ -493,7 +527,7 @@ export default function OcorrenciaCreateScreen() {
                   <input value={inf.long ?? ''} onChange={(e) => updateInf(idx, { long: e.target.value ? Number(e.target.value) as any : undefined })} inputMode="decimal" placeholder="32.58" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
                 </label>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <Button type="button" variant="secondary" onClick={() => {
+                  <Button size="sm" type="button" variant="secondary" onClick={() => {
                     const occLat = lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined
                     const occLong = long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined
                     updateInf(idx, { lat: occLat as any, long: occLong as any })
@@ -509,7 +543,7 @@ export default function OcorrenciaCreateScreen() {
                     return (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #e5e7eb', borderRadius: 8, padding: 6 }}>
                         <img src={src} alt="Foto" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 6 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.3' }} />
-                        <Button variant="danger" onClick={() => removePhoto(idx, i)}>Remover</Button>
+                        <Button size="sm" variant="danger" onClick={() => removePhoto(idx, i)}>Remover</Button>
                       </div>
                     )
                   })}
@@ -535,7 +569,7 @@ export default function OcorrenciaCreateScreen() {
                     return (
                       <>
                         <input id={fileInputId} type="file" accept="image/*" multiple onChange={(e) => handleFiles(idx, e.target.files)} style={{ display: 'none' }} />
-                        <Button type="button" variant="secondary" onClick={() => (document.getElementById(fileInputId) as HTMLInputElement)?.click()}>
+                        <Button size="sm" type="button" variant="secondary" onClick={() => (document.getElementById(fileInputId) as HTMLInputElement)?.click()}>
                           Escolher ficheiros…
                         </Button>
                         <span style={{ color: '#6b7280', fontSize: 12 }}>Pode selecionar múltiplas imagens</span>
@@ -545,10 +579,10 @@ export default function OcorrenciaCreateScreen() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-                <Button type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>Remover infração</Button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
+                <Button size="sm" type="button" variant="danger" onClick={() => removeInf(idx)} disabled={infractions.length <= 1}>Remover infração</Button>
                 {idx === infractions.length - 1 && (
-                  <Button type="button" variant="secondary" onClick={addInf}>Adicionar infração</Button>
+                  <Button size="sm" type="button" variant="secondary" onClick={addInf}>Adicionar infração</Button>
                 )}
               </div>
             </div>
@@ -556,11 +590,11 @@ export default function OcorrenciaCreateScreen() {
         </div>
       </Card>
 
-      <Card title="Infractores (opcional)">
+      <Card title="Infractores (opcional)" subtitle="Se necessário, adicione intervenientes associados à ocorrência.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {(infractors.length === 0) ? <div style={{ color: '#6b7280' }}>Sem infractores adicionados.</div> : null}
+          {(infractors.length === 0) ? <div style={createMutedBannerStyle}>Sem infractores adicionados.</div> : null}
           {infractors.map((it, idx) => (
-            <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', border: '1px dashed #e5e7eb', padding: 8, borderRadius: 8 }}>
+            <div key={idx} style={createInfractorCardStyle}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
                 <span style={{ fontSize: 13, color: '#374151' }}>Nome</span>
                 <input value={it.nome ?? ''} onChange={(e) => updateInfractor(idx, { nome: e.target.value })} placeholder="Nome" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
@@ -573,19 +607,150 @@ export default function OcorrenciaCreateScreen() {
                 <span style={{ fontSize: 13, color: '#374151' }}>Tipo de identificação</span>
                 <input value={it.tipo_identificacao ?? ''} onChange={(e) => updateInfractor(idx, { tipo_identificacao: e.target.value })} placeholder="BI, Passaporte…" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
               </label>
-              <Button type="button" variant="danger" onClick={() => removeInfractor(idx)}>Remover</Button>
+              <Button size="sm" type="button" variant="danger" onClick={() => removeInfractor(idx)}>Remover</Button>
             </div>
           ))}
           <div>
-            <Button type="button" variant="secondary" onClick={addInfractor}>Adicionar infractor</Button>
+            <Button size="sm" type="button" variant="secondary" onClick={addInfractor}>Adicionar infractor</Button>
           </div>
         </div>
       </Card>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-        <Button variant="secondary" onClick={cancelar}>Voltar</Button>
-        <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar'}</Button>
+      <div style={createFooterActionsStyle}>
+        <Button variant="secondary" onClick={cancelar}>Cancelar</Button>
+        <Button onClick={submit} disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar ocorrência'}</Button>
       </div>
     </div>
   )
+}
+
+const createHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: 24,
+  borderRadius: 28,
+  background: 'linear-gradient(135deg, rgba(255, 249, 240, 0.98) 0%, rgba(247, 237, 222, 0.96) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  boxShadow: '0 24px 44px rgba(101, 74, 32, 0.08)',
+}
+
+const createEyebrowStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  width: 'fit-content',
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+}
+
+const createHeroActionsStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+}
+
+const createSummaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const createErrorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#991b1b',
+  fontWeight: 700,
+}
+
+const createInfractionCardStyle: React.CSSProperties = {
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  borderRadius: 22,
+  padding: 16,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)',
+  boxShadow: '0 16px 32px rgba(101, 74, 32, 0.06)',
+}
+
+const createInfractionHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  flexWrap: 'wrap',
+  marginBottom: 14,
+}
+
+const createInfractionEyebrowStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const createInfractionMetaStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 30,
+  padding: '0 10px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const createMutedBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.9)',
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  color: '#5f6673',
+  fontWeight: 600,
+}
+
+const createInfractorCardStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 12,
+  alignItems: 'flex-end',
+  flexWrap: 'wrap',
+  padding: 12,
+  borderRadius: 18,
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  background: 'rgba(255, 252, 246, 0.92)',
+}
+
+const createFooterActionsStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 10,
+  flexWrap: 'wrap',
+  padding: 20,
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+}
+
+function appendCreatedParam(search: string) {
+  const sp = new URLSearchParams(search)
+  sp.set('created', '1')
+  const query = sp.toString()
+  return query ? `?${query}` : ''
 }
