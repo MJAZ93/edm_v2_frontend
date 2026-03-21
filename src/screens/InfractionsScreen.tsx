@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Text, Pagination } from '../components'
+import { Button, Card, Pagination } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { InfractionApi, SectorInfracaoApi, TipoInfracaoApi, type ModelInfraction, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
+import { BORDER_COLOR, RADIUS, SEMANTIC_COLORS, TEXT_PRIMARY } from '../utils/theme'
 
 export default function InfractionsScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
@@ -26,6 +27,7 @@ export default function InfractionsScreen() {
   const [dataFim, setDataFim] = useState<string | null>(null)
   const [setores, setSetores] = useState<ModelSectorInfracao[]>([])
   const [tipos, setTipos] = useState<ModelTipoInfracao[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -63,6 +65,7 @@ export default function InfractionsScreen() {
   }, [api, authHeader, page, pageSize, orderBy, orderDirection, sectorId, tipoId, texto, dataInicio, dataFim])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(1) }, [sectorId, tipoId, texto, dataInicio, dataFim, pageSize, orderBy, orderDirection])
 
   useEffect(() => { (async () => { try { const { data } = await sectorApi.privateSectorInfracaoGet(authHeader, -1, undefined, 'name', 'asc'); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setSetores((data as any).items ?? []) } catch {} })() }, [sectorApi, authHeader])
   useEffect(() => { (async () => { try { const { data } = await tipoApi.privateTiposInfracaoGet(authHeader, -1, undefined, 'name', 'asc'); if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return } setTipos((data as any).items ?? []) } catch {} })() }, [tipoApi, authHeader])
@@ -96,53 +99,104 @@ export default function InfractionsScreen() {
       const fields = [
         resolveNome(setores, it.sector_infracao_id),
         resolveNome(tipos, it.tipo_infracao_id),
-        String((it as any).material?.name || (it as any).material_id || it.tipo_material || ''),
+        String((it as any).material?.name || (it as any).material_id || (it as any).tipo_material || ''),
       ]
       return fields.some((s) => (s || '').toLowerCase().includes(q))
     })
   }, [items, dataInicio, dataFim, texto, setores, tipos])
 
+  const activeFilterCount = [
+    sectorId,
+    tipoId,
+    texto.trim(),
+    dataInicio,
+    dataFim,
+  ].filter(Boolean).length
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card title="Filtros">
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <select value={sectorId} onChange={(e) => setSectorId(e.target.value)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value="">Sector (todos)</option>
-            {setores.map((s) => (<option key={s.id} value={s.id}>{s.name || s.id}</option>))}
-          </select>
-          <select value={tipoId} onChange={(e) => setTipoId(e.target.value)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value="">Tipo (todos)</option>
-            {tipos.map((t) => (<option key={t.id} value={t.id}>{t.name || t.id}</option>))}
-          </select>
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder="Pesquisar por termo…"
-            style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', minWidth: 220 }}
-          />
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Início</span>
-            <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db' }} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Fim</span>
-            <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db' }} />
-          </label>
-          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value={10}>10 por página</option>
-            <option value={20}>20 por página</option>
-            <option value={50}>50 por página</option>
-          </select>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <Button variant="secondary" onClick={() => { setSectorId(''); setTipoId(''); setTexto(''); setDataInicio(null); setDataFim(null); setOrderBy('created_at'); setOrderDirection('desc'); setPage(1) }}>Limpar</Button>
+      <Card
+        title="Filtros"
+        subtitle="Refine a listagem por sector, tipo, período e termo pesquisado."
+        extra={
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              style={filtersOpen ? filterHeaderButtonActiveStyle : filterHeaderButtonStyle}
+              onClick={() => setFiltersOpen((open) => !open)}
+            >
+              {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+            </button>
+            <button
+              type="button"
+              style={filterHeaderButtonStyle}
+              onClick={() => { setSectorId(''); setTipoId(''); setTexto(''); setDataInicio(null); setDataFim(null); setOrderBy('created_at'); setOrderDirection('desc'); setPage(1) }}
+            >
+              Limpar filtros
+            </button>
           </div>
+        }
+      >
+        {filtersOpen ? (
+          <div style={filtersGridStyle}>
+            <label style={fieldGroupStyle}>
+              <span style={fieldLabelStyle}>Sector</span>
+              <select value={sectorId} onChange={(e) => setSectorId(e.target.value)} style={fieldControlStyle}>
+                <option value="">Todos</option>
+                {setores.map((s) => (<option key={s.id} value={s.id}>{s.name || s.id}</option>))}
+              </select>
+            </label>
+
+            <label style={fieldGroupStyle}>
+              <span style={fieldLabelStyle}>Tipo</span>
+              <select value={tipoId} onChange={(e) => setTipoId(e.target.value)} style={fieldControlStyle}>
+                <option value="">Todos</option>
+                {tipos.map((t) => (<option key={t.id} value={t.id}>{t.name || t.id}</option>))}
+              </select>
+            </label>
+
+            <label style={fieldGroupStyle}>
+              <span style={fieldLabelStyle}>Pesquisar</span>
+              <input
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Pesquisar por termo…"
+                style={fieldControlStyle}
+              />
+            </label>
+
+            <label style={fieldGroupStyle}>
+              <span style={fieldLabelStyle}>Início</span>
+              <input type="date" value={dataInicio ?? ''} onChange={(e) => setDataInicio(e.target.value || null)} style={fieldControlStyle} />
+            </label>
+
+            <label style={fieldGroupStyle}>
+              <span style={fieldLabelStyle}>Fim</span>
+              <input type="date" value={dataFim ?? ''} onChange={(e) => setDataFim(e.target.value || null)} style={fieldControlStyle} />
+            </label>
+          </div>
+        ) : (
+          <div style={collapsedFiltersHintStyle}>
+            <span>Filtros recolhidos para dar mais foco aos resultados.</span>
+            <span>{activeFilterCount > 0 ? `${activeFilterCount} filtro(s) ativo(s)` : 'Sem filtros ativos'}</span>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <span style={summaryChipStyle}>Resultados: {total.toLocaleString('pt-PT')}</span>
+          <span style={summaryChipStyle}>Página: {page}/{totalPages}</span>
+          {sectorId ? <span style={summaryChipStyle}>Sector: {resolveNome(setores, sectorId)}</span> : null}
+          {tipoId ? <span style={summaryChipStyle}>Tipo: {resolveNome(tipos, tipoId)}</span> : null}
         </div>
         {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8, marginTop: 10 }}>{ui.error}</div> : null}
       </Card>
 
-      <Card>
+      <Card
+        title="Resultados"
+        subtitle="Lista paginada e ordenável de infrações."
+      >
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
@@ -151,31 +205,35 @@ export default function InfractionsScreen() {
                 <Th label="Material" active={false} />
                 <Th label="Quantidade" active={orderBy === 'quantidade'} direction={orderDirection} onClick={() => toggleSort('quantidade')} />
                 <Th label="Valor" active={orderBy === 'valor'} direction={orderDirection} onClick={() => toggleSort('valor')} />
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 260 }}>Ações</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', width: 260, color: '#3f4652' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={6} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>A carregar…</td></tr>
               ) : viewItems.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: 16, color: '#6b7280' }}>Sem infrações para mostrar.</td></tr>
+                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>Sem infrações para mostrar.</td></tr>
               ) : (
                 viewItems.map((it) => (
                   <tr key={it.id}>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatDate(it.created_at)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(setores, it.sector_infracao_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{resolveNome(tipos, it.tipo_infracao_id)}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{(it as any).material?.name || (it as any).material_id || it.tipo_material || '-'}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.quantidade != null ? String(it.quantidade) : '-'}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{it.valor != null ? formatMoney(it.valor) : '-'}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
+                      <span style={dateBadgeStyle}>{formatDate(it.created_at)}</span>
+                    </td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(setores, it.sector_infracao_id)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(tipos, it.tipo_infracao_id)}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{(it as any).material?.name || (it as any).material_id || (it as any).tipo_material || '-'}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{it.quantidade != null ? String(it.quantidade) : '-'}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
+                      <span style={valueBadgeStyle}>{it.valor != null ? formatMoney(it.valor) : '-'}</span>
+                    </td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <Button variant="secondary" onClick={() => { if (it.id) { window.history.pushState({}, '', `/infracoes/${it.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
-          </table>
+            </table>
         </div>
         <Pagination
           currentPage={page}
@@ -196,10 +254,12 @@ function Th({ label, active, direction, onClick }: { label: string; active?: boo
   return (
     <th
       onClick={onClick}
-      style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: onClick ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+      style={{ cursor: onClick ? 'pointer' : 'default', userSelect: 'none', textAlign: 'left', padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', color: '#3f4652' }}
       title={onClick ? 'Ordenar' : undefined}
+      aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
-      {label} {active ? (direction === 'asc' ? '▲' : '▼') : ''}
+      <span>{label}</span>{' '}
+      {active ? <span aria-hidden>{direction === 'asc' ? '▲' : '▼'}</span> : null}
     </th>
   )
 }
@@ -216,4 +276,110 @@ function formatDate(iso?: string) {
 function formatMoney(n?: number) {
   if (typeof n !== 'number' || Number.isNaN(n)) return '-'
   try { return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` } catch { return `${n.toFixed(2)} MT` }
+}
+
+const filtersGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: 14,
+  alignItems: 'end',
+}
+
+const fieldGroupStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+}
+
+const fieldLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#7b8494',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
+}
+
+const fieldControlStyle: React.CSSProperties = {
+  minHeight: 46,
+  padding: '0 14px',
+  borderRadius: RADIUS.lg,
+  border: `1px solid ${BORDER_COLOR}`,
+  background: 'rgba(255, 255, 255, 0.95)',
+  color: TEXT_PRIMARY,
+  boxShadow: '0 10px 24px rgba(101, 74, 32, 0.05)',
+}
+
+const collapsedFiltersHintStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  flexWrap: 'wrap',
+  minHeight: 52,
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.9)',
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  color: '#5f6673',
+  fontSize: 14,
+  fontWeight: 600,
+}
+
+const summaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const dateBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 10px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  border: '1px solid rgba(201, 109, 31, 0.20)',
+  color: '#8d4a17',
+  fontSize: 12,
+  fontWeight: 800,
+  whiteSpace: 'nowrap',
+}
+
+const valueBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(22, 163, 74, 0.10)',
+  color: SEMANTIC_COLORS.success,
+  fontSize: 13,
+  fontWeight: 800,
+}
+
+const filterHeaderButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
+  cursor: 'pointer',
+}
+
+const filterHeaderButtonActiveStyle: React.CSSProperties = {
+  ...filterHeaderButtonStyle,
+  border: '1px solid rgba(201, 109, 31, 0.28)',
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  color: '#8d4a17',
+  boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
 }

@@ -206,6 +206,84 @@ Regra importante:
 - se houver dois painéis internos lado a lado, usar `gridTemplateColumns: repeat(auto-fit, minmax(0, 1fr))`
 - para números longos, usar `overflowWrap: 'anywhere'`
 
+### Card de filtros
+
+O card de filtros é um padrão estável e não deve ser reinterpretado em cada ecrã.
+
+Deve usar:
+
+- o componente base `Card` sem fundo colorido especial
+- fundo branco/quente neutro igual aos restantes cards de conteúdo
+- título `Filtros`
+- subtítulo curto a explicar o âmbito dos filtros
+- ações no cabeçalho para `Mostrar/Ocultar filtros` e `Limpar filtros`
+- estado inicial recolhido por defeito em listagens densas
+
+Quando recolhido:
+
+- mostrar uma faixa/resumo discreta com texto curto
+- mostrar contagem de filtros ativos ou `Sem filtros ativos`
+- nunca usar um fundo forte ou gradiente que faça o card parecer destacado face aos outros cards de conteúdo
+
+Quando expandido:
+
+- usar grelha responsiva com `repeat(auto-fit, minmax(220px, 1fr))`
+- labels em uppercase discreto
+- inputs e selects com o mesmo estilo base do sistema
+
+Regra obrigatória:
+
+- o card de filtros deve ser visualmente neutro e branco, não um bloco colorido
+- variações cromáticas fortes ficam reservadas para destaques, métricas, alertas ou CTAs
+
+### Card de resultados e listagens
+
+O card de resultados também é um padrão estável.
+
+Deve usar:
+
+- título `Resultados` salvo quando o contexto exigir outro nome claro
+- subtítulo curto a descrever a listagem
+- a mesma estrutura base usada em `OcorrenciasScreen`
+- tabela simples diretamente dentro do `Card`, sem shells decorativas extra
+- no card de filtros associado, os botões `Mostrar/Ocultar filtros` e `Limpar filtros` devem usar o estilo de botão secundário institucional
+
+Botões do cabeçalho de filtros:
+
+- fundo `linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)`
+- borda `1px solid rgba(101, 74, 32, 0.16)`
+- texto `#8d4a17`
+- peso `700`
+- `minHeight: 42px`
+- `padding: 0 16px`
+- `borderRadius: 14px`
+- `boxShadow: 0 8px 18px rgba(76, 57, 24, 0.08)`
+- quando o estado estiver ativo, usar `border: 1px solid rgba(201, 109, 31, 0.28)`
+- quando o estado estiver ativo, usar `background: linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)`
+- quando o estado estiver ativo, usar `boxShadow: 0 12px 24px rgba(76, 57, 24, 0.10)`
+- estes botões devem seguir literalmente o padrão de `secondaryActionButtonStyle` e `occTabButtonActiveStyle` do dashboard
+
+Tabela:
+
+- `overflowX: auto`
+- `table` com `borderCollapse: 'collapse'`
+- cabeçalhos com `padding: 12px 8px`
+- borda inferior quente subtil `rgba(101, 74, 32, 0.12)`
+- células com `padding: 12px 8px`
+- linhas com borda inferior `rgba(101, 74, 32, 0.08)`
+- coluna de ações alinhada ao padrão já usado em Ocorrências
+
+Elementos de apoio:
+
+- chips de resumo acima da tabela podem existir no card de filtros
+- badges em células podem existir para datas, estados ou valores
+- a paginação deve usar sempre o componente `Pagination` do sistema
+
+Regra obrigatória:
+
+- novas telas de listagem devem copiar a estrutura de `OcorrenciasScreen` como baseline
+- evitar criar wrappers visuais novos para a tabela sem necessidade funcional real
+
 ### Botões
 
 Existem dois estilos principais:

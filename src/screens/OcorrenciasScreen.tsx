@@ -258,12 +258,20 @@ export default function OcorrenciasScreen() {
         subtitle="Refine as ocorrências por termo, território, origem de conhecimento e período."
         extra={
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <Button variant="secondary" onClick={() => setFiltersOpen((open) => !open)}>
+            <button
+              type="button"
+              style={filtersOpen ? filterHeaderButtonActiveStyle : filterHeaderButtonStyle}
+              onClick={() => setFiltersOpen((open) => !open)}
+            >
               {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
-            </Button>
-            <Button variant="secondary" onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null); setPage(1) }}>
+            </button>
+            <button
+              type="button"
+              style={filterHeaderButtonStyle}
+              onClick={() => { setTexto(''); setRegiaoId(''); setAscId(''); setDirecaoTransportesId(''); setFormaConhecimentoId(''); setDataInicio(null); setDataFim(null); setPage(1) }}
+            >
               Limpar filtros
-            </Button>
+            </button>
           </div>
         }
       >
@@ -614,6 +622,26 @@ const collapsedFiltersHintStyle: React.CSSProperties = {
   color: '#5f6673',
   fontSize: 14,
   fontWeight: 600,
+}
+
+const filterHeaderButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
+  cursor: 'pointer',
+}
+
+const filterHeaderButtonActiveStyle: React.CSSProperties = {
+  ...filterHeaderButtonStyle,
+  border: '1px solid rgba(201, 109, 31, 0.28)',
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  color: '#8d4a17',
+  boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
 }
 
 function ActionIconButton({
