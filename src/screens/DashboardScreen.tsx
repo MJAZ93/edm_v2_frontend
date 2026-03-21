@@ -96,11 +96,11 @@ export default function DashboardScreen() {
   const PATH_TO_KEY = useMemo(() => Object.fromEntries(Object.entries(KEY_TO_PATH).map(([k, v]) => [v, k])), [KEY_TO_PATH]) as Record<string, keyof typeof KEY_TO_PATH>
 
   const normalizePath = (path: string): string => {
-    if (!path) return '/dashboard'
+    if (!path) return '/instalacoes/dashboard'
     // remove trailing slashes
     let p = path.replace(/\/+$/, '')
     if (p === '') p = '/'
-    if (p === '/') return '/dashboard'
+    if (p === '/') return '/instalacoes/dashboard'
     return p
   }
 
@@ -114,7 +114,7 @@ export default function DashboardScreen() {
       matches.sort((a, b) => (b[1] as string).length - (a[1] as string).length)
       return matches[0][0] as keyof typeof KEY_TO_PATH
     }
-    return 'dashboard'
+    return 'instalacoesDashboard'
   }
 
   const [active, setActive] = useState<keyof typeof KEY_TO_PATH>(() => resolveKeyFromPath(window.location.pathname))
@@ -339,7 +339,8 @@ export default function DashboardScreen() {
     inspeccoesDashboard: 'Dashboard',
   }
   const headerTitle = TITLE_MAP[active] || '—'
-  const showHeaderTitle = active !== 'instalacoes' && !(active === 'ocorrencias' && (occRoute === 'create' || occRoute === 'edit' || occRoute === 'detail'))
+  const showHeaderTitle = active !== 'instalacoes'
+    && !(active === 'ocorrencias' && (occRoute === 'create' || occRoute === 'edit' || occRoute === 'detail'))
   const hasSelectedRegiao = Boolean(regiaoId)
   const headerSubtitleMap: Record<string, string> = {
     dashboard: 'Vista operacional consolidada com acesso rápido às métricas, mapas e distribuição de risco.',
@@ -366,15 +367,15 @@ export default function DashboardScreen() {
       sidebar={(
         <SidebarGroups
           groups={[
-            {
-              label: 'Vandalizações',
-              items: MENU.filter((i) => !['instalacoes', 'utilizadores', 'config'].includes(i.key))
-            },
             { label: 'Clientes', items: [
               { key: 'instalacoesDashboard', label: 'Dashboard' },
               { key: 'instalacoes', label: 'Lista' },
               { key: 'instalacaoAccoes', label: 'Ações' },
             ] },
+            {
+              label: 'Vandalizações',
+              items: MENU.filter((i) => !['instalacoes', 'utilizadores', 'config'].includes(i.key))
+            },
             { label: 'Configurações', items: [
               { key: 'utilizadores', label: 'Utilizadores' },
               { key: 'config', label: 'Configurações' },

@@ -72,6 +72,7 @@ export default function ClientesDashboardScreen() {
   const [deficitGroupBy, setDeficitGroupBy] = useState<'regiao' | 'asc'>('regiao')
   const [accoesGroupBy, setAccoesGroupBy] = useState<'regiao' | 'asc'>('regiao')
   const [bestGroupBy, setBestGroupBy] = useState<'regiao' | 'asc'>('regiao')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -155,6 +156,8 @@ export default function ClientesDashboardScreen() {
 
   const donutData = (filtered || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))
   const monthLabel = `${MONTH_NAMES_PT[Math.max(1, Math.min(12, month)) - 1]} ${year}`
+  const activeFilterCount = [regiaoId, ascId, tendencia, marcacaoStatus, analiseStatus, zeroCompras ? '1' : ''].filter(Boolean).length
+  const totalClientesAtual = (filtered || []).reduce((sum, item) => sum + (item.count || 0), 0)
 
   // Carregar défice por região (mantém-se visível; filtragem aplicada na apresentação)
   useEffect(() => {
@@ -416,123 +419,101 @@ export default function ClientesDashboardScreen() {
   }, [accoesApi, auth, tendencia, marcacaoStatus, analiseStatus, regiaoId, ascId, ascs])
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 24,
-      padding: '16px 24px',
-      maxWidth: '100%',
-      background: '#fafbfc'
-    }}>
-
-      {/* Filtros */}
-      <div style={{ 
-        background: '#fff',
-        padding: '20px 24px',
-        borderRadius: 12,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        border: '1px solid #e2e8f0'
-      }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: 16, 
-          fontWeight: 600, 
-          color: '#1e293b'
-        }}>
-          Filtros de Pesquisa
-        </h3>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: 16
-        }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Ano</span>
+    <div style={pageShellStyle}>
+      <Card
+        title="Filtros"
+        subtitle="Refine a análise por período, geografia, tendência e estado operacional."
+        extra={(
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              style={filtersOpen ? secondaryHeaderButtonActiveStyle : secondaryHeaderButtonStyle}
+            >
+              {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setYear(currentYear)
+                setMonth(currentMonth)
+                setRegiaoId('')
+                setAscId('')
+                setTendencia('')
+                setMarcacaoStatus('')
+                setAnaliseStatus('')
+                setMinScore('')
+                setMaxScore('')
+                setZeroCompras(false)
+              }}
+              style={secondaryHeaderButtonStyle}
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+      >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          <span style={summaryChipStyle}>Análise mensal</span>
+          {regiaoId ? <span style={summaryChipStyle}>Região filtrada</span> : null}
+          {ascId ? <span style={summaryChipStyle}>ASC filtrada</span> : null}
+          {tendencia ? <span style={summaryChipStyle}>Tendência filtrada</span> : null}
+          {zeroCompras ? <span style={summaryChipStyle}>Sem compras 6 meses</span> : null}
+        </div>
+        {filtersOpen ? (
+        <div style={filtersGridStyle}>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Ano</span>
             <select 
               value={year} 
               onChange={(e) => setYear(Number(e.target.value))} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               {[0,1,2,3,4,5].map((i) => (
                 <option key={i} value={currentYear - i}>{currentYear - i}</option>
               ))}
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Mês</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Mês</span>
             <select 
               value={month} 
               onChange={(e) => setMonth(Number(e.target.value))} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               {MONTH_NAMES_PT.map((name, idx) => (
                 <option key={name} value={idx + 1}>{name}</option>
               ))}
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Região</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Região</span>
             <select 
               value={regiaoId} 
               onChange={(e) => { setRegiaoId(e.target.value); setAscId('') }} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               <option value="">Todas as regiões</option>
               {(regioes || []).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>ASC</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>ASC</span>
             <select 
               value={ascId} 
               onChange={(e) => setAscId(e.target.value)} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               <option value="">Todas as ASCs</option>
               {(ascs || []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Tendência de crescimento</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Tendência</span>
             <select 
               value={tendencia} 
               onChange={(e) => setTendencia(e.target.value)} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               <option value="">Todas as tendências</option>
               <option value="CRESCENTE">Crescente</option>
@@ -543,38 +524,24 @@ export default function ClientesDashboardScreen() {
               <option value="SEM_COMPRAS">Sem compras</option>
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Estado da Marcação</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Estado da Marcação</span>
             <select 
               value={marcacaoStatus} 
               onChange={(e) => setMarcacaoStatus(e.target.value)} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               <option value="">Todos os estados</option>
               <option value="EXECUTADO">Executado</option>
               <option value="MARCADO">Marcado</option>
             </select>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>Estado da Análise</span>
+          <label style={fieldGroupStyle}>
+            <span style={fieldLabelStyle}>Estado da Análise</span>
             <select 
               value={analiseStatus} 
               onChange={(e) => setAnaliseStatus(e.target.value)} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: 8, 
-                border: '1px solid #d1d5db', 
-                background: '#fff',
-                fontSize: 14,
-                color: '#374151'
-              }}
+              style={fieldControlStyle}
             >
               <option value="">Todos os estados</option>
               <option value="EM_ANALISE">Em análise</option>
@@ -582,75 +549,40 @@ export default function ClientesDashboardScreen() {
             </select>
           </label>
         </div>
-      </div>
+        ) : (
+          <div style={collapsedFiltersHintStyle}>
+            <span>Filtros recolhidos para dar prioridade aos gráficos e indicadores.</span>
+            <span>{activeFilterCount > 0 ? `${activeFilterCount} filtro(s) ativo(s)` : 'Sem filtros ativos'}</span>
+          </div>
+        )}
+      </Card>
 
       {/* Seção de Clientes */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h2 style={{ 
-          margin: 0, 
-          fontSize: 20, 
-          fontWeight: 700, 
-          color: '#1e293b',
-          borderBottom: '2px solid #e2e8f0',
-          paddingBottom: 8
-        }}>
-          📊 Análise de Clientes
-        </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SectionTitle eyebrow="Clientes" title="Análise de clientes" subtitle="Leitura comparativa de contagens, défice e distribuição territorial." />
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
       {!regiaoId && (
         <Card title={`Clientes — Contagens (${clientesGroupBy === 'regiao' ? 'por região' : 'por ASC'})${tendencia ? ` · Tendência: ${tendencia.replace(/_/g,' ').toLowerCase()}` : ''} · Mês ${monthLabel}` }>
-          <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => setClientesGroupBy('regiao')}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: 'pointer',
-                background: clientesGroupBy === 'regiao' ? '#8b5cf6' : '#f3f4f6',
-                color: clientesGroupBy === 'regiao' ? 'white' : '#6b7280'
-              }}
-            >
-              Por Região
-            </button>
-            <button
-              onClick={() => setClientesGroupBy('asc')}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: 'pointer',
-                background: clientesGroupBy === 'asc' ? '#8b5cf6' : '#f3f4f6',
-                color: clientesGroupBy === 'asc' ? 'white' : '#6b7280'
-              }}
-            >
-              Por ASC
-            </button>
+          <div style={segmentedRowStyle}>
+            <SegmentedToggleButton active={clientesGroupBy === 'regiao'} tone="primary" onClick={() => setClientesGroupBy('regiao')}>Por Região</SegmentedToggleButton>
+            <SegmentedToggleButton active={clientesGroupBy === 'asc'} tone="primary" onClick={() => setClientesGroupBy('asc')}>Por ASC</SegmentedToggleButton>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
-            <div style={{ overflow: 'auto', maxHeight: 280 }}>
-              {(clientesGroupBy === 'regiao' ? loading : loadingASC) ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                  <div style={{ marginBottom: 8 }}>A carregar…</div>
-                  <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ width: '60%', height: '100%', background: '#0ea5e9', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                  </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(clientesGroupBy === 'regiao' ? loading : loadingASC) ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ marginBottom: 8 }}>A carregar…</div>
+                <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: '60%', height: '100%', background: '#c96d1f', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
                 </div>
-              ) : (
-                <InspectionCountsTable data={filtered} />
-              )}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              </div>
+            ) : (
               <ImprovedDonutChart 
                 data={donutData} 
                 title={`Distribuição por ${clientesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
-                colorScheme="purple"
+                colorScheme="orange"
+                size={240}
                 onSegmentClick={(idx) => {
                   const lbl = (donutData[idx] || {}).label
                   if (clientesGroupBy === 'regiao') {
@@ -664,11 +596,11 @@ export default function ClientesDashboardScreen() {
                   }
                 }}
               />
-              <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total de Clientes</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
-                  {(filtered || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
-                </div>
+            )}
+            <div style={{ padding: '14px 16px', background: '#fffdf8', borderRadius: 16, border: '1px solid rgba(101, 74, 32, 0.12)' }}>
+              <div style={{ fontSize: 12, color: '#7b8494', marginBottom: 4, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' }}>Total de Clientes</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#1f2937' }}>
+                {(filtered || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
               </div>
             </div>
           </div>
@@ -677,56 +609,24 @@ export default function ClientesDashboardScreen() {
       )}
 
           <Card title={`Défice total (${deficitGroupBy === 'regiao' ? 'por região' : 'por ASC'}) · Mês ${monthLabel}`}>
-            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-              <button
-                onClick={() => setDeficitGroupBy('regiao')}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  background: deficitGroupBy === 'regiao' ? '#ef4444' : '#f3f4f6',
-                  color: deficitGroupBy === 'regiao' ? 'white' : '#6b7280'
-                }}
-              >
-                Por Região
-              </button>
-              <button
-                onClick={() => setDeficitGroupBy('asc')}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  background: deficitGroupBy === 'asc' ? '#ef4444' : '#f3f4f6',
-                  color: deficitGroupBy === 'asc' ? 'white' : '#6b7280'
-                }}
-              >
-                Por ASC
-              </button>
+            <div style={segmentedRowStyle}>
+              <SegmentedToggleButton active={deficitGroupBy === 'regiao'} tone="danger" onClick={() => setDeficitGroupBy('regiao')}>Por Região</SegmentedToggleButton>
+              <SegmentedToggleButton active={deficitGroupBy === 'asc'} tone="danger" onClick={() => setDeficitGroupBy('asc')}>Por ASC</SegmentedToggleButton>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'stretch' }}>
-              <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                {(deficitGroupBy === 'regiao' ? deficitLoading : deficitLoadingASC) ? (
-                  <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                    <div style={{ marginBottom: 8 }}>A carregar défices…</div>
-                    <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: '70%', height: '100%', background: '#ef4444', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                    </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {(deficitGroupBy === 'regiao' ? deficitLoading : deficitLoadingASC) ? (
+                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                  <div style={{ marginBottom: 8 }}>A carregar défices…</div>
+                  <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: '70%', height: '100%', background: '#b42318', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
                   </div>
-                ) : (
-                  <DeficitTable data={deficitFiltered} />
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                </div>
+              ) : (
                 <ImprovedDonutChart 
                   data={(deficitFiltered || []).map(d => ({ label: d.label, value: Math.max(0, Number(d.value) || 0) }))} 
                   title={`Défice por ${deficitGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                   colorScheme="red"
+                  size={240}
                   onSegmentClick={(idx) => {
                     const lbl = ((deficitFiltered || [])[idx] || {}).label
                     if (deficitGroupBy === 'regiao') {
@@ -738,11 +638,11 @@ export default function ClientesDashboardScreen() {
                     }
                   }}
                 />
-                <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
-                  <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 4 }}>Défice Total</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: '#dc2626' }}>
-                    {formatMoney((deficitFiltered || []).reduce((sum, item) => sum + (item.value || 0), 0))}
-                  </div>
+              )}
+              <div style={{ padding: '14px 16px', background: '#fff7f6', borderRadius: 16, border: '1px solid rgba(180, 35, 24, 0.14)' }}>
+                <div style={{ fontSize: 12, color: '#991b1b', marginBottom: 4, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' }}>Défice Total</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#b42318' }}>
+                  {formatMoney((deficitFiltered || []).reduce((sum, item) => sum + (item.value || 0), 0))}
                 </div>
               </div>
             </div>
@@ -803,34 +703,30 @@ export default function ClientesDashboardScreen() {
         {!regiaoId && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
             <Card title={`Clientes — Contagens por tendência · Mês ${monthLabel}`}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 16, alignItems: 'stretch' }}>
-                <div style={{ overflowX: 'auto', maxHeight: 320 }}>
-                  {tendLoading ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                      <div style={{ marginBottom: 8 }}>A carregar tendências…</div>
-                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: '80%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                      </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {tendLoading ? (
+                  <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                    <div style={{ marginBottom: 8 }}>A carregar tendências…</div>
+                    <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: '80%', height: '100%', background: '#0f766e', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
                     </div>
-                  ) : (
-                    <TrendTable 
-                      data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
-                    />
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  </div>
+                ) : (
                   <ImprovedDonutChart 
                     data={(tendCounts || [])
                       .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
                       .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
                     title={`Distribuição por Tendência · Mês ${monthLabel}`}
                     colorScheme="green"
+                    size={240}
                     onSegmentClick={(idx) => {
                       const arr = (tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
                       const target = arr[idx]
                       if (target && target.id) setTendencia(String(target.id).toUpperCase())
                     }}
                   />
+                )}
+                <div style={{ padding: '14px 16px', background: '#f2fcfa', borderRadius: 16, border: '1px solid rgba(15, 118, 110, 0.14)' }}>
                   <TrendSummaryCards 
                     data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
                   />
@@ -843,17 +739,8 @@ export default function ClientesDashboardScreen() {
       </div>
 
       {/* Seção de Análise Temporal */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h2 style={{ 
-          margin: 0, 
-          fontSize: 20, 
-          fontWeight: 700, 
-          color: '#1e293b',
-          borderBottom: '2px solid #e2e8f0',
-          paddingBottom: 8
-        }}>
-          📈 Análise Temporal
-        </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SectionTitle eyebrow="Temporal" title="Análise temporal" subtitle="Evolução mensal dos clientes e do défice ao longo dos últimos doze meses." />
         
         <Card title={`Análise temporal — Últimos 12 meses (até ${monthLabel})`}>
             <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
@@ -903,52 +790,15 @@ export default function ClientesDashboardScreen() {
       </div>
 
       {/* Seção de Ações */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h2 style={{ 
-          margin: 0, 
-          fontSize: 20, 
-          fontWeight: 700, 
-          color: '#1e293b',
-          borderBottom: '2px solid #e2e8f0',
-          paddingBottom: 8
-        }}>
-          🎯 Análise de Ações
-        </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SectionTitle eyebrow="Ações" title="Análise de ações" subtitle="Compare volume de ações, valor recuperado e eficácia operacional por grupo." />
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
           {/* Ações por instalação — contagens (por região/ASC) */}
           <Card title={`Ações por instalação — Contagens por ${accoesGroupBy === 'regiao' ? 'região' : 'ASC'} · Mês ${monthLabel}`}>
-            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-              <button
-                onClick={() => setAccoesGroupBy('regiao')}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  background: accoesGroupBy === 'regiao' ? '#f59e0b' : '#f3f4f6',
-                  color: accoesGroupBy === 'regiao' ? 'white' : '#6b7280'
-                }}
-              >
-                Por Região
-              </button>
-              <button
-                onClick={() => setAccoesGroupBy('asc')}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  background: accoesGroupBy === 'asc' ? '#f59e0b' : '#f3f4f6',
-                  color: accoesGroupBy === 'asc' ? 'white' : '#6b7280'
-                }}
-              >
-                Por ASC
-              </button>
+            <div style={segmentedRowStyle}>
+              <SegmentedToggleButton active={accoesGroupBy === 'regiao'} tone="warning" onClick={() => setAccoesGroupBy('regiao')}>Por Região</SegmentedToggleButton>
+              <SegmentedToggleButton active={accoesGroupBy === 'asc'} tone="warning" onClick={() => setAccoesGroupBy('asc')}>Por ASC</SegmentedToggleButton>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
               <div style={{ overflow: 'auto', maxHeight: 280 }}>
@@ -994,37 +844,9 @@ export default function ClientesDashboardScreen() {
           {/* Valor Recuperado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
             <Card title={`Melhores grupos por valor recuperado (${bestGroupBy === 'regiao' ? 'por região' : 'por ASC'}) · Mês ${monthLabel}`}>
-              <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => setBestGroupBy('regiao')}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderRadius: 6,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    background: bestGroupBy === 'regiao' ? '#10b981' : '#f3f4f6',
-                    color: bestGroupBy === 'regiao' ? 'white' : '#6b7280'
-                  }}
-                >
-                  Por Região
-                </button>
-                <button
-                  onClick={() => setBestGroupBy('asc')}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderRadius: 6,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    background: bestGroupBy === 'asc' ? '#10b981' : '#f3f4f6',
-                    color: bestGroupBy === 'asc' ? 'white' : '#6b7280'
-                  }}
-                >
-                  Por ASC
-                </button>
+              <div style={segmentedRowStyle}>
+                <SegmentedToggleButton active={bestGroupBy === 'regiao'} tone="success" onClick={() => setBestGroupBy('regiao')}>Por Região</SegmentedToggleButton>
+                <SegmentedToggleButton active={bestGroupBy === 'asc'} tone="success" onClick={() => setBestGroupBy('asc')}>Por ASC</SegmentedToggleButton>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20, alignItems: 'stretch' }}>
                 <div style={{ overflow: 'auto', maxHeight: 280 }}>
@@ -1097,6 +919,197 @@ export default function ClientesDashboardScreen() {
       </div>
     </div>
   )
+}
+
+function SectionTitle({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+  return (
+    <div style={sectionTitleWrapStyle}>
+      <span style={sectionEyebrowStyle}>{eyebrow}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <h3 style={{ margin: 0, fontSize: 24, lineHeight: 1.1, color: '#1f2937' }}>{title}</h3>
+        <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>{subtitle}</p>
+      </div>
+    </div>
+  )
+}
+
+function SegmentedToggleButton({
+  active,
+  tone,
+  children,
+  onClick,
+}: {
+  active: boolean
+  tone: 'primary' | 'danger' | 'warning' | 'success'
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  const tones: Record<'primary' | 'danger' | 'warning' | 'success', React.CSSProperties> = {
+    primary: active
+      ? { background: 'linear-gradient(180deg, #d77a28 0%, #b85d18 100%)', color: '#fffaf5', border: '1px solid rgba(201, 109, 31, 0.20)' }
+      : { background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)', color: '#8d4a17', border: '1px solid rgba(101, 74, 32, 0.16)' },
+    danger: active
+      ? { background: 'linear-gradient(180deg, #d05045 0%, #b42318 100%)', color: '#fff7f7', border: '1px solid rgba(180, 35, 24, 0.22)' }
+      : { background: '#fff7f6', color: '#b42318', border: '1px solid rgba(180, 35, 24, 0.14)' },
+    warning: active
+      ? { background: 'linear-gradient(180deg, #d77a28 0%, #b85d18 100%)', color: '#fffaf5', border: '1px solid rgba(201, 109, 31, 0.20)' }
+      : { background: '#fffaf2', color: '#8d4a17', border: '1px solid rgba(101, 74, 32, 0.16)' },
+    success: active
+      ? { background: 'linear-gradient(180deg, #1f8f78 0%, #0f766e 100%)', color: '#f2fffb', border: '1px solid rgba(15, 118, 110, 0.20)' }
+      : { background: '#f2fcfa', color: '#0f766e', border: '1px solid rgba(15, 118, 110, 0.16)' },
+  }
+
+  return (
+    <button type="button" onClick={onClick} style={{ ...segmentedButtonBaseStyle, ...tones[tone] }}>
+      {children}
+    </button>
+  )
+}
+
+const pageShellStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 16,
+  padding: '8px 4px 24px',
+}
+
+const screenHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: '24px 28px',
+  borderRadius: 28,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'linear-gradient(135deg, rgba(255, 253, 248, 0.98) 0%, rgba(243, 233, 214, 0.94) 100%)',
+  boxShadow: '0 18px 40px rgba(76, 57, 24, 0.10)',
+}
+
+const screenEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.16em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const heroMetricsRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+}
+
+const summaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const secondaryHeaderButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
+  cursor: 'pointer',
+}
+
+const secondaryHeaderButtonActiveStyle: React.CSSProperties = {
+  ...secondaryHeaderButtonStyle,
+  border: '1px solid rgba(201, 109, 31, 0.28)',
+  background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
+  boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
+}
+
+const filtersGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: 14,
+  alignItems: 'end',
+}
+
+const fieldGroupStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+}
+
+const fieldLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#7b8494',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
+}
+
+const fieldControlStyle: React.CSSProperties = {
+  minHeight: 46,
+  padding: '0 14px',
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: '#fffdf9',
+  color: '#1f2937',
+  boxShadow: '0 10px 24px rgba(101, 74, 32, 0.05)',
+}
+
+const collapsedFiltersHintStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  flexWrap: 'wrap',
+  minHeight: 52,
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.9)',
+  border: '1px dashed rgba(101, 74, 32, 0.18)',
+  color: '#5f6673',
+  fontSize: 14,
+  fontWeight: 600,
+}
+
+const sectionTitleWrapStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  padding: '4px 2px 0',
+}
+
+const sectionEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.14em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const segmentedRowStyle: React.CSSProperties = {
+  marginBottom: 16,
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+}
+
+const segmentedButtonBaseStyle: React.CSSProperties = {
+  minHeight: 38,
+  padding: '0 14px',
+  borderRadius: 14,
+  fontSize: 13,
+  fontWeight: 800,
+  cursor: 'pointer',
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
 }
 
 function DonutChart({ data, legendMaxHeight, size = 160, thickness = 12, onSegmentClick }: { data: Array<{ label: string; value: number }>; legendMaxHeight?: number; size?: number; thickness?: number; onSegmentClick?: (index: number) => void }) {
@@ -1447,12 +1460,12 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
   const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
   const getColorScheme = (scheme: string) => {
     switch (scheme) {
-      case 'red': return ['#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b']
-      case 'green': return ['#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534']
-      case 'orange': return ['#fdba74', '#fb923c', '#f97316', '#ea580c', '#dc2626', '#c2410c']
-      case 'purple': return ['#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6']
-      case 'cyan': return ['#67e8f9', '#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75']
-      default: return ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af']
+      case 'red': return ['#f7c9c5', '#eea29a', '#de7568', '#c95a4f', '#b42318', '#8f1d14']
+      case 'green': return ['#c9ece7', '#9edfd5', '#64c5b7', '#2fa191', '#0f766e', '#0a5c56']
+      case 'orange': return ['#f4d4b0', '#ebb67e', '#df954a', '#c96d1f', '#a95718', '#8d4a17']
+      case 'purple': return ['#eadcbf', '#dec49d', '#d1ab79', '#c96d1f', '#a95718', '#8d4a17']
+      case 'cyan': return ['#d3ece9', '#afded9', '#78c6be', '#42a59a', '#0f766e', '#0a5c56']
+      default: return ['#eadcbf', '#dec49d', '#d1ab79', '#c96d1f', '#a95718', '#8d4a17']
     }
   }
 
@@ -1512,8 +1525,8 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ fontSize: 14, fontWeight: 600, color: '#374151', textAlign: 'center' }}>{title}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'center' }}>
-        <div style={{ position: 'relative', width: size, height: size }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 220px) minmax(0, 1fr)', gap: 18, alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: size, height: size, justifySelf: 'center' }}>
           <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%">
             {/* Círculo de fundo */}
             <circle 
@@ -1521,7 +1534,7 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
               cy={size/2} 
               r={radius} 
               fill="none" 
-              stroke="#f1f5f9" 
+              stroke="#efe7da" 
               strokeWidth="16"
             />
             
@@ -1560,7 +1573,7 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
             })}
             
             {/* Círculo interno e texto */}
-            <circle cx={size/2} cy={size/2} r={radius - 25} fill="#fff" stroke="#e2e8f0" strokeWidth="1" />
+            <circle cx={size/2} cy={size/2} r={radius - 25} fill="#fffdf8" stroke="rgba(101, 74, 32, 0.12)" strokeWidth="1" />
             <text x={size/2} y={size/2 - 6} textAnchor="middle" fontSize="18" fontWeight="700" fill="#1f2937">
               {formatTotal(total)}
             </text>
@@ -1570,11 +1583,11 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
           </svg>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: size - 40, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: size - 12, overflowY: 'auto', paddingRight: 4 }}>
           {segments.map((segment, i) => (
             <div
               key={i}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, cursor: onSegmentClick ? 'pointer' : 'default', opacity: hoverIdx !== null ? (hoverIdx === i ? 1 : 0.55) : 1, transition: 'opacity 120ms ease' }}
+              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, cursor: onSegmentClick ? 'pointer' : 'default', opacity: hoverIdx !== null ? (hoverIdx === i ? 1 : 0.55) : 1, transition: 'opacity 120ms ease', padding: '8px 10px', borderRadius: 14, background: 'rgba(255, 252, 247, 0.82)', border: '1px solid rgba(101, 74, 32, 0.08)' }}
               onMouseEnter={() => setHoverIdx(i)}
               onMouseLeave={() => setHoverIdx(null)}
               onClick={() => { if (onSegmentClick) onSegmentClick(i) }}
@@ -1588,7 +1601,7 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
               }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontWeight: 700, color: '#374151', overflowWrap: 'anywhere' }}>
                   {segment.label}
                 </div>
                 <div style={{ color: '#6b7280', fontSize: 11 }}>
@@ -1924,15 +1937,15 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
         <path d={`${createPath(deficits, syDeficit)} L ${sx(series.length - 1)} ${syDeficit(0)} L ${sx(0)} ${syDeficit(0)} Z`} fill="url(#deficitGradient)" />
 
         {/* Lines */}
-        <path d={createPath(totals, syTotal)} fill="none" stroke="#0ea5e9" strokeWidth="3" strokeLinecap="round" />
-        <path d={createPath(deficits, syDeficit)} fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+        <path d={createPath(totals, syTotal)} fill="none" stroke="#c96d1f" strokeWidth="3" strokeLinecap="round" />
+        <path d={createPath(deficits, syDeficit)} fill="none" stroke="#0f766e" strokeWidth="3" strokeLinecap="round" />
 
         {/* Points */}
         {totals.map((v, i) => (
-          <circle key={`total-${i}`} cx={sx(i)} cy={syTotal(v)} r="4" fill="#0ea5e9" stroke="#fff" strokeWidth="2" />
+          <circle key={`total-${i}`} cx={sx(i)} cy={syTotal(v)} r="4" fill="#c96d1f" stroke="#fffdf8" strokeWidth="2" />
         ))}
         {deficits.map((v, i) => (
-          <circle key={`deficit-${i}`} cx={sx(i)} cy={syDeficit(v)} r="4" fill="#ef4444" stroke="#fff" strokeWidth="2" />
+          <circle key={`deficit-${i}`} cx={sx(i)} cy={syDeficit(v)} r="4" fill="#0f766e" stroke="#fffdf8" strokeWidth="2" />
         ))}
 
         {/* X Labels */}
@@ -1950,21 +1963,21 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
         {/* Gradients */}
         <defs>
           <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#c96d1f" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#c96d1f" stopOpacity="0.05" />
           </linearGradient>
           <linearGradient id="deficitGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#0f766e" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#0f766e" stopOpacity="0.05" />
           </linearGradient>
         </defs>
 
         {/* Legend */}
         <g transform={`translate(${W - 160}, 20)`}>
-          <rect x="0" y="-5" width="150" height="30" fill="#fff" stroke="#e2e8f0" rx="6" fillOpacity="0.95" />
-          <circle cx="15" cy="10" r="4" fill="#0ea5e9" />
+          <rect x="0" y="-5" width="150" height="30" fill="#fffdf8" stroke="rgba(101, 74, 32, 0.12)" rx="6" fillOpacity="0.95" />
+          <circle cx="15" cy="10" r="4" fill="#c96d1f" />
           <text x="25" y="14" fontSize="12" fill="#374151">Clientes</text>
-          <circle cx="90" cy="10" r="4" fill="#ef4444" />
+          <circle cx="90" cy="10" r="4" fill="#0f766e" />
           <text x="100" y="14" fontSize="12" fill="#374151">Défice</text>
         </g>
       </svg>
@@ -1975,11 +1988,11 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
           position: 'absolute',
           left: Math.min(hoveredPoint.x + 10, W - 180),
           top: Math.max(hoveredPoint.y - 80, 10),
-          background: '#fff',
-          border: '1px solid #e2e8f0',
+          background: '#fffdf8',
+          border: '1px solid rgba(101, 74, 32, 0.12)',
           borderRadius: 8,
           padding: 12,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 14px 28px rgba(76, 57, 24, 0.10)',
           fontSize: 13,
           minWidth: 160,
           zIndex: 10
@@ -1988,16 +2001,16 @@ function ImprovedTimeSeriesDual({ data }: { data: Array<{ mes?: string; total?: 
             {hoveredPoint.month}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0ea5e9', marginRight: 8 }} />
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#c96d1f', marginRight: 8 }} />
             <span style={{ color: '#6b7280' }}>Clientes:</span>
-            <span style={{ marginLeft: 8, fontWeight: 600, color: '#0ea5e9' }}>
+            <span style={{ marginLeft: 8, fontWeight: 600, color: '#c96d1f' }}>
               {hoveredPoint.total?.toLocaleString('pt-PT') || '0'}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444', marginRight: 8 }} />
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0f766e', marginRight: 8 }} />
             <span style={{ color: '#6b7280' }}>Défice:</span>
-            <span style={{ marginLeft: 8, fontWeight: 600, color: '#ef4444' }}>
+            <span style={{ marginLeft: 8, fontWeight: 600, color: '#0f766e' }}>
               {formatMoney(hoveredPoint.deficit)}
             </span>
           </div>

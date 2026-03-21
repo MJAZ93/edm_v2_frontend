@@ -6,6 +6,8 @@ type AuthState = {
   accessToken: string | null
   refreshToken: string | null
   user: AuthLoggedUser | null
+  accessTokenExpiresAt: number | null
+  autoRefreshCount: number
 }
 
 export type AuthContextType = {
@@ -27,15 +29,33 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const ACCESS_KEY = 'auth.access_token'
 const REFRESH_KEY = 'auth.refresh_token'
 const USER_KEY = 'auth.user'
+const ACCESS_EXPIRES_AT_KEY = 'auth.access_token_expires_at'
+const AUTO_REFRESH_COUNT_KEY = 'auth.auto_refresh_count'
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000
+const REFRESH_GRACE_MS = 60 * 1000
+const MAX_AUTO_REFRESHES = 3
+
+function getAccessTokenExpiresAt(expiresIn?: number): number | null {
+  if (typeof expiresIn !== 'number' || Number.isNaN(expiresIn) || expiresIn <= 0) {
+    return null
+  }
+  return Date.now() + (expiresIn * 1000)
+}
 
 function loadFromStorage(): AuthState {
   const accessToken = localStorage.getItem(ACCESS_KEY)
   const refreshToken = localStorage.getItem(REFRESH_KEY)
   const userRaw = localStorage.getItem(USER_KEY)
+  const accessTokenExpiresAtRaw = localStorage.getItem(ACCESS_EXPIRES_AT_KEY)
+  const autoRefreshCountRaw = localStorage.getItem(AUTO_REFRESH_COUNT_KEY)
+  const accessTokenExpiresAt = accessTokenExpiresAtRaw ? Number(accessTokenExpiresAtRaw) : null
+  const autoRefreshCount = autoRefreshCountRaw ? Number(autoRefreshCountRaw) : 0
   return {
     accessToken,
     refreshToken,
-    user: userRaw ? (JSON.parse(userRaw) as AuthLoggedUser) : null
+    user: userRaw ? (JSON.parse(userRaw) as AuthLoggedUser) : null,
+    accessTokenExpiresAt: accessTokenExpiresAt && !Number.isNaN(accessTokenExpiresAt) ? accessTokenExpiresAt : null,
+    autoRefreshCount: !Number.isNaN(autoRefreshCount) && autoRefreshCount > 0 ? autoRefreshCount : 0
   }
 }
 
@@ -43,12 +63,16 @@ function saveToStorage(state: AuthState) {
   if (state.accessToken) localStorage.setItem(ACCESS_KEY, state.accessToken)
   if (state.refreshToken) localStorage.setItem(REFRESH_KEY, state.refreshToken)
   if (state.user) localStorage.setItem(USER_KEY, JSON.stringify(state.user))
+  if (state.accessTokenExpiresAt) localStorage.setItem(ACCESS_EXPIRES_AT_KEY, String(state.accessTokenExpiresAt))
+  localStorage.setItem(AUTO_REFRESH_COUNT_KEY, String(state.autoRefreshCount))
 }
 
 function clearStorage() {
   localStorage.removeItem(ACCESS_KEY)
   localStorage.removeItem(REFRESH_KEY)
   localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(ACCESS_EXPIRES_AT_KEY)
+  localStorage.removeItem(AUTO_REFRESH_COUNT_KEY)
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -58,7 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [logoutNotice, setLogoutNotice] = useState<string | null>(null)
   const accessTokenRef = useRef<string | null>(null)
   const refreshTokenRef = useRef<string | null>(null)
-  const lastRefreshAtRef = useRef<number>(0)
+  const accessTokenExpiresAtRef = useRef<number | null>(null)
+  const autoRefreshCountRef = useRef<number>(0)
   const refreshInFlightRef = useRef<Promise<void> | null>(null)
 
   useEffect(() => {
@@ -68,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     accessTokenRef.current = state.accessToken
     refreshTokenRef.current = state.refreshToken
+    accessTokenExpiresAtRef.current = state.accessTokenExpiresAt
+    autoRefreshCountRef.current = state.autoRefreshCount
   }, [state])
 
   const getApiConfig = useCallback(() => {
@@ -84,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [state.accessToken])
 
   const logout = useCallback((reason?: string) => {
-    setState({ accessToken: null, refreshToken: null, user: null })
+    setState({ accessToken: null, refreshToken: null, user: null, accessTokenExpiresAt: null, autoRefreshCount: 0 })
     clearStorage()
     setLogoutNotice(reason ?? null)
     if (window.location.pathname !== '/login') {
@@ -92,31 +119,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Shared refresh logic (10 min cache)
-  const refreshTokenIfNeeded = useCallback(async () => {
-    const CACHE_MS = 10 * 60 * 1000
+  const refreshTokenIfNeeded = useCallback(async (force = false) => {
     try {
-      const now = Date.now()
-      const last = lastRefreshAtRef.current || 0
-      if (now - last < CACHE_MS) return
       if (!refreshTokenRef.current) return
       if (refreshInFlightRef.current) { await refreshInFlightRef.current; return }
+      const expiresAt = accessTokenExpiresAtRef.current
+      if (!force && expiresAt && (expiresAt - Date.now()) > REFRESH_GRACE_MS) return
+      if (!force && autoRefreshCountRef.current >= MAX_AUTO_REFRESHES) return
       const basePath = (import.meta as any).env?.VITE_API_BASE_URL || '/api'
       const authApi = new AuthenticationApi(new Configuration({ basePath }))
       const p = authApi.publicAuthRefreshPost({ refresh_token: refreshTokenRef.current }, { headers: { 'x-skip-auth-refresh': '1' } })
         .then(({ data }) => {
           const newAccess = data.access_token ?? null
           const newRefresh = data.refresh_token ?? refreshTokenRef.current
+          const newAccessTokenExpiresAt = getAccessTokenExpiresAt(data.expires_in)
           if (!newAccess) throw new Error('Missing access token')
-          const next: AuthState = { accessToken: newAccess, refreshToken: newRefresh ?? null, user: state.user }
+          const nextAutoRefreshCount = force ? autoRefreshCountRef.current : autoRefreshCountRef.current + 1
+          const next: AuthState = {
+            accessToken: newAccess,
+            refreshToken: newRefresh ?? null,
+            user: state.user,
+            accessTokenExpiresAt: newAccessTokenExpiresAt,
+            autoRefreshCount: nextAutoRefreshCount
+          }
           setState(next)
           saveToStorage(next)
           accessTokenRef.current = newAccess
           refreshTokenRef.current = newRefresh ?? null
-          lastRefreshAtRef.current = Date.now()
+          accessTokenExpiresAtRef.current = newAccessTokenExpiresAt
+          autoRefreshCountRef.current = nextAutoRefreshCount
         })
         .catch((err) => {
-          logout('Sessão expirada. Inicie sessão novamente.')
+          const status = err?.response?.status
+          if (status === 401) {
+            logout('Sessão expirada. Inicie sessão novamente.')
+          }
           throw err
         })
         .finally(() => { refreshInFlightRef.current = null })
@@ -126,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [logout, state.user])
 
   const getAuthorizationHeaderValueAsync = useCallback(async () => {
-    await refreshTokenIfNeeded()
+    await refreshTokenIfNeeded(true)
     const token = accessTokenRef.current || state.accessToken
     return token ? `Bearer ${token}` : ''
   }, [refreshTokenIfNeeded, state.accessToken])
@@ -139,16 +176,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const accessToken = data.access_token ?? null
       const refreshToken = data.refresh_token ?? null
       const user = (data.user as AuthLoggedUser) ?? null
+      const accessTokenExpiresAt = getAccessTokenExpiresAt(data.expires_in)
       if (!accessToken || !user) {
         throw new Error('Invalid login response')
       }
-      const next: AuthState = { accessToken, refreshToken, user }
+      const next: AuthState = { accessToken, refreshToken, user, accessTokenExpiresAt, autoRefreshCount: 0 }
       setState(next)
       saveToStorage(next)
       setLogoutNotice(null)
       accessTokenRef.current = accessToken
       refreshTokenRef.current = refreshToken
-      lastRefreshAtRef.current = Date.now()
+      accessTokenExpiresAtRef.current = accessTokenExpiresAt
+      autoRefreshCountRef.current = 0
       // Redireciona para o dashboard se estiver no /login
       if (window.location.pathname === '/login') {
         window.history.replaceState({}, '', '/dashboard')
@@ -159,6 +198,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const clearLogoutNotice = useCallback(() => setLogoutNotice(null), [])
+
+  useEffect(() => {
+    if (!state.refreshToken) return
+
+    const refreshNow = () => {
+      void refreshTokenIfNeeded(false)
+    }
+
+    refreshNow()
+    const intervalId = window.setInterval(refreshNow, REFRESH_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [state.refreshToken, refreshTokenIfNeeded])
 
   // Globally ensure token freshness + intercept 401 to force logout
   useEffect(() => {
@@ -187,7 +241,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         const token = accessTokenRef.current
         if (token) {
-          config.headers = { ...(config.headers || {}), Authorization: `Bearer ${token}` }
+          if (typeof (config.headers as any)?.set === 'function') {
+            ;(config.headers as any).set('Authorization', `Bearer ${token}`)
+          } else {
+            ;(config as any).headers = { ...(config.headers || {}), Authorization: `Bearer ${token}` }
+          }
         }
         return config
       },
@@ -202,9 +260,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return response
       },
-      (error) => {
+      async (error) => {
         const status = error?.response?.status
         const data = error?.response?.data
+        const originalRequest = error?.config as any
+        const isRefreshRequest = originalRequest?.headers?.['x-skip-auth-refresh']
+
+        if (!isRefreshRequest && (status === 401 || isUnauthorizedBody(data)) && !originalRequest?._retry && refreshTokenRef.current) {
+          originalRequest._retry = true
+          try {
+            await refreshTokenIfNeeded()
+            const token = accessTokenRef.current
+            if (token) {
+              if (typeof originalRequest.headers?.set === 'function') {
+                originalRequest.headers.set('Authorization', `Bearer ${token}`)
+              } else {
+                originalRequest.headers = { ...(originalRequest.headers || {}), Authorization: `Bearer ${token}` }
+              }
+            }
+            return axios.request(originalRequest)
+          } catch {
+            // deixa o fluxo cair para logout abaixo quando a sessão estiver realmente inválida
+          }
+        }
+
         if (status === 401 || isUnauthorizedBody(data)) {
           logout('Sessão expirada. Inicie sessão novamente.')
         }
