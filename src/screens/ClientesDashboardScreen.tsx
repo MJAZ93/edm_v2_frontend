@@ -37,12 +37,12 @@ export default function ClientesDashboardScreen() {
   const currentMonth = now.getMonth() + 1
   const [year, setYear] = useState<number>(currentYear)
   const [month, setMonth] = useState<number>(currentMonth)
-  const [minScore, setMinScore] = useState<string>('')
-  const [maxScore, setMaxScore] = useState<string>('')
-  const [zeroCompras, setZeroCompras] = useState(false)
   const [temporalItems, setTemporalItems] = useState<Array<{ mes?: string; total?: number; deficit?: number }>>([])
+  const [semComprasTemporalItems, setSemComprasTemporalItems] = useState<Array<{ mes?: string; total?: number; deficit?: number }>>([])
   const [temporalLoading, setTemporalLoading] = useState(false)
   const [temporalError, setTemporalError] = useState<string | null>(null)
+  const [semComprasTemporalLoading, setSemComprasTemporalLoading] = useState(false)
+  const [semComprasTemporalError, setSemComprasTemporalError] = useState<string | null>(null)
   // Tendência (group_by=tendencia)
   const [tendCounts, setTendCounts] = useState<CountItem[]>([])
   const [tendLoading, setTendLoading] = useState(false)
@@ -156,7 +156,7 @@ export default function ClientesDashboardScreen() {
 
   const donutData = (filtered || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))
   const monthLabel = `${MONTH_NAMES_PT[Math.max(1, Math.min(12, month)) - 1]} ${year}`
-  const activeFilterCount = [regiaoId, ascId, tendencia, marcacaoStatus, analiseStatus, zeroCompras ? '1' : ''].filter(Boolean).length
+  const activeFilterCount = [regiaoId, ascId, tendencia, marcacaoStatus, analiseStatus].filter(Boolean).length
   const totalClientesAtual = (filtered || []).reduce((sum, item) => sum + (item.count || 0), 0)
 
   // Carregar défice por região (mantém-se visível; filtragem aplicada na apresentação)
@@ -227,9 +227,9 @@ export default function ClientesDashboardScreen() {
           auth,
           Math.max(12, monthsToFetch),
           tendencia || undefined,
-          minScore ? Number(minScore) : undefined,
-          maxScore ? Number(maxScore) : undefined,
-          zeroCompras || undefined
+          undefined,
+          undefined,
+          undefined
         )
         if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
         const allItems = (((data as any)?.items) ?? []) as Array<{ mes?: string; total?: number; deficit?: number }>
@@ -271,7 +271,66 @@ export default function ClientesDashboardScreen() {
         setTemporalError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar análise temporal.')
       } finally { setTemporalLoading(false) }
     })()
-  }, [api, auth, month, year, tendencia, minScore, maxScore, zeroCompras])
+  }, [api, auth, month, year, tendencia])
+
+  useEffect(() => {
+    (async () => {
+      setSemComprasTemporalLoading(true); setSemComprasTemporalError(null)
+      try {
+        const nowY = now.getFullYear()
+        const nowM = now.getMonth() + 1
+        let diffToTarget = (nowY - year) * 12 + (nowM - month) + 1
+        if (!Number.isFinite(diffToTarget) || diffToTarget < 1) diffToTarget = 1
+        let monthsToFetch = diffToTarget + 11
+        if (monthsToFetch < 12) monthsToFetch = 12
+        if (monthsToFetch > 60) monthsToFetch = 60
+
+        const { data } = await api.privateInspeccoesTemporalGet(
+          auth,
+          Math.max(12, monthsToFetch),
+          tendencia || undefined,
+          undefined,
+          undefined,
+          true
+        )
+        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const allItems = (((data as any)?.items) ?? []) as Array<{ mes?: string; total?: number; deficit?: number }>
+        const keys: string[] = []
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(Date.UTC(year, month - 1, 1))
+          d.setUTCMonth(d.getUTCMonth() - i)
+          const y = d.getUTCFullYear()
+          const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+          keys.push(`${y}-${m}`)
+        }
+        const byKey: Record<string, { mes?: string; total?: number; deficit?: number }> = {}
+        const toKey = (s: string) => {
+          try {
+            const m = /^(\d{4})-(\d{2})/.exec(s)
+            if (m) return `${m[1]}-${m[2]}`
+            const d = new Date(s)
+            const y = d.getUTCFullYear()
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+            return `${y}-${mm}`
+          } catch { return String(s).slice(0, 7) }
+        }
+        for (const it of allItems) {
+          if (it?.mes) {
+            const k = toKey(String(it.mes))
+            byKey[k] = { ...it, mes: k }
+          }
+        }
+        const window12 = keys.map((k) => byKey[k]).filter(Boolean)
+        setSemComprasTemporalItems(window12)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        setSemComprasTemporalError(!status ? 'Sem ligação ao servidor.' : 'Falha ao carregar série temporal de sem compras.')
+      } finally {
+        setSemComprasTemporalLoading(false)
+      }
+    })()
+  }, [api, auth, month, year, tendencia])
 
   // Carregar contagens por tendência (distribuição)
   useEffect(() => {
@@ -442,9 +501,6 @@ export default function ClientesDashboardScreen() {
                 setTendencia('')
                 setMarcacaoStatus('')
                 setAnaliseStatus('')
-                setMinScore('')
-                setMaxScore('')
-                setZeroCompras(false)
               }}
               style={secondaryHeaderButtonStyle}
             >
@@ -458,7 +514,6 @@ export default function ClientesDashboardScreen() {
           {regiaoId ? <span style={summaryChipStyle}>Região filtrada</span> : null}
           {ascId ? <span style={summaryChipStyle}>ASC filtrada</span> : null}
           {tendencia ? <span style={summaryChipStyle}>Tendência filtrada</span> : null}
-          {zeroCompras ? <span style={summaryChipStyle}>Sem compras 6 meses</span> : null}
         </div>
         {filtersOpen ? (
         <div style={filtersGridStyle}>
@@ -583,6 +638,7 @@ export default function ClientesDashboardScreen() {
                 title={`Distribuição por ${clientesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                 colorScheme="orange"
                 size={240}
+                metric="count"
                 onSegmentClick={(idx) => {
                   const lbl = (donutData[idx] || {}).label
                   if (clientesGroupBy === 'regiao') {
@@ -627,6 +683,7 @@ export default function ClientesDashboardScreen() {
                   title={`Défice por ${deficitGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
                   colorScheme="red"
                   size={240}
+                  metric="currency"
                   onSegmentClick={(idx) => {
                     const lbl = ((deficitFiltered || [])[idx] || {}).label
                     if (deficitGroupBy === 'regiao') {
@@ -712,13 +769,11 @@ export default function ClientesDashboardScreen() {
                     </div>
                   </div>
                 ) : (
-                  <ImprovedDonutChart 
+                  <TrendCategoryChart
                     data={(tendCounts || [])
                       .filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
                       .map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
                     title={`Distribuição por Tendência · Mês ${monthLabel}`}
-                    colorScheme="green"
-                    size={240}
                     onSegmentClick={(idx) => {
                       const arr = (tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))
                       const target = arr[idx]
@@ -726,11 +781,6 @@ export default function ClientesDashboardScreen() {
                     }}
                   />
                 )}
-                <div style={{ padding: '14px 16px', background: '#f2fcfa', borderRadius: 16, border: '1px solid rgba(15, 118, 110, 0.14)' }}>
-                  <TrendSummaryCards 
-                    data={(tendCounts || []).filter((it) => !tendencia || (it.id?.toUpperCase() === tendencia || it.label === labelTendencia(tendencia)))}
-                  />
-                </div>
               </div>
               {tendError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{tendError}</div> : null}
             </Card>
@@ -740,181 +790,117 @@ export default function ClientesDashboardScreen() {
 
       {/* Seção de Análise Temporal */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <SectionTitle eyebrow="Temporal" title="Análise temporal" subtitle="Evolução mensal dos clientes e do défice ao longo dos últimos doze meses." />
-        
-        <Card title={`Análise temporal — Últimos 12 meses (até ${monthLabel})`}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, marginBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              {/* Campos de Score ocultados por requisito */}
-              <label style={{ display: 'none' }}>
-                <span>Score mínimo</span>
-                <input value={minScore} onChange={(e) => setMinScore(e.target.value)} placeholder="0.0" />
-              </label>
-              <label style={{ display: 'none' }}>
-                <span>Score máximo</span>
-                <input value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="1.0" />
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32 }}>
-                <input type="checkbox" checked={zeroCompras} onChange={(e) => setZeroCompras(e.target.checked)} style={{ width: 18, height: 18 }} />
-                <span style={{ color: '#374151', fontSize: 14, fontWeight: 500 }}>Sem compras nos últimos 6 meses</span>
-              </label>
-            </div>
-            <TemporalSummary data={temporalItems} loading={temporalLoading} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, alignItems: 'stretch' }}>
-            <Card title={`Evolução Temporal — Últimos 12 meses`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              {temporalLoading ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                  <div style={{ marginBottom: 8 }}>A carregar análise temporal…</div>
-                  <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ width: '50%', height: '100%', background: '#8b5cf6', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                  </div>
-                </div>
-              ) : temporalError ? (
-                <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8 }}>{temporalError}</div>
-              ) : (
-                <ImprovedTimeSeriesDual data={temporalItems} />
-              )}
-            </Card>
-            <Card title={`Resumo do Mês — ${monthLabel}`} style={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div style={{ overflow: 'auto', maxHeight: 320 }}>
-                {temporalLoading ? (
-                  <div style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>A carregar…</div>
-                ) : (
-                  <TemporalTable data={temporalItems} />
-                )}
-              </div>
-            </Card>
-          </div>
-        </Card>
+        <SectionTitle eyebrow="Temporal" title="Análise temporal" subtitle="Acompanhe a evolução do défice e dos clientes sem compras ao longo dos últimos doze meses." />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'stretch' }}>
+          <Card title={`Défice temporal — Últimos 12 meses (até ${monthLabel})`}>
+            {temporalLoading ? (
+              <TemporalCardLoading label="A carregar série temporal de défice…" color="#b42318" />
+            ) : temporalError ? (
+              <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 12 }}>{temporalError}</div>
+            ) : (
+              <SingleSeriesLineChart
+                data={temporalItems}
+                metric="deficit"
+                color="#b42318"
+                fillColor="rgba(180, 35, 24, 0.14)"
+                valueFormatter={(value) => formatMoney(value)}
+                emptyLabel="Sem dados de défice para mostrar."
+              />
+            )}
+          </Card>
+
+          <Card title={`Sem compras temporal — Últimos 12 meses (até ${monthLabel})`}>
+            {semComprasTemporalLoading ? (
+              <TemporalCardLoading label="A carregar série temporal de sem compras…" color="#c96d1f" />
+            ) : semComprasTemporalError ? (
+              <div style={{ background: '#fff4e8', color: '#9a3412', padding: 12, borderRadius: 12 }}>{semComprasTemporalError}</div>
+            ) : (
+              <SingleSeriesLineChart
+                data={semComprasTemporalItems}
+                metric="total"
+                color="#c96d1f"
+                fillColor="rgba(201, 109, 31, 0.14)"
+                valueFormatter={(value) => `${value.toLocaleString('pt-PT')} clientes`}
+                emptyLabel="Sem dados de clientes sem compras para mostrar."
+              />
+            )}
+          </Card>
+        </div>
       </div>
 
       {/* Seção de Ações */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SectionTitle eyebrow="Ações" title="Análise de ações" subtitle="Compare volume de ações, valor recuperado e eficácia operacional por grupo." />
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
-          {/* Ações por instalação — contagens (por região/ASC) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
           <Card title={`Ações por instalação — Contagens por ${accoesGroupBy === 'regiao' ? 'região' : 'ASC'} · Mês ${monthLabel}`}>
             <div style={segmentedRowStyle}>
               <SegmentedToggleButton active={accoesGroupBy === 'regiao'} tone="warning" onClick={() => setAccoesGroupBy('regiao')}>Por Região</SegmentedToggleButton>
               <SegmentedToggleButton active={accoesGroupBy === 'asc'} tone="warning" onClick={() => setAccoesGroupBy('asc')}>Por ASC</SegmentedToggleButton>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
-              <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                {(accoesGroupBy === 'regiao' ? accoesLoading : accoesLoadingASC) ? (
-                  <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                    <div style={{ marginBottom: 8 }}>A carregar ações…</div>
-                    <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: '75%', height: '100%', background: '#f59e0b', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                    </div>
-                  </div>
-                ) : (
-                  <ActionsTable data={accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC} />
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <ImprovedDonutChart 
-                  data={(accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
-                  title={`Ações por ${accoesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
-                  colorScheme="orange"
-                  onSegmentClick={(idx) => {
-                    if (accoesGroupBy === 'regiao') {
-                      const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
-                      const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                      if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
-                    } else {
-                      const lbl = ((accoesCountsASC || [])[idx] || {}).label || ((accoesCountsASC || [])[idx] || {}).id
-                      const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
-                      if (asc && asc.id != null) { setAscId(String(asc.id)) }
-                    }
-                  }}
-                />
-                <div style={{ padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fed7aa' }}>
-                  <div style={{ fontSize: 12, color: '#92400e', marginBottom: 4 }}>Total de Ações</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: '#ea580c' }}>
-                    {(accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC || []).reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString('pt-PT')}
-                  </div>
+            {(accoesGroupBy === 'regiao' ? accoesLoading : accoesLoadingASC) ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ marginBottom: 8 }}>A carregar ações…</div>
+                <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: '75%', height: '100%', background: '#f59e0b', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
                 </div>
               </div>
-            </div>
+            ) : (
+              <ImprovedDonutChart
+                data={(accoesGroupBy === 'regiao' ? accoesCounts : accoesCountsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.count || 0) }))}
+                title={`Ações por ${accoesGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
+                colorScheme="orange"
+                metric="count"
+                onSegmentClick={(idx) => {
+                  if (accoesGroupBy === 'regiao') {
+                    const lbl = ((accoesCounts || [])[idx] || {}).label || ((accoesCounts || [])[idx] || {}).id
+                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                  } else {
+                    const lbl = ((accoesCountsASC || [])[idx] || {}).label || ((accoesCountsASC || [])[idx] || {}).id
+                    const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                    if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                  }
+                }}
+              />
+            )}
             {(accoesGroupBy === 'regiao' ? accoesError : accoesErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{accoesGroupBy === 'regiao' ? accoesError : accoesErrorASC}</div> : null}
           </Card>
 
-          {/* Valor Recuperado */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-            <Card title={`Melhores grupos por valor recuperado (${bestGroupBy === 'regiao' ? 'por região' : 'por ASC'}) · Mês ${monthLabel}`}>
-              <div style={segmentedRowStyle}>
-                <SegmentedToggleButton active={bestGroupBy === 'regiao'} tone="success" onClick={() => setBestGroupBy('regiao')}>Por Região</SegmentedToggleButton>
-                <SegmentedToggleButton active={bestGroupBy === 'asc'} tone="success" onClick={() => setBestGroupBy('asc')}>Por ASC</SegmentedToggleButton>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20, alignItems: 'stretch' }}>
-                <div style={{ overflow: 'auto', maxHeight: 280 }}>
-                  {(bestGroupBy === 'regiao' ? bestLoading : bestLoadingASC) ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                      <div style={{ marginBottom: 8 }}>A carregar melhores grupos…</div>
-                      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: '85%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
-                      </div>
-                    </div>
-                  ) : (
-                    <BestGroupsTable data={bestGroupBy === 'regiao' ? bestItems : bestItemsASC} />
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <ImprovedDonutChart 
-                    data={(bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
-                    title={`Valor Recuperado por ${bestGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
-                    colorScheme="green"
-                    onSegmentClick={(idx) => {
-                      if (bestGroupBy === 'regiao') {
-                        const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
-                        const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
-                        if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
-                      } else {
-                        const lbl = ((bestItemsASC || [])[idx] || {}).label || ((bestItemsASC || [])[idx] || {}).id
-                        const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
-                        if (asc && asc.id != null) { setAscId(String(asc.id)) }
-                      }
-                    }}
-                  />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
-                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>Total Recuperado</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
-                        {formatMoney((bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).reduce((sum, item) => sum + (item.value || 0), 0))}
-                      </div>
-                    </div>
-                    <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
-                      <div style={{ fontSize: 11, color: '#166534', marginBottom: 2 }}>{bestGroupBy === 'regiao' ? 'Regiões' : 'ASCs'} Ativas</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#15803d' }}>
-                        {(bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).filter(item => (item.value || 0) > 0).length}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {(bestGroupBy === 'regiao' ? bestError : bestErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestGroupBy === 'regiao' ? bestError : bestErrorASC}</div> : null}
-            </Card>
-
-          </div>
-
-          {/* Effectiveness de Ações de Cliente */}
-          <Card title={`Valor Recuperado por Tipo de Ação (Clientes) · Mês ${monthLabel}`}>
-            {effectivenessLoading ? (
+          <Card title={`${bestGroupBy === 'regiao' ? 'Melhores Regiões por valor recuperado' : 'Melhores ASCs por valor recuperado'} · Mês ${monthLabel}`}>
+            <div style={segmentedRowStyle}>
+              <SegmentedToggleButton active={bestGroupBy === 'regiao'} tone="success" onClick={() => setBestGroupBy('regiao')}>Por Região</SegmentedToggleButton>
+              <SegmentedToggleButton active={bestGroupBy === 'asc'} tone="success" onClick={() => setBestGroupBy('asc')}>Por ASC</SegmentedToggleButton>
+            </div>
+            {(bestGroupBy === 'regiao' ? bestLoading : bestLoadingASC) ? (
               <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
-                <div style={{ marginBottom: 8 }}>A carregar effectiveness de instalações…</div>
+                <div style={{ marginBottom: 8 }}>A carregar melhores grupos…</div>
                 <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: '75%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
+                  <div style={{ width: '85%', height: '100%', background: '#10b981', borderRadius: 2, animation: 'pulse 1.5s infinite' }} />
                 </div>
               </div>
-            ) : effectivenessError ? (
-              <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8 }}>{effectivenessError}</div>
             ) : (
-              <InstallationEffectivenessChart data={effectivenessData} />
+              <ImprovedDonutChart
+                data={(bestGroupBy === 'regiao' ? bestItems : bestItemsASC || []).map((it) => ({ label: it.label || it.id || '—', value: Number(it.value || 0) }))}
+                title={`Valor Recuperado por ${bestGroupBy === 'regiao' ? 'Região' : 'ASC'} · Mês ${monthLabel}`}
+                colorScheme="green"
+                metric="currency"
+                onSegmentClick={(idx) => {
+                  if (bestGroupBy === 'regiao') {
+                    const lbl = ((bestItems || [])[idx] || {}).label || ((bestItems || [])[idx] || {}).id
+                    const reg = (regioes || []).find(r => (r.name || r.id) === lbl)
+                    if (reg && reg.id != null) { setRegiaoId(String(reg.id)); setAscId('') }
+                  } else {
+                    const lbl = ((bestItemsASC || [])[idx] || {}).label || ((bestItemsASC || [])[idx] || {}).id
+                    const asc = (ascs || []).find(a => (a.name || a.id) === lbl)
+                    if (asc && asc.id != null) { setAscId(String(asc.id)) }
+                  }
+                }}
+              />
             )}
+            {(bestGroupBy === 'regiao' ? bestError : bestErrorASC) ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginTop: 10 }}>{bestGroupBy === 'regiao' ? bestError : bestErrorASC}</div> : null}
           </Card>
-
         </div>
       </div>
     </div>
@@ -1192,6 +1178,56 @@ function formatKwh(n?: number) {
   try { return `${n.toLocaleString('pt-PT')} kWh` } catch { return `${n} kWh` }
 }
 
+function trendTone(label?: string) {
+  const text = String(label || '').toLowerCase()
+  if (text.includes('sem compras')) {
+    return {
+      fill: '#b42318',
+      border: 'rgba(180, 35, 24, 0.18)',
+      surface: '#fff4f3',
+      text: '#b42318',
+    }
+  }
+  if (text.includes('muito crescente')) {
+    return {
+      fill: '#2b8a78',
+      border: 'rgba(43, 138, 120, 0.16)',
+      surface: '#eef9f5',
+      text: '#2b8a78',
+    }
+  }
+  if (text.includes('muito decrescente')) {
+    return {
+      fill: '#d98a3d',
+      border: 'rgba(217, 138, 61, 0.18)',
+      surface: '#fff8ef',
+      text: '#a85f1f',
+    }
+  }
+  if (text.includes('decrescente')) {
+    return {
+      fill: '#e2bb59',
+      border: 'rgba(226, 187, 89, 0.22)',
+      surface: '#fffcef',
+      text: '#9d7a20',
+    }
+  }
+  if (text.includes('crescente')) {
+    return {
+      fill: '#90c9a7',
+      border: 'rgba(144, 201, 167, 0.24)',
+      surface: '#f4fbf6',
+      text: '#4d7a5f',
+    }
+  }
+  return {
+    fill: '#3056a6',
+    border: 'rgba(48, 86, 166, 0.16)',
+    surface: '#f4f7ff',
+    text: '#3056a6',
+  }
+}
+
 function InstallationEffectivenessChart({ data }: { data: any[] }) {
   const { getApiConfig, getAuthorizationHeaderValue } = useAuth()
   const accaoTipoApi = useMemo(() => new InstalacaoAccaoTipoApi(getApiConfig()), [getApiConfig])
@@ -1450,11 +1486,12 @@ function labelAnalise(v?: string) {
 
 // Componentes melhorados
 
-function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, onSegmentClick }: { 
+function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, metric = 'number', onSegmentClick }: { 
   data: Array<{ label: string; value: number }>; 
   title: string; 
   colorScheme?: 'default' | 'red' | 'green' | 'orange' | 'purple' | 'cyan';
   size?: number;
+  metric?: 'count' | 'currency' | 'number';
   onSegmentClick?: (index: number) => void;
 }) {
   const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
@@ -1514,11 +1551,19 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
 
   // Formatação do valor total
   const formatTotal = (value: number) => {
+    if (metric === 'currency') {
+      return formatMoney(value)
+    }
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M`
     } else if (value >= 1000) {
       return `${(value / 1000).toFixed(1)}K`
     }
+    return value.toLocaleString('pt-PT')
+  }
+
+  const formatValue = (value: number) => {
+    if (metric === 'currency') return formatMoney(value)
     return value.toLocaleString('pt-PT')
   }
 
@@ -1605,7 +1650,7 @@ function ImprovedDonutChart({ data, title, colorScheme = 'default', size = 200, 
                   {segment.label}
                 </div>
                 <div style={{ color: '#6b7280', fontSize: 11 }}>
-                  {segment.percentage.toFixed(1)}% · {formatMoney ? formatMoney(segment.value) : segment.value.toLocaleString('pt-PT')}
+                  {segment.percentage.toFixed(1)}% · {formatValue(segment.value)}
                 </div>
               </div>
             </div>
@@ -1792,6 +1837,73 @@ function TrendTable({ data }: { data: CountItem[] }) {
   )
 }
 
+function TrendCategoryChart({
+  data,
+  title,
+  onSegmentClick,
+}: {
+  data: Array<{ label: string; value: number }>
+  title: string
+  onSegmentClick?: (index: number) => void
+}) {
+  const trendOrder = ['Muito crescente', 'Crescente', 'Normal', 'Decrescente', 'Muito decrescente', 'Sem compras']
+  const rows = [...data].sort((a, b) => {
+    const indexA = trendOrder.findIndex((item) => item.toLowerCase() === String(a.label || '').toLowerCase())
+    const indexB = trendOrder.findIndex((item) => item.toLowerCase() === String(b.label || '').toLowerCase())
+    const safeA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA
+    const safeB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB
+    if (safeA !== safeB) return safeA - safeB
+    return (b.value || 0) - (a.value || 0)
+  })
+  const maxValue = Math.max(...rows.map((item) => item.value || 0), 1)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>{title}</div>
+      {rows.length === 0 ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Sem dados de tendência</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {rows.map((item, index) => {
+            const tone = trendTone(item.label)
+            const ratio = Math.max(0, Math.min(1, (item.value || 0) / maxValue))
+            return (
+              <button
+                key={`${item.label}-${index}`}
+                type="button"
+                onClick={() => onSegmentClick?.(index)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '160px minmax(0, 1fr) auto',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 14px',
+                  borderRadius: 16,
+                  border: `1px solid ${tone.border}`,
+                  background: tone.surface,
+                  cursor: onSegmentClick ? 'pointer' : 'default',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  <span style={{ width: 12, height: 12, borderRadius: 999, background: tone.fill, flexShrink: 0 }} />
+                  <strong style={{ color: '#1f2937', overflowWrap: 'anywhere' }}>{item.label}</strong>
+                </div>
+                <div style={{ height: 12, borderRadius: 999, background: 'rgba(101, 74, 32, 0.10)', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.max(8, ratio * 100)}%`, height: '100%', borderRadius: 999, background: tone.fill }} />
+                </div>
+                <span style={{ color: tone.text, fontWeight: 800, whiteSpace: 'nowrap' }}>
+                  {item.value.toLocaleString('pt-PT')}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TrendSummaryCards({ data }: { data: CountItem[] }) {
   const total = data.reduce((sum, item) => sum + (item.count || 0), 0)
   const crescentes = data.filter(item => item.label?.includes('Crescente')).reduce((sum, item) => sum + (item.count || 0), 0)
@@ -1811,6 +1923,171 @@ function TrendSummaryCards({ data }: { data: CountItem[] }) {
           {total > 0 ? `${((decrescentes / total) * 100).toFixed(1)}%` : '0%'}
         </div>
       </div>
+    </div>
+  )
+}
+
+function TemporalCardLoading({ label, color }: { label: string; color: string }) {
+  return (
+    <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+      <div style={{ marginBottom: 8 }}>{label}</div>
+      <div style={{ width: '100%', height: 4, background: '#f3f4f6', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ width: '56%', height: '100%', background: color, borderRadius: 999, animation: 'pulse 1.5s infinite' }} />
+      </div>
+    </div>
+  )
+}
+
+function SingleSeriesLineChart({
+  data,
+  metric,
+  color,
+  fillColor,
+  valueFormatter,
+  emptyLabel,
+}: {
+  data: Array<{ mes?: string; total?: number; deficit?: number }>
+  metric: 'total' | 'deficit'
+  color: string
+  fillColor: string
+  valueFormatter: (value: number) => string
+  emptyLabel: string
+}) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const gradientId = React.useId().replace(/:/g, '')
+  const [width, setWidth] = React.useState<number>(560)
+  const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth))
+    setWidth(el.clientWidth)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const series = Array.isArray(data)
+    ? data.map((item) => ({ mes: item.mes, value: Number(item[metric] || 0) }))
+    : []
+
+  if (!series.length) {
+    return <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>{emptyLabel}</div>
+  }
+
+  const maxValue = Math.max(1, ...series.map((item) => item.value))
+  const H = 290
+  const W = Math.max(420, width)
+  const padTop = 24
+  const padBottom = 42
+  const padX = 26
+  const chartWidth = W - padX * 2
+  const chartHeight = H - padTop - padBottom
+
+  const sx = (index: number) => padX + (index / Math.max(1, series.length - 1)) * chartWidth
+  const sy = (value: number) => H - padBottom - (value / maxValue) * chartHeight
+  const linePath = series.map((item, index) => `${index === 0 ? 'M' : 'L'} ${sx(index)} ${sy(item.value)}`).join(' ')
+  const areaPath = `${linePath} L ${sx(series.length - 1)} ${H - padBottom} L ${sx(0)} ${H - padBottom} Z`
+  const hoveredItem = hoveredIndex == null ? null : series[hoveredIndex]
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', position: 'relative' }}>
+      <svg
+        width={W}
+        height={H}
+        onMouseLeave={() => setHoveredIndex(null)}
+        style={{ width: '100%', height: H }}
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((factor) => {
+          const y = padTop + factor * chartHeight
+          const value = Math.round((1 - factor) * maxValue)
+          return (
+            <g key={factor}>
+              <line x1={padX} y1={y} x2={W - padX} y2={y} stroke="rgba(148, 163, 184, 0.20)" strokeDasharray="4,6" />
+              <text x={W - padX} y={y - 6} fontSize={11} fill="#64748b" textAnchor="end">
+                {metric === 'deficit' ? formatMoney(value) : value.toLocaleString('pt-PT')}
+              </text>
+            </g>
+          )
+        })}
+
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={fillColor} />
+            <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
+          </linearGradient>
+        </defs>
+
+        <path d={areaPath} fill={`url(#${gradientId})`} />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+
+        {series.map((item, index) => {
+          const x = sx(index)
+          const y = sy(item.value)
+          const showLabel = series.length <= 6 || index === 0 || index === series.length - 1 || index % 2 === 0
+          const isHovered = hoveredIndex === index
+          return (
+            <g key={`${item.mes}-${index}`}>
+              <circle
+                cx={x}
+                cy={y}
+                r={isHovered ? 6 : 5}
+                fill={color}
+                stroke="#fffdf8"
+                strokeWidth="3"
+                onMouseEnter={() => setHoveredIndex(index)}
+                style={{ cursor: 'pointer' }}
+              />
+              {showLabel ? (
+                <text x={x} y={H - 14} fontSize={11} fill="#64748b" textAnchor="middle">
+                  {formatMonth(item.mes)}
+                </text>
+              ) : null}
+            </g>
+          )
+        })}
+
+        {hoveredItem && hoveredIndex != null ? (
+          <line
+            x1={sx(hoveredIndex)}
+            y1={padTop}
+            x2={sx(hoveredIndex)}
+            y2={H - padBottom}
+            stroke="rgba(51, 65, 85, 0.35)"
+            strokeDasharray="4,4"
+          />
+        ) : null}
+      </svg>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 8, color: '#64748b', fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 10, height: 10, borderRadius: 999, background: color, display: 'inline-block' }} />
+          <span>{metric === 'deficit' ? 'Défice mensal' : 'Clientes sem compras por mês'}</span>
+        </div>
+        <strong style={{ color, fontWeight: 800 }}>
+          Pico: {valueFormatter(Math.max(...series.map((item) => item.value)))}
+        </strong>
+      </div>
+
+      {hoveredItem && hoveredIndex != null ? (
+        <div
+          style={{
+            position: 'absolute',
+            left: Math.min(Math.max(sx(hoveredIndex) - 86, 12), W - 184),
+            top: Math.max(sy(hoveredItem.value) - 82, 12),
+            background: '#fffdf8',
+            border: '1px solid rgba(101, 74, 32, 0.12)',
+            borderRadius: 12,
+            padding: '10px 12px',
+            boxShadow: '0 16px 32px rgba(76, 57, 24, 0.12)',
+            minWidth: 172,
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>{formatMonth(hoveredItem.mes)}</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color }}>{valueFormatter(hoveredItem.value)}</div>
+        </div>
+      ) : null}
     </div>
   )
 }
