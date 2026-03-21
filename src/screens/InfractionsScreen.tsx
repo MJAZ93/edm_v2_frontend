@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Card, Pagination } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { InfractionApi, SectorInfracaoApi, TipoInfracaoApi, type ModelInfraction, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
+import { InfractionApi, ScrapyardApi, SectorInfracaoApi, TipoInfracaoApi, type ModelInfraction, type ModelScrapyard, type ModelSectorInfracao, type ModelTipoInfracao } from '../services'
 import { BORDER_COLOR, RADIUS, SEMANTIC_COLORS, TEXT_PRIMARY } from '../utils/theme'
 
 export default function InfractionsScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
   const api = useMemo(() => new InfractionApi(getApiConfig()), [getApiConfig])
+  const scrapyardApi = useMemo(() => new ScrapyardApi(getApiConfig()), [getApiConfig])
   const sectorApi = useMemo(() => new SectorInfracaoApi(getApiConfig()), [getApiConfig])
   const tipoApi = useMemo(() => new TipoInfracaoApi(getApiConfig()), [getApiConfig])
   const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
@@ -28,6 +29,7 @@ export default function InfractionsScreen() {
   const [setores, setSetores] = useState<ModelSectorInfracao[]>([])
   const [tipos, setTipos] = useState<ModelTipoInfracao[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [nearestScrapyardDistanceByInfraction, setNearestScrapyardDistanceByInfraction] = useState<Record<string, number | null>>({})
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -83,6 +85,15 @@ export default function InfractionsScreen() {
     return it?.name || id
   }
 
+  const resolveLocal = (item: ModelInfraction) => {
+    return (item as any).local
+      || (item as any).occurrence?.local
+      || (item as any).occurrence_local
+      || (item as any).bairro
+      || (item as any).morada
+      || 'Local por identificar'
+  }
+
   const viewItems = useMemo(() => {
     const startTs = dataInicio ? Date.parse(dataInicio) : null
     const endTs = dataFim ? Date.parse(dataFim) : null
@@ -104,6 +115,51 @@ export default function InfractionsScreen() {
       return fields.some((s) => (s || '').toLowerCase().includes(q))
     })
   }, [items, dataInicio, dataFim, texto, setores, tipos])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadNearestScrapyards() {
+      const candidates = viewItems.filter((item) => item.id && item.lat != null && item.long != null)
+      if (!candidates.length) {
+        if (!cancelled) setNearestScrapyardDistanceByInfraction({})
+        return
+      }
+
+      const entries = await Promise.all(candidates.map(async (item) => {
+        try {
+          const { data } = await scrapyardApi.privateScrapyardsGet(
+            authHeader,
+            1,
+            10,
+            'nome',
+            'asc',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            Number(item.lat),
+            Number(item.long)
+          )
+          const scrapyards = ((data as any).items ?? []) as ModelScrapyard[]
+          const distances = scrapyards
+            .filter((scrapyard) => scrapyard.lat != null && scrapyard.long != null)
+            .map((scrapyard) => haversineMeters(Number(item.lat), Number(item.long), Number(scrapyard.lat), Number(scrapyard.long)))
+            .filter((distance) => !Number.isNaN(distance))
+          return [String(item.id), distances.length ? Math.min(...distances) : null] as const
+        } catch {
+          return [String(item.id), null] as const
+        }
+      }))
+
+      if (!cancelled) {
+        setNearestScrapyardDistanceByInfraction(Object.fromEntries(entries))
+      }
+    }
+
+    loadNearestScrapyards()
+    return () => { cancelled = true }
+  }, [authHeader, scrapyardApi, viewItems])
 
   const activeFilterCount = [
     sectorId,
@@ -203,6 +259,7 @@ export default function InfractionsScreen() {
                 <Th label="Sector" active={false} />
                 <Th label="Tipo" active={false} />
                 <Th label="Material" active={false} />
+                <Th label="Localização" active={false} />
                 <Th label="Quantidade" active={orderBy === 'quantidade'} direction={orderDirection} onClick={() => toggleSort('quantidade')} />
                 <Th label="Valor" active={orderBy === 'valor'} direction={orderDirection} onClick={() => toggleSort('valor')} />
                 <th style={{ textAlign: 'left', padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', width: 260, color: '#3f4652' }}>Ações</th>
@@ -210,9 +267,9 @@ export default function InfractionsScreen() {
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>A carregar…</td></tr>
+                <tr><td colSpan={8} style={{ padding: 16, color: '#7b8494' }}>A carregar…</td></tr>
               ) : viewItems.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 16, color: '#7b8494' }}>Sem infrações para mostrar.</td></tr>
+                <tr><td colSpan={8} style={{ padding: 16, color: '#7b8494' }}>Sem infrações para mostrar.</td></tr>
               ) : (
                 viewItems.map((it) => (
                   <tr key={it.id}>
@@ -222,6 +279,12 @@ export default function InfractionsScreen() {
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(setores, it.sector_infracao_id)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{resolveNome(tipos, it.tipo_infracao_id)}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{(it as any).material?.name || (it as any).material_id || (it as any).tipo_material || '-'}</td>
+                    <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 180 }}>
+                        <strong style={{ color: '#1f2937', fontSize: 14 }}>{resolveLocal(it)}</strong>
+                        <span style={distanceBadgeStyle}>{formatDistance(nearestScrapyardDistanceByInfraction[it.id || ''] ?? null)}</span>
+                      </div>
+                    </td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>{it.quantidade != null ? String(it.quantidade) : '-'}</td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)' }}>
                       <span style={valueBadgeStyle}>{it.valor != null ? formatMoney(it.valor) : '-'}</span>
@@ -277,6 +340,23 @@ function formatDate(iso?: string) {
     if (Number.isNaN(d.getTime())) return '-'
     return d.toLocaleString('pt-PT')
   } catch { return '-'}
+}
+
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const earthRadius = 6371000
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return earthRadius * c
+}
+
+function formatDistance(distanceMeters: number | null) {
+  if (distanceMeters == null || Number.isNaN(distanceMeters)) return '—'
+  if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`
+  return `${(distanceMeters / 1000).toFixed(2).replace('.', ',')} km`
 }
 
 function formatMoney(n?: number) {
@@ -368,6 +448,19 @@ const valueBadgeStyle: React.CSSProperties = {
   color: SEMANTIC_COLORS.success,
   fontSize: 13,
   fontWeight: 800,
+}
+
+const distanceBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(48, 86, 166, 0.08)',
+  color: '#3056a6',
+  fontSize: 13,
+  fontWeight: 800,
+  whiteSpace: 'nowrap',
 }
 
 const filterHeaderButtonStyle: React.CSSProperties = {

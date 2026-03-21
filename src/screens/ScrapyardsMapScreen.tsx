@@ -200,13 +200,18 @@ export default function ScrapyardsMapScreen() {
     })
 
     if (filteredItems.length) {
-      const sum = filteredItems.reduce<{ lat: number; lng: number }>((acc, item) => ({
-        lat: acc.lat + Number(item.lat),
-        lng: acc.lng + Number(item.long),
-      }), { lat: 0, lng: 0 })
-      const center = { lat: sum.lat / filteredItems.length, lng: sum.lng / filteredItems.length }
-      mapRef.current.setCenter(center)
-      mapRef.current.setZoom(filteredItems.length <= 3 ? 12 : filteredItems.length <= 10 ? 11 : 10)
+      const focusedItem = focusedId ? filteredItems.find((item) => item.id === focusedId) : null
+      if (focusedItem) {
+        mapRef.current.setCenter({ lat: Number(focusedItem.lat), lng: Number(focusedItem.long) })
+        mapRef.current.setZoom(13)
+      } else {
+        const bounds = new gmaps.LatLngBounds()
+        filteredItems.forEach((item) => {
+          bounds.extend({ lat: Number(item.lat), lng: Number(item.long) })
+        })
+        mapRef.current.fitBounds(bounds)
+        try { mapRef.current.setZoom(Math.min(Number(mapRef.current.getZoom?.() || 12), 13)) } catch {}
+      }
     }
   }, [filteredItems, focusedId])
 
@@ -252,56 +257,56 @@ export default function ScrapyardsMapScreen() {
       {error ? <div style={errorBannerStyle}>{error}</div> : null}
 
       <div style={mapBoardStyle}>
-        <div style={contextColumnStyle}>
-          <Card title="Contexto" subtitle="Filtre e percorra as sucatarias disponíveis.">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={statsGridStyle}>
-                <div style={statCardStyle}>
-                  <span style={statLabelStyle}>Sucatarias</span>
-                  <strong style={statValueStyle}>{filteredItems.length}</strong>
-                </div>
-                <div style={statCardStyle}>
-                  <span style={statLabelStyle}>Desconfiança média</span>
-                  <strong style={statValueStyle}>{averageSuspicion != null ? `${(averageSuspicion * 100).toFixed(1)} %` : '—'}</strong>
-                </div>
+        <Card title="Contexto" subtitle="Filtre e percorra as sucatarias disponíveis.">
+          <div style={contextGridStyle}>
+            <div style={statsGridStyle}>
+              <div style={statCardStyle}>
+                <span style={statLabelStyle}>Sucatarias</span>
+                <strong style={statValueStyle}>{filteredItems.length}</strong>
               </div>
-
-              <div style={filterPanelStyle}>
-                <label style={fieldGroupStyle}>
-                  <span style={fieldLabelStyle}>ASC</span>
-                  <select value={selectedAsc} onChange={(e) => setSelectedAsc(e.target.value)} style={fieldControlStyle}>
-                    <option value="">Todas</option>
-                    {ascOptions.map((option) => (
-                      <option key={option.id} value={option.id}>{option.label}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <label style={fieldGroupStyle}>
-                  <span style={fieldLabelStyle}>Pesquisar</span>
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Pesquisar por nome, ASC ou material…"
-                    style={fieldControlStyle}
-                  />
-                </label>
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={summaryChipStyle}>Resultados: {filteredItems.length}</span>
-                  {loading ? <span style={summaryChipStyle}>A carregar…</span> : null}
-                  {selectedAsc ? <span style={summaryChipStyle}>ASC filtrada</span> : null}
-                </div>
+              <div style={statCardStyle}>
+                <span style={statLabelStyle}>Desconfiança média</span>
+                <strong style={statValueStyle}>{averageSuspicion != null ? `${(averageSuspicion * 100).toFixed(1)} %` : '—'}</strong>
               </div>
             </div>
-          </Card>
 
-        </div>
+            <div style={filterPanelStyle}>
+              <label style={fieldGroupStyle}>
+                <span style={fieldLabelStyle}>ASC</span>
+                <select value={selectedAsc} onChange={(e) => setSelectedAsc(e.target.value)} style={fieldControlStyle}>
+                  <option value="">Todas</option>
+                  {ascOptions.map((option) => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
 
-        <div style={listColumnStyle}>
-          <Card title="Lista" subtitle="Selecione uma sucataria para focar o mapa.">
-            <div style={listPanelStyle}>
-              {filteredItems.length ? filteredItems.map((item) => {
+              <label style={fieldGroupStyle}>
+                <span style={fieldLabelStyle}>Pesquisar</span>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Pesquisar por nome, ASC ou material…"
+                  style={fieldControlStyle}
+                />
+              </label>
+            </div>
+
+            <div style={contextChipsStyle}>
+              <span style={summaryChipStyle}>Resultados: {filteredItems.length}</span>
+              {loading ? <span style={summaryChipStyle}>A carregar…</span> : null}
+              {selectedAsc ? <span style={summaryChipStyle}>ASC filtrada</span> : null}
+              {focusedId ? <span style={summaryChipStyle}>Foco manual ativo</span> : null}
+            </div>
+          </div>
+        </Card>
+
+        <div style={contentRowStyle}>
+          <div style={listColumnStyle}>
+            <Card title="Lista" subtitle="Selecione uma sucataria para focar o mapa." style={boardColumnCardStyle}>
+              <div style={boardColumnBodyStyle}>
+                <div style={listPanelStyle}>
+                {filteredItems.length ? filteredItems.map((item) => {
                 const materials = item.materiais?.map((material) => material?.name || material?.id).filter(Boolean) as string[] || []
                 const active = item.id === focusedId
                 return (
@@ -338,31 +343,26 @@ export default function ScrapyardsMapScreen() {
               }) : (
                 <div style={infoBannerStyle}>Sem sucatarias para mostrar.</div>
               )}
-            </div>
-          </Card>
-        </div>
+                </div>
+              </div>
+            </Card>
+          </div>
 
-        <div style={mapColumnStyle}>
-          <Card title="Mapa" subtitle="Visualização geográfica com marcadores institucionais de sucatarias.">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <span style={summaryChipStyle}>Marcador principal: sucataria</span>
-                <span style={summaryChipStyle}>Ícone industrial personalizado</span>
-                <span style={summaryChipStyle}>Base cartográfica quente</span>
-              </div>
-              <div ref={containerRef} style={mapContainerStyle} />
-              <div style={legendPanelStyle}>
-                <span style={legendChipStyle}>
-                  <span style={legendMarkerShellStyle}>
-                    <span style={legendMarkerDotStyle} />
+          <div style={mapColumnStyle}>
+            <Card title="Mapa" subtitle="Visualização geográfica com marcadores institucionais de sucatarias." style={boardColumnCardStyle}>
+              <div style={{ ...boardColumnBodyStyle, gap: 12 }}>
+                <div ref={containerRef} style={mapContainerStyle} />
+                <div style={legendPanelStyle}>
+                  <span style={legendChipStyle}>
+                    <span style={legendMarkerShellStyle}>
+                      <span style={legendMarkerDotStyle} />
+                    </span>
+                    Sucataria
                   </span>
-                  Sucataria
-                </span>
-                <span style={legendChipStyle}>Clique num item da lista para focar o mapa</span>
-                <span style={legendChipStyle}>Clique num marcador para contexto rápido</span>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
@@ -491,14 +491,30 @@ function buildFactoryMarkerIcon(active: boolean) {
 }
 
 const mapBoardStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '320px 360px minmax(0, 1fr)',
+  display: 'flex',
+  flexDirection: 'column',
   gap: 16,
-  alignItems: 'stretch',
 }
 
-const contextColumnStyle: React.CSSProperties = {
-  minWidth: 0,
+const contextGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '280px minmax(320px, 1fr) auto',
+  gap: 14,
+  alignItems: 'end',
+}
+
+const contextChipsStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+}
+
+const contentRowStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '360px minmax(0, 1fr)',
+  gap: 16,
+  alignItems: 'stretch',
 }
 
 const listColumnStyle: React.CSSProperties = {
@@ -507,6 +523,17 @@ const listColumnStyle: React.CSSProperties = {
 
 const mapColumnStyle: React.CSSProperties = {
   minWidth: 0,
+}
+
+const boardColumnCardStyle: React.CSSProperties = {
+  minHeight: 780,
+}
+
+const boardColumnBodyStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+  height: '100%',
 }
 
 const statsGridStyle: React.CSSProperties = {
@@ -586,7 +613,7 @@ const listPanelStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
-  maxHeight: 600,
+  height: 720,
   overflowY: 'auto',
   paddingRight: 6,
 }
@@ -644,7 +671,7 @@ const inlineLinkButtonStyle: React.CSSProperties = {
 
 const mapContainerStyle: React.CSSProperties = {
   width: '100%',
-  height: 680,
+  height: 720,
   borderRadius: 24,
   overflow: 'hidden',
   border: '1px solid rgba(101, 74, 32, 0.12)',

@@ -14,10 +14,12 @@ export default function ScrapyardDetailScreen() {
 
   const [item, setItem] = useState<ModelScrapyard | null>(null)
   const [nearOccurrences, setNearOccurrences] = useState<ModelOccurrence[]>([])
+  const [nearScrapyards, setNearScrapyards] = useState<ModelScrapyard[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [occLoading, setOccLoading] = useState(false)
   const [occError, setOccError] = useState<string | null>(null)
+  const [nearScrapyardsLoading, setNearScrapyardsLoading] = useState(false)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -97,6 +99,37 @@ export default function ScrapyardDetailScreen() {
     })()
   }, [authHeader, item?.lat, item?.long, logout, occurrenceApi])
 
+  useEffect(() => {
+    ;(async () => {
+      if (!item || item.lat == null || item.long == null) return
+      setNearScrapyardsLoading(true)
+      try {
+        const { data } = await scrapyardApi.privateScrapyardsGet(
+          authHeader,
+          1,
+          10,
+          'nome',
+          'asc',
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Number(item.lat),
+          Number(item.long)
+        )
+        if (isUnauthorizedBody(data)) {
+          logout('Sessão expirada. Inicie sessão novamente.')
+          return
+        }
+        setNearScrapyards((((data as any).items ?? []) as ModelScrapyard[]).filter((candidate) => candidate.id !== item.id))
+      } catch {
+        setNearScrapyards([])
+      } finally {
+        setNearScrapyardsLoading(false)
+      }
+    })()
+  }, [authHeader, item?.id, item?.lat, item?.long, logout, scrapyardApi])
+
   function voltar() {
     if (window.location.pathname !== '/sucatarias') window.history.pushState({}, '', '/sucatarias')
     window.dispatchEvent(new Event('locationchange'))
@@ -112,6 +145,41 @@ export default function ScrapyardDetailScreen() {
     if (!item?.materiais?.length) return []
     return item.materiais.map((material) => material.name || material.id).filter(Boolean) as string[]
   }, [item?.materiais])
+
+  const nearOccurrencesWithDistance = useMemo(() => {
+    if (!item || item.lat == null || item.long == null) {
+      return nearOccurrences.map((occurrence) => ({ occurrence, distanceMeters: null as number | null }))
+    }
+    return nearOccurrences.map((occurrence) => {
+      if (occurrence.lat == null || occurrence.long == null) {
+        return { occurrence, distanceMeters: null as number | null }
+      }
+      return {
+        occurrence,
+        distanceMeters: haversineMeters(Number(item.lat), Number(item.long), Number(occurrence.lat), Number(occurrence.long)),
+      }
+    })
+  }, [item, nearOccurrences])
+
+  const nearScrapyardsWithDistance = useMemo(() => {
+    if (!item || item.lat == null || item.long == null) {
+      return nearScrapyards.map((scrapyard) => ({ scrapyard, distanceMeters: null as number | null }))
+    }
+    return nearScrapyards.map((scrapyard) => {
+      if (scrapyard.lat == null || scrapyard.long == null) {
+        return { scrapyard, distanceMeters: null as number | null }
+      }
+      return {
+        scrapyard,
+        distanceMeters: haversineMeters(Number(item.lat), Number(item.long), Number(scrapyard.lat), Number(scrapyard.long)),
+      }
+    }).sort((a, b) => {
+      if (a.distanceMeters == null && b.distanceMeters == null) return 0
+      if (a.distanceMeters == null) return 1
+      if (b.distanceMeters == null) return -1
+      return a.distanceMeters - b.distanceMeters
+    })
+  }, [item, nearScrapyards])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -160,7 +228,8 @@ export default function ScrapyardDetailScreen() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
                 <DetailSectionCard
-                  icon={<IconWarehouse />}
+                  icon={<IconFactory />}
+                  iconStyle={scrapyardSectionIconStyle}
                   title="Enquadramento"
                   description="Informação base da sucataria e da ASC associada."
                   items={[
@@ -197,27 +266,39 @@ export default function ScrapyardDetailScreen() {
             <Card title="Localização" subtitle="Posição geográfica da sucataria e ocorrências próximas no mapa." style={pairedDetailCardStyle}>
               {item.lat != null && item.long != null ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={summaryChipStyle}>Ponto base: sucataria</span>
-                    <span style={summaryChipStyle}>Ocorrências próximas: {nearOccurrences.length}</span>
-                  </div>
-                  <MapPicker
-                    markerKind="scrapyard"
-                    value={{ lat: Number(item.lat), lng: Number(item.long) }}
-                    onChange={() => {}}
-                    height={360}
-                    disabled
-                    extraMarkers={nearOccurrences
-                      .filter((occurrence) => occurrence.lat != null && occurrence.long != null)
-                      .map((occurrence) => ({
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={summaryChipStyle}>Ponto base: sucataria</span>
+                  <span style={summaryChipStyle}>Ocorrências próximas: {nearOccurrences.length}</span>
+                  <span style={summaryChipStyle}>Sucatarias próximas: {nearScrapyardsLoading ? '…' : nearScrapyardsWithDistance.length}</span>
+                </div>
+                <MapPicker
+                  markerKind="scrapyard"
+                  value={{ lat: Number(item.lat), lng: Number(item.long) }}
+                  onChange={() => {}}
+                  height={360}
+                  disabled
+                  extraMarkers={[
+                    ...nearOccurrencesWithDistance
+                      .filter(({ occurrence }) => occurrence.lat != null && occurrence.long != null)
+                      .map(({ occurrence, distanceMeters }) => ({
                         lat: Number(occurrence.lat),
                         lng: Number(occurrence.long),
                         title: (occurrence.local || occurrence.id || 'Ocorrência') as string,
-                        color: '#0f766e',
-                        markerKind: 'occurrence' as const,
-                        infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:700;color:#1f2937\">${String(occurrence.local || occurrence.id || 'Ocorrência').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Data: ${formatDateTime(occurrence.data_facto)}</div></div>`,
-                      }))}
-                  />
+                        markerKind: 'infraction' as const,
+                        infoHtml: `<div style=\"min-width:190px\"><div style=\"font-weight:700;color:#1f2937\">${String(occurrence.local || occurrence.id || 'Ocorrência').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Data: ${formatDateTime(occurrence.data_facto)}</div><div style=\"color:#5f6673;font-size:12px;margin-top:4px\">Distância: ${formatDistance(distanceMeters)}</div></div>`,
+                      })),
+                    ...nearScrapyardsWithDistance
+                      .filter(({ scrapyard }) => scrapyard.lat != null && scrapyard.long != null)
+                      .map(({ scrapyard, distanceMeters }) => ({
+                        lat: Number(scrapyard.lat),
+                        lng: Number(scrapyard.long),
+                        title: (scrapyard.nome || scrapyard.id || 'Sucataria') as string,
+                        markerKind: 'scrapyard' as const,
+                        color: '#8fb3f4',
+                        infoHtml: `<div style=\"min-width:190px\"><div style=\"font-weight:700;color:#1f2937\">${String(scrapyard.nome || scrapyard.id || 'Sucataria').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><div style=\"color:#3056a6;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:4px\">Sucataria próxima</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Distância: ${formatDistance(distanceMeters)}</div></div>`,
+                      })),
+                  ]}
+                />
                 </div>
               ) : (
                 <div style={infoBannerStyle}>Sem coordenadas da sucataria.</div>
@@ -234,7 +315,7 @@ export default function ScrapyardDetailScreen() {
                   <div style={infoBannerStyle}>Sem ocorrências próximas encontradas.</div>
                 ) : (
                   <div style={nearbyListStyle}>
-                    {nearOccurrences.map((occurrence) => (
+                    {nearOccurrencesWithDistance.map(({ occurrence, distanceMeters }) => (
                       <button
                         key={occurrence.id}
                         type="button"
@@ -249,6 +330,7 @@ export default function ScrapyardDetailScreen() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
                               <strong style={{ color: '#1f2937' }}>{occurrence.local || occurrence.id || '-'}</strong>
                               <span style={{ color: '#5f6673', fontSize: 13 }}>{formatDateTime(occurrence.data_facto)}</span>
+                              <span style={contextCardMetaStyle}>{formatDistance(distanceMeters)} da sucataria</span>
                             </div>
                           </div>
                         </div>
@@ -270,16 +352,18 @@ function DetailSectionCard({
   title,
   description,
   items,
+  iconStyle,
 }: {
   icon: React.ReactNode
   title: string
   description: string
   items: Array<{ label: string; value: string }>
+  iconStyle?: React.CSSProperties
 }) {
   return (
     <div style={detailSectionCardStyle}>
       <div style={detailSectionHeaderStyle}>
-        <span style={detailSectionIconStyle}>{icon}</span>
+        <span style={{ ...detailSectionIconStyle, ...iconStyle }}>{icon}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <strong style={{ color: '#1f2937', fontSize: 16 }}>{title}</strong>
           <span style={{ color: '#5f6673', fontSize: 13, lineHeight: 1.5 }}>{description}</span>
@@ -325,6 +409,23 @@ function formatPercent(value?: number) {
   return `${(value * 100).toFixed(1)} %`
 }
 
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const earthRadius = 6371000
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return earthRadius * c
+}
+
+function formatDistance(distanceMeters: number | null) {
+  if (distanceMeters == null || Number.isNaN(distanceMeters)) return 'Distância indisponível'
+  if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`
+  return `${(distanceMeters / 1000).toFixed(2).replace('.', ',')} km`
+}
+
 function IconBack() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -355,6 +456,17 @@ function IconWarehouse() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M4 10L12 4L20 10V19H4V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
       <path d="M9 19V13H15V19" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconFactory() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 20V12.5L10.5 16V12.5L17 16V7H20V20H4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M8 20V16.5H11V20" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M16.5 7V4H18.5V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7 10.5H7.01M15 11.2H15.01" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
     </svg>
   )
 }
@@ -537,6 +649,11 @@ const detailSectionIconStyle: React.CSSProperties = {
   color: '#8d4a17',
 }
 
+const scrapyardSectionIconStyle: React.CSSProperties = {
+  background: 'rgba(48, 86, 166, 0.12)',
+  color: '#3056a6',
+}
+
 const detailSectionItemStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
@@ -621,4 +738,11 @@ const contextCardIconStyle: React.CSSProperties = {
   justifyContent: 'center',
   background: 'rgba(201, 109, 31, 0.16)',
   color: '#8d4a17',
+}
+
+const contextCardMetaStyle: React.CSSProperties = {
+  color: '#8d4a17',
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.04em',
 }

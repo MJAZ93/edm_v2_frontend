@@ -76,11 +76,12 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
           styles: disabled ? DETAIL_MAP_STYLES : undefined,
         })
         mapRef.current = map
+        const primaryPalette = paletteForMarkerKind(markerKind)
         const marker = new gmaps.Marker({
           position: center,
           map,
           draggable: !disabled,
-          icon: buildPinIcon(gmaps, markerKind, '#0f766e', '#ffffff', 1.5),
+          icon: buildPinIcon(gmaps, markerKind, primaryPalette.fill, primaryPalette.stroke, 1.5),
           zIndex: 999,
         })
         markerRef.current = marker
@@ -88,11 +89,12 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
         extraMarkersRef.current.forEach((m) => m.setMap(null))
         // Prettier pin icon for extra markers (e.g., sucatarias)
         extraMarkersRef.current = (extraMarkers || []).map((m) => {
+          const palette = paletteForMarkerKind(m.markerKind || 'default')
           const marker = new gmaps.Marker({
             position: { lat: m.lat, lng: m.lng },
             title: m.title,
             map,
-            icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || '#ea580c', '#7c2d12', 1.2),
+            icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || palette.fill, palette.stroke, 1.2),
           })
           marker.addListener('click', () => {
             try { infoWindowRef.current?.close() } catch {}
@@ -170,11 +172,12 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
     extraMarkersRef.current.forEach((m) => m.setMap(null))
     const gmap = mapRef.current
     extraMarkersRef.current = (extraMarkers || []).map((m) => {
+      const palette = paletteForMarkerKind(m.markerKind || 'default')
       const marker = new gmaps.Marker({
         position: { lat: m.lat, lng: m.lng },
         title: m.title,
         map: gmap,
-        icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || '#ea580c', '#7c2d12', 1.2),
+        icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || palette.fill, palette.stroke, 1.2),
       })
       marker.addListener('click', () => {
         try { infoWindowRef.current?.close() } catch {}
@@ -235,6 +238,21 @@ function markerGlyph(kind: MarkerKind, color: string) {
       return `<path d="M11 21V12.5L18 9L25 12.5V21" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 15H15.01M21 15H21.01M15 18.5H15.01M21 18.5H21.01" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/><path d="M17 21V17.5H19V21" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>`
     default:
       return `<circle cx="18" cy="16" r="4.5" stroke="${color}" stroke-width="2"/><circle cx="18" cy="16" r="1.2" fill="${color}"/>`
+  }
+}
+
+function paletteForMarkerKind(kind: MarkerKind) {
+  switch (kind) {
+    case 'occurrence':
+      return { fill: '#0f766e', stroke: '#ffffff' }
+    case 'scrapyard':
+      return { fill: '#3056a6', stroke: '#f8fbff' }
+    case 'infraction':
+      return { fill: '#b42318', stroke: '#fffaf5' }
+    case 'client':
+      return { fill: '#7c3aed', stroke: '#faf5ff' }
+    default:
+      return { fill: '#475569', stroke: '#ffffff' }
   }
 }
 

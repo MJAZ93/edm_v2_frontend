@@ -94,6 +94,22 @@ export default function ScrapyardsScreen() {
       return '-'
     }
   }
+  const formatDistance = (distanceMeters?: number | null) => {
+    if (distanceMeters == null || Number.isNaN(distanceMeters)) return '—'
+    if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`
+    return `${(distanceMeters / 1000).toFixed(2).replace('.', ',')} km`
+  }
+
+  const resolveDistance = (item: ModelScrapyard) => {
+    const raw = (item as any).distance_meters
+      ?? (item as any).distanceMeters
+      ?? (item as any).distancia_metros
+      ?? (item as any).distancia
+      ?? (item as any).distance
+
+    const value = typeof raw === 'string' ? Number(raw) : raw
+    return typeof value === 'number' && !Number.isNaN(value) ? value : null
+  }
 
   const resolveMateriais = useCallback((list?: Array<{ id?: string; name?: string }>) => {
     if (!Array.isArray(list) || list.length === 0) return '—'
@@ -312,6 +328,7 @@ export default function ScrapyardsScreen() {
                 <Th label="Criada em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
                 <Th label="Nome" active={orderBy === 'nome'} direction={orderDirection} onClick={() => toggleSort('nome')} />
                 <Th label="ASC" />
+                <Th label="Distância" />
                 <Th label="Desconfiança" active={orderBy === 'nivel_confianca'} direction={orderDirection} onClick={() => toggleSort('nivel_confianca')} />
                 <Th label="Materiais" />
                 <th style={actionHeaderCellStyle}>Ações</th>
@@ -319,9 +336,9 @@ export default function ScrapyardsScreen() {
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={6} style={emptyTableCellStyle}>A carregar…</td></tr>
+                <tr><td colSpan={7} style={emptyTableCellStyle}>A carregar…</td></tr>
               ) : viewItems.length === 0 ? (
-                <tr><td colSpan={6} style={emptyTableCellStyle}>Sem sucatarias para mostrar.</td></tr>
+                <tr><td colSpan={7} style={emptyTableCellStyle}>Sem sucatarias para mostrar.</td></tr>
               ) : (
                 viewItems.map((item) => (
                   <tr key={item.id}>
@@ -337,6 +354,9 @@ export default function ScrapyardsScreen() {
                       </div>
                     </td>
                     <td style={bodyCellStyle}>{item.asc_name || item.asc_id || '—'}</td>
+                    <td style={bodyCellStyle}>
+                      <span style={distanceBadgeStyle}>{formatDistance(resolveDistance(item))}</span>
+                    </td>
                     <td style={bodyCellStyle}>
                       <span style={valueBadgeStyle}>{formatPercent(item.nivel_confianca)}</span>
                     </td>
@@ -711,6 +731,19 @@ const valueBadgeStyle: React.CSSProperties = {
   color: '#0f766e',
   fontSize: 13,
   fontWeight: 800,
+}
+
+const distanceBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(35, 86, 180, 0.08)',
+  color: '#3056a6',
+  fontSize: 13,
+  fontWeight: 800,
+  whiteSpace: 'nowrap',
 }
 
 const actionIconButtonBaseStyle: React.CSSProperties = {
