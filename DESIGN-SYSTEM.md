@@ -351,6 +351,26 @@ Visual:
 - texto branco ou escuro de alto contraste
 - sombra ligeiramente maior
 
+#### Botão de ação destrutiva
+
+Usado para:
+
+- eliminar registos
+- confirmar remoções permanentes
+- ações irreversíveis
+
+Visual:
+
+- usar a cor de perigo do sistema e nunca um vermelho genérico do browser
+- em contexto de tabela, manter o mesmo tamanho e geometria dos restantes botões de ação
+- estado normal com fundo claro/neutro e destaque cromático controlado no texto e borda
+- hover com fundo vermelho muito suave, borda reforçada e sombra discreta
+
+Regra obrigatória:
+
+- ações destrutivas não devem parecer links de texto nem botões HTML default
+- o contraste deve comunicar risco sem “gritar” visualmente mais do que o necessário
+
 ### Inputs e selects
 
 Todos os inputs devem seguir o mesmo padrão:
@@ -402,6 +422,40 @@ Exemplo correto:
 - borda subtil
 - raio `12px`
 - sombra leve
+
+Para ações destrutivas na tabela:
+
+- manter a mesma largura/altura visual dos botões de ver/editar
+- usar variante `danger` coerente com o sistema
+- hover com reforço vermelho suave e não com fundo sólido agressivo
+
+### Confirmação de eliminação
+
+A confirmação de eliminação é um padrão obrigatório do sistema.
+
+Nunca usar:
+
+- `window.confirm`
+- `alert`
+- popups nativos do browser
+
+Deve usar:
+
+- modal próprio com `backdrop` escurecido e `blur` subtil
+- card central com fundo quente claro, borda quente subtil e sombra larga
+- `eyebrow` de confirmação em pill discreta
+- título forte com verbo claro como `Eliminar ação`, `Eliminar ocorrência`, etc.
+- texto curto a explicar que a remoção é definitiva
+- botões `Cancelar` e `Eliminar` no rodapé, alinhados à direita
+- estado de loading no botão destrutivo
+- mensagem de erro dentro do modal quando a operação falhar
+
+Regras:
+
+- o botão destrutivo do modal deve usar a variante `danger` do sistema
+- o botão de cancelar deve usar o estilo secundário institucional
+- o modal deve reutilizar o mesmo padrão visual em todas as listagens e detalhes com remoção
+- se possível, incluir no texto o nome/descrição curta do registo que será eliminado
 
 ## Gráficos
 

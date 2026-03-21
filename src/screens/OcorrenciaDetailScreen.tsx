@@ -410,6 +410,7 @@ export default function OcorrenciaDetailScreen() {
                     {mapFocus ? <span style={mapInfoChipStyle}>Foco ativo no mapa</span> : null}
                   </div>
                   <MapPicker
+                    markerKind="occurrence"
                     value={{ lat: Number(item.lat), lng: Number(item.long) }}
                     focusCenter={mapFocus ?? undefined}
                     onChange={() => {}}
@@ -423,6 +424,7 @@ export default function OcorrenciaDetailScreen() {
                           lng: Number(s.long),
                           title: s.nome || s.id || 'Sucataria',
                           color: colorForDistance(distanceMeters, maxScrapyardDistanceMeters),
+                          markerKind: 'scrapyard' as const,
                           infoHtml: `<div style=\"min-width:200px\"><div style=\"font-weight:700;color:#1f2937\">${(s.nome || s.id || 'Sucataria').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#8d4a17;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:4px\">Sucataria próxima</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Distância: ${formatDistance(distanceMeters)}</div></div>`
                         })),
                       ...nearOccurrencesWithDistance
@@ -432,6 +434,7 @@ export default function OcorrenciaDetailScreen() {
                           lng: Number(o.long),
                           title: (o.local || o.id || 'Ocorrência') as string,
                           color: '#16a34a',
+                          markerKind: 'occurrence' as const,
                           infoHtml: `<div style=\"min-width:200px\"><div style=\"font-weight:700;color:#1f2937\">${((o.local || o.id || 'Ocorrência') as string).toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#0f766e;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:4px\">Ocorrência próxima</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Data: ${formatDateTime(o.data_facto)}</div><div style=\"color:#5f6673;font-size:12px;margin-top:4px\">Distância: ${formatDistance(distanceMeters)}</div></div>`
                         })),
                     ]}

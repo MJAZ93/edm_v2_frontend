@@ -483,6 +483,7 @@ export default function OcorrenciaEditScreen() {
                 </label>
               </div>
               <MapPicker
+                markerKind="occurrence"
                 value={{ lat: lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined, lng: long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined }}
                 onChange={(pos) => { setLat(String(pos.lat)); setLong(String(pos.lng)) }}
                 height={300}

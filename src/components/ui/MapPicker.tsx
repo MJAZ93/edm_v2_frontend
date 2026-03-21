@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 type LatLng = { lat: number; lng: number }
+type MarkerKind = 'default' | 'occurrence' | 'scrapyard' | 'infraction' | 'client'
 
 type Props = {
   value?: Partial<LatLng>
@@ -10,7 +11,8 @@ type Props = {
   zoom?: number
   apiKey?: string
   disabled?: boolean
-  extraMarkers?: Array<{ lat: number; lng: number; title?: string; color?: string; infoHtml?: string }>
+  markerKind?: MarkerKind
+  extraMarkers?: Array<{ lat: number; lng: number; title?: string; color?: string; infoHtml?: string; markerKind?: MarkerKind }>
 }
 
 declare global {
@@ -41,7 +43,7 @@ function injectScriptOnce(apiKey: string): Promise<void> {
   return window.__gmapsLoadingPromise
 }
 
-export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8, apiKey, disabled = false, extraMarkers = [] }: Props) {
+export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8, apiKey, disabled = false, markerKind = 'default', extraMarkers = [] }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -78,7 +80,7 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
           position: center,
           map,
           draggable: !disabled,
-          icon: buildPinIcon(gmaps, '#0f766e', '#ffffff', 1.5),
+          icon: buildPinIcon(gmaps, markerKind, '#0f766e', '#ffffff', 1.5),
           zIndex: 999,
         })
         markerRef.current = marker
@@ -90,7 +92,7 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
             position: { lat: m.lat, lng: m.lng },
             title: m.title,
             map,
-            icon: buildPinIcon(gmaps, m.color || '#ea580c', '#7c2d12', 1.2),
+            icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || '#ea580c', '#7c2d12', 1.2),
           })
           marker.addListener('click', () => {
             try { infoWindowRef.current?.close() } catch {}
@@ -172,7 +174,7 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
         position: { lat: m.lat, lng: m.lng },
         title: m.title,
         map: gmap,
-        icon: buildPinIcon(gmaps, m.color || '#ea580c', '#7c2d12', 1.2),
+        icon: buildPinIcon(gmaps, m.markerKind || 'default', m.color || '#ea580c', '#7c2d12', 1.2),
       })
       marker.addListener('click', () => {
         try { infoWindowRef.current?.close() } catch {}
@@ -191,7 +193,7 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
         if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds)
       }
     } catch {}
-  }, [extraMarkers.map((m) => `${m.lat},${m.lng}`).join('|'), disabled])
+  }, [extraMarkers.map((m) => `${m.lat},${m.lng},${m.markerKind || 'default'}`).join('|'), disabled])
 
   return (
     <div>
@@ -206,16 +208,33 @@ export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8
   )
 }
 
-function buildPinIcon(gmaps: any, fillColor: string, strokeColor: string, scale: number) {
-  const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
+function buildPinIcon(gmaps: any, kind: MarkerKind, fillColor: string, strokeColor: string, scale: number) {
+  const glyph = markerGlyph(kind, strokeColor)
+  const svg = `
+    <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 2C10.3 2 4 8.3 4 16C4 26.2 15.5 35.5 17.1 36.8C17.6 37.2 18.4 37.2 18.9 36.8C20.5 35.5 32 26.2 32 16C32 8.3 25.7 2 18 2Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>
+      ${glyph}
+    </svg>
+  `.trim()
   return {
-    path: pinPath,
-    fillColor,
-    fillOpacity: 1,
-    strokeColor,
-    strokeWeight: 1.2,
-    scale,
-    anchor: new gmaps.Point(12, 22),
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new gmaps.Size(36 * scale, 44 * scale),
+    anchor: new gmaps.Point(18 * scale, 37 * scale),
+  }
+}
+
+function markerGlyph(kind: MarkerKind, color: string) {
+  switch (kind) {
+    case 'occurrence':
+      return `<path d="M18 10L23 19H13L18 10Z" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/><path d="M18 13.8V16.8" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><circle cx="18" cy="18.6" r="0.9" fill="${color}"/>`
+    case 'scrapyard':
+      return `<path d="M11 21V16.8L17.2 13L23 15.6V21" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21V12L27 9.8V21" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 17.8H14.01M17.6 17.8H17.61M21.2 17.8H21.21" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>`
+    case 'infraction':
+      return `<path d="M12 20L24 12" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M11 12H25" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M14 12L12.2 8.8" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M22 12L23.8 8.8" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M18 12V21" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`
+    case 'client':
+      return `<path d="M11 21V12.5L18 9L25 12.5V21" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 15H15.01M21 15H21.01M15 18.5H15.01M21 18.5H21.01" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/><path d="M17 21V17.5H19V21" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>`
+    default:
+      return `<circle cx="18" cy="16" r="4.5" stroke="${color}" stroke-width="2"/><circle cx="18" cy="16" r="1.2" fill="${color}"/>`
   }
 }
 

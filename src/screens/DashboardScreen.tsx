@@ -982,6 +982,23 @@ function RegionClusterMap({ height = 360, dateStart, dateEnd, regiaoId, ascId, r
     return (window as any).__gmapsLoadingPromise
   }
 
+  function buildDashboardMarkerIcon(gmaps: any, kind: 'scrapyard' | 'occurrence', fill: string, stroke: string) {
+    const glyph = kind === 'scrapyard'
+      ? `<path d="M11 26V20.8L17.2 24.2V20.8L23 24.2V15.2H26V26H11Z" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.4 26V22.5H17V26" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M22.5 15.2V11.8H24.2V15.2" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/><path d="M14 18.8H14.01M20 19.5H20.01" stroke="${stroke}" stroke-width="2.3" stroke-linecap="round"/>`
+      : `<path d="M18 11L23 20H13L18 11Z" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M18 14.8V17.8" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/><circle cx="18" cy="19.6" r="0.9" fill="${stroke}"/>`
+    const svg = `
+      <svg width="38" height="46" viewBox="0 0 38 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 1.8C9.7 1.8 2.2 9.3 2.2 18.6C2.2 31.2 17.2 42.7 18.1 43.4C18.6 43.8 19.4 43.8 19.9 43.4C20.8 42.7 35.8 31.2 35.8 18.6C35.8 9.3 28.3 1.8 19 1.8Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+        ${glyph}
+      </svg>
+    `.trim()
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+      scaledSize: new gmaps.Size(38, 46),
+      anchor: new gmaps.Point(19, 43),
+    }
+  }
+
   const isUnauthorizedBody = (data: any) => {
     try {
       const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code
@@ -1881,22 +1898,25 @@ function DashboardMap({ height = 420, dateStart, dateEnd, regiaoId, ascId, tipoI
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
 
-    const scrapyardIcon: any = {
-      path: g.SymbolPath.CIRCLE,
-      scale: 7,
-      fillColor: '#b42318', // vermelho (Sucatarias)
-      fillOpacity: 0.95,
-      strokeColor: '#fffaf2',
-      strokeWeight: 2,
+    const buildDashboardMarkerIcon = (gmaps: any, kind: 'scrapyard' | 'occurrence', fill: string, stroke: string) => {
+      const glyph = kind === 'scrapyard'
+        ? `<path d="M11 26V20.8L17.2 24.2V20.8L23 24.2V15.2H26V26H11Z" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.4 26V22.5H17V26" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M22.5 15.2V11.8H24.2V15.2" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/><path d="M14 18.8H14.01M20 19.5H20.01" stroke="${stroke}" stroke-width="2.3" stroke-linecap="round"/>`
+        : `<path d="M18 11L23 20H13L18 11Z" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/><path d="M18 14.8V17.8" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/><circle cx="18" cy="19.6" r="0.9" fill="${stroke}"/>`
+      const svg = `
+        <svg width="38" height="46" viewBox="0 0 38 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 1.8C9.7 1.8 2.2 9.3 2.2 18.6C2.2 31.2 17.2 42.7 18.1 43.4C18.6 43.8 19.4 43.8 19.9 43.4C20.8 42.7 35.8 31.2 35.8 18.6C35.8 9.3 28.3 1.8 19 1.8Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+          ${glyph}
+        </svg>
+      `.trim()
+      return {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+        scaledSize: new gmaps.Size(38, 46),
+        anchor: new gmaps.Point(19, 43),
+      }
     }
-    const infractionIcon: any = {
-      path: g.SymbolPath.CIRCLE,
-      scale: 7,
-      fillColor: '#0f766e', // verde/teal (Ocorrências)
-      fillOpacity: 0.95,
-      strokeColor: '#fffaf2',
-      strokeWeight: 2,
-    }
+
+    const scrapyardIcon = buildDashboardMarkerIcon(g, 'scrapyard', '#b42318', '#fffaf2')
+    const infractionIcon = buildDashboardMarkerIcon(g, 'occurrence', '#0f766e', '#fffaf2')
 
     // sucatarias (vermelho)
     ;(scrapyards || [])

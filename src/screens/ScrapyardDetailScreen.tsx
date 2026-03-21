@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Card } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
 import { useAuth } from '../contexts/AuthContext'
-import { ScrapyardApi, OccurrenceApi, type ModelScrapyard, type ModelOccurrence } from '../services'
+import { OccurrenceApi, ScrapyardApi, type ModelOccurrence, type ModelScrapyard } from '../services'
 
 export default function ScrapyardDetailScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
@@ -10,10 +10,7 @@ export default function ScrapyardDetailScreen() {
   const occurrenceApi = useMemo(() => new OccurrenceApi(getApiConfig()), [getApiConfig])
   const authHeader = useMemo(() => getAuthorizationHeaderValue(), [getAuthorizationHeaderValue])
 
-  const id = useMemo(() => {
-    const parts = window.location.pathname.split('/').filter(Boolean)
-    return parts[1] || ''
-  }, [])
+  const id = useMemo(() => window.location.pathname.split('/').filter(Boolean)[1] || '', [])
 
   const [item, setItem] = useState<ModelScrapyard | null>(null)
   const [nearOccurrences, setNearOccurrences] = useState<ModelOccurrence[]>([])
@@ -30,39 +27,75 @@ export default function ScrapyardDetailScreen() {
       if (!Number.isNaN(num) && num === 401) return true
       const code = String(raw).toUpperCase()
       return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
-    } catch { return false }
+    } catch {
+      return false
+    }
   }
 
   const load = useCallback(async () => {
-    setLoading(true); setError(null)
+    setLoading(true)
+    setError(null)
     try {
       const { data } = await scrapyardApi.privateScrapyardsIdGet(id, authHeader)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setItem(data as any)
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setError(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao carregar sucataria.' : 'Falha a obter sucataria.')
-    } finally { setLoading(false) }
-  }, [scrapyardApi, authHeader, id])
+    } finally {
+      setLoading(false)
+    }
+  }, [authHeader, id, logout, scrapyardApi])
 
   useEffect(() => { load() }, [load])
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       if (!item || item.lat == null || item.long == null) return
-      setOccLoading(true); setOccError(null)
+      setOccLoading(true)
+      setOccError(null)
       try {
-        const { data } = await occurrenceApi.privateOccurrencesGet(authHeader, 1, 10, 'created_at', 'desc', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, Number(item.lat), Number(item.long))
-        if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        const { data } = await occurrenceApi.privateOccurrencesGet(
+          authHeader,
+          1,
+          10,
+          'created_at',
+          'desc',
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Number(item.lat),
+          Number(item.long)
+        )
+        if (isUnauthorizedBody(data)) {
+          logout('Sessão expirada. Inicie sessão novamente.')
+          return
+        }
         setNearOccurrences(((data as any).items ?? []) as ModelOccurrence[])
       } catch (err: any) {
         const status = err?.response?.status
-        if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+        if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+          logout('Sessão expirada. Inicie sessão novamente.')
+          return
+        }
         setOccError(!status ? 'Sem ligação ao servidor.' : 'Falha a obter ocorrências próximas.')
-      } finally { setOccLoading(false) }
+      } finally {
+        setOccLoading(false)
+      }
     })()
-  }, [item?.lat, item?.long, occurrenceApi, authHeader])
+  }, [authHeader, item?.lat, item?.long, logout, occurrenceApi])
 
   function voltar() {
     if (window.location.pathname !== '/sucatarias') window.history.pushState({}, '', '/sucatarias')
@@ -75,199 +108,151 @@ export default function ScrapyardDetailScreen() {
     window.dispatchEvent(new Event('locationchange'))
   }
 
+  const materialNames = useMemo(() => {
+    if (!item?.materiais?.length) return []
+    return item.materiais.map((material) => material.name || material.id).filter(Boolean) as string[]
+  }, [item?.materiais])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Detalhes da sucataria</Heading>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="secondary" onClick={voltar}>Voltar</Button>
+      <div style={screenHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={screenEyebrowStyle}>Sucatarias</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.05, color: '#1f2937' }}>Detalhe da sucataria</h2>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+              Consulte os dados da sucataria, os materiais associados, a localização no mapa e as ocorrências próximas.
+            </p>
+          </div>
+        </div>
+        <div style={screenActionRowStyle}>
+          <button type="button" onClick={voltar} style={detailSecondaryActionStyle}>
+            <IconBack />
+            <span>Voltar</span>
+          </button>
         </div>
       </div>
 
-      {loading && <div style={{ color: '#6b7280' }}>A carregar…</div>}
-      {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div>}
+      {loading ? <div style={infoBannerStyle}>A carregar…</div> : null}
+      {error ? <div style={errorBannerStyle}>{error}</div> : null}
 
-      {!loading && !error && item && (
+      {!loading && !error && item ? (
         <>
-          <Card title="Dados da sucataria">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-              <Field label="Nome" value={item.nome || item.id || '-'} />
-              <Field label="ASC" value={(item as any).asc_name || item.asc_id || '-'} />
-              <Field label="Latitude" value={item.lat != null ? String(item.lat) : '-'} />
-              <Field label="Longitude" value={item.long != null ? String(item.long) : '-'} />
-              {(item as any).nivel_confianca != null && <Field label="Nível de desconfiança" value={`${(Number((item as any).nivel_confianca) * 100).toFixed(1)} %`} />}
-            </div>
-            {Array.isArray(item.materiais) && item.materiais.length ? (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>Materiais</div>
-                <Text>{item.materiais.map((m) => m.name || m.id).filter(Boolean).join(', ')}</Text>
+          <Card title="Dados gerais">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={detailOverviewStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0, flex: 1 }}>
+                  <div style={detailOverviewEyebrowStyle}>Sucataria</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <strong style={{ fontSize: 28, lineHeight: 1.05, color: '#1f2937' }}>
+                      {item.nome || item.id || '-'}
+                    </strong>
+                    <span style={{ color: '#5f6673', lineHeight: 1.6 }}>
+                      {item.asc_name || item.asc_id || 'ASC não indicada'} · {materialNames.length} material{materialNames.length === 1 ? '' : 'ais'} associado{materialNames.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <StatusPill icon={<IconClock />} label="Criada em" value={formatDateTime(item.created_at)} />
+                  <StatusPill icon={<IconShield />} label="Desconfiança" value={formatPercent(item.nivel_confianca)} />
+                </div>
               </div>
-            ) : null}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                <DetailSectionCard
+                  icon={<IconWarehouse />}
+                  title="Enquadramento"
+                  description="Informação base da sucataria e da ASC associada."
+                  items={[
+                    { label: 'Nome', value: item.nome || item.id || '-' },
+                    { label: 'ASC', value: item.asc_name || item.asc_id || '-' },
+                    { label: 'ID do registo', value: item.id || '-' },
+                  ]}
+                />
+                <DetailSectionCard
+                  icon={<IconPinpoint />}
+                  title="Georreferenciação"
+                  description="Ponto geográfico usado para mapa e deteção de proximidade."
+                  items={[
+                    { label: 'Latitude', value: item.lat != null ? String(item.lat) : '-' },
+                    { label: 'Longitude', value: item.long != null ? String(item.long) : '-' },
+                    { label: 'Criada em', value: formatDateTime(item.created_at) },
+                  ]}
+                />
+                <DetailSectionCard
+                  icon={<IconBox />}
+                  title="Materiais"
+                  description="Materiais associados à leitura operacional da sucataria."
+                  items={[
+                    { label: 'Total', value: String(materialNames.length) },
+                    { label: 'Principal', value: materialNames[0] || '-' },
+                    { label: 'Desconfiança', value: formatPercent(item.nivel_confianca) },
+                  ]}
+                />
+              </div>
+            </div>
           </Card>
 
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'minmax(360px, 1.4fr) minmax(320px, 1fr)', 
-            gap: 24, 
-            alignItems: 'start',
-            '@media (max-width: 768px)': {
-              gridTemplateColumns: '1fr',
-              gap: 16
-            }
-          }}>
-            <Card title="Localização">
-              {(item.lat != null && item.long != null) ? (
-                <MapPicker
-                  value={{ lat: Number(item.lat), lng: Number(item.long) }}
-                  onChange={() => {}}
-                  height={360}
-                  disabled
-                  extraMarkers={nearOccurrences
-                    .filter((o) => o.lat != null && o.long != null)
-                    .map((o) => ({
-                      lat: Number(o.lat),
-                      lng: Number(o.long),
-                      title: (o.local || o.id || 'Ocorrência') as string,
-                      color: '#16a34a',
-                      infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${((o.local || o.id || 'Ocorrência') as string).toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Data: ${formatDate(o.data_facto)}</div></div>`
-                    }))}
-                />
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(360px, 1.4fr) minmax(320px, 1fr)', gap: 16, alignItems: 'stretch' }}>
+            <Card title="Localização" subtitle="Posição geográfica da sucataria e ocorrências próximas no mapa." style={pairedDetailCardStyle}>
+              {item.lat != null && item.long != null ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={summaryChipStyle}>Ponto base: sucataria</span>
+                    <span style={summaryChipStyle}>Ocorrências próximas: {nearOccurrences.length}</span>
+                  </div>
+                  <MapPicker
+                    markerKind="scrapyard"
+                    value={{ lat: Number(item.lat), lng: Number(item.long) }}
+                    onChange={() => {}}
+                    height={360}
+                    disabled
+                    extraMarkers={nearOccurrences
+                      .filter((occurrence) => occurrence.lat != null && occurrence.long != null)
+                      .map((occurrence) => ({
+                        lat: Number(occurrence.lat),
+                        lng: Number(occurrence.long),
+                        title: (occurrence.local || occurrence.id || 'Ocorrência') as string,
+                        color: '#0f766e',
+                        markerKind: 'occurrence' as const,
+                        infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:700;color:#1f2937\">${String(occurrence.local || occurrence.id || 'Ocorrência').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Data: ${formatDateTime(occurrence.data_facto)}</div></div>`,
+                      }))}
+                  />
+                </div>
               ) : (
-                <div style={{ color: '#6b7280' }}>Sem coordenadas da sucataria.</div>
+                <div style={infoBannerStyle}>Sem coordenadas da sucataria.</div>
               )}
             </Card>
-            <Card title="Ocorrências próximas" style={{ height: 'fit-content' }}>
-              <div style={{ 
-                height: 360, 
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
+
+            <Card title="Ocorrências próximas" subtitle="Lista de ocorrências encontradas junto à sucataria." style={pairedDetailCardStyle}>
+              <div style={nearbyPanelStyle}>
                 {occLoading ? (
-                  <div style={{ 
-                    color: '#6b7280', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    height: '100%'
-                  }}>
-                    A carregar…
-                  </div>
+                  <div style={infoBannerStyle}>A carregar…</div>
                 ) : occError ? (
-                  <div style={{ 
-                    background: '#fee2e2', 
-                    color: '#991b1b', 
-                    padding: 16, 
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                    textAlign: 'center'
-                  }}>
-                    {occError}
-                  </div>
+                  <div style={errorBannerStyle}>{occError}</div>
                 ) : !nearOccurrences.length ? (
-                  <div style={{ 
-                    color: '#6b7280',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                    textAlign: 'center',
-                    fontSize: 15
-                  }}>
-                    Sem ocorrências próximas encontradas.
-                  </div>
+                  <div style={infoBannerStyle}>Sem ocorrências próximas encontradas.</div>
                 ) : (
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: 12,
-                    overflowY: 'auto',
-                    paddingRight: 8,
-                    height: '100%'
-                  }}>
-                    {nearOccurrences.map((o) => (
-                      <div 
-                        key={o.id} 
-                        style={{ 
-                          border: '1px solid #e5e7eb', 
-                          borderRadius: 12, 
-                          padding: 16,
-                          background: '#fafafa',
-                          transition: 'all 0.2s ease-in-out',
-                          cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = '#ea580c'
-                          e.currentTarget.style.background = '#fff7ed'
-                          e.currentTarget.style.transform = 'translateY(-2px)'
-                          e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = '#e5e7eb'
-                          e.currentTarget.style.background = '#fafafa'
-                          e.currentTarget.style.transform = 'translateY(0)'
-                          e.currentTarget.style.boxShadow = 'none'
-                        }}
+                  <div style={nearbyListStyle}>
+                    {nearOccurrences.map((occurrence) => (
+                      <button
+                        key={occurrence.id}
+                        type="button"
+                        style={contextCardButtonStyle}
+                        onClick={() => openOccurrenceDetails(occurrence.id)}
                       >
-                        <div style={{ 
-                          fontWeight: 600, 
-                          fontSize: 15,
-                          color: '#18181b',
-                          marginBottom: 8,
-                          lineHeight: 1.4
-                        }}>
-                          {o.local || o.id}
-                        </div>
-                        
-                        <div style={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          gap: 6,
-                          marginBottom: 12
-                        }}>
-                          <div style={{ 
-                            color: '#6b7280', 
-                            fontSize: 13,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6
-                          }}>
-                            <span style={{ 
-                              width: 12, 
-                              height: 12, 
-                              background: '#16a34a', 
-                              borderRadius: '50%',
-                              display: 'inline-block'
-                            }} />
-                            Data: {formatDate(o.data_facto)}
-                          </div>
-                          
-                          {o.lat != null && o.long != null && (
-                            <div style={{ 
-                              color: '#6b7280', 
-                              fontSize: 13,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6
-                            }}>
-                              <span style={{ fontSize: 12 }}>📍</span>
-                              {`${Number(o.lat).toFixed(5)}, ${Number(o.long).toFixed(5)}`}
+                        <div style={contextCardStyle}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                            <span style={contextCardIconStyle}>
+                              <IconOccurrence />
+                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                              <strong style={{ color: '#1f2937' }}>{occurrence.local || occurrence.id || '-'}</strong>
+                              <span style={{ color: '#5f6673', fontSize: 13 }}>{formatDateTime(occurrence.data_facto)}</span>
                             </div>
-                          )}
+                          </div>
                         </div>
-                        
-                        <Button 
-                          variant="secondary" 
-                          size="sm"
-                          onClick={() => openOccurrenceDetails(o.id)}
-                          style={{ width: '100%' }}
-                        >
-                          Ver detalhes
-                        </Button>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -275,21 +260,365 @@ export default function ScrapyardDetailScreen() {
             </Card>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   )
 }
 
-function Field({ label, value }: { label: string; value?: string }) {
+function DetailSectionCard({
+  icon,
+  title,
+  description,
+  items,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+  items: Array<{ label: string; value: string }>
+}) {
   return (
-    <div>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
-      <div style={{ fontWeight: 500 }}>{value || '-'}</div>
+    <div style={detailSectionCardStyle}>
+      <div style={detailSectionHeaderStyle}>
+        <span style={detailSectionIconStyle}>{icon}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <strong style={{ color: '#1f2937', fontSize: 16 }}>{title}</strong>
+          <span style={{ color: '#5f6673', fontSize: 13, lineHeight: 1.5 }}>{description}</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map((item) => (
+          <div key={item.label} style={detailSectionItemStyle}>
+            <span style={detailSectionItemLabelStyle}>{item.label}</span>
+            <strong style={detailSectionItemValueStyle}>{item.value || '-'}</strong>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-function formatDate(iso?: string) {
+function StatusPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <span style={statusPillStyle}>
+      <span style={statusPillIconStyle}>{icon}</span>
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={statusPillLabelStyle}>{label}</span>
+        <span style={statusPillValueStyle}>{value || '-'}</span>
+      </span>
+    </span>
+  )
+}
+
+function formatDateTime(iso?: string) {
   if (!iso) return '-'
-  try { const d = new Date(iso); if (Number.isNaN(d.getTime())) return '-'; return d.toLocaleString('pt-PT') } catch { return '-' }
+  try {
+    const date = new Date(iso)
+    if (Number.isNaN(date.getTime())) return '-'
+    return date.toLocaleString('pt-PT')
+  } catch {
+    return '-'
+  }
+}
+
+function formatPercent(value?: number) {
+  if (typeof value !== 'number' || Number.isNaN(value)) return '—'
+  return `${(value * 100).toFixed(1)} %`
+}
+
+function IconBack() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconClock() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 8V12L14.8 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconShield() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3L19 6V11.5C19 16.1 16 19.9 12 21C8 19.9 5 16.1 5 11.5V6L12 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconWarehouse() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 10L12 4L20 10V19H4V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M9 19V13H15V19" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconPinpoint() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 20C15.5 16.4 18 13.7 18 10.5C18 6.9 15.3 4 12 4C8.7 4 6 6.9 6 10.5C6 13.7 8.5 16.4 12 20Z" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="10.5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconBox() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3.8L19 7.8V16.2L12 20.2L5 16.2V7.8L12 3.8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12L19 7.8" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12L5 7.8" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12V20.2" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconOccurrence() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4L20 18H4L12 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 9V13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="12" cy="16.2" r="0.8" fill="currentColor" />
+    </svg>
+  )
+}
+
+const screenHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: '24px 28px',
+  borderRadius: 28,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'linear-gradient(135deg, rgba(255, 253, 248, 0.98) 0%, rgba(243, 233, 214, 0.94) 100%)',
+  boxShadow: '0 18px 40px rgba(76, 57, 24, 0.10)',
+}
+
+const screenEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.16em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const screenActionRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+}
+
+const detailSecondaryActionStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  minHeight: 44,
+  padding: '0 18px',
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#8d4a17',
+  fontWeight: 800,
+  cursor: 'pointer',
+  boxShadow: '0 10px 24px rgba(76, 57, 24, 0.08)',
+}
+
+const infoBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.92)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#5f6673',
+  fontWeight: 700,
+}
+
+const errorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#991b1b',
+  fontWeight: 700,
+}
+
+const detailOverviewStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 14,
+  flexWrap: 'wrap',
+  padding: '18px 20px',
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.10)',
+  background: 'linear-gradient(135deg, rgba(255, 252, 247, 0.98) 0%, rgba(246, 237, 222, 0.9) 100%)',
+}
+
+const detailOverviewEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '.14em',
+  color: '#8d4a17',
+}
+
+const statusPillStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 10,
+  minHeight: 52,
+  padding: '10px 14px',
+  borderRadius: 18,
+  background: '#fffdf8',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  boxShadow: '0 12px 30px rgba(76, 57, 24, 0.08)',
+}
+
+const statusPillIconStyle: React.CSSProperties = {
+  width: 34,
+  height: 34,
+  borderRadius: 12,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.12)',
+  color: '#8d4a17',
+}
+
+const statusPillLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.10em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const statusPillValueStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontSize: 14,
+  fontWeight: 800,
+}
+
+const detailSectionCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+  minWidth: 0,
+  padding: '18px 18px 16px',
+  borderRadius: 20,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: '#fffdf8',
+  boxShadow: '0 12px 30px rgba(76, 57, 24, 0.06)',
+}
+
+const detailSectionHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+}
+
+const detailSectionIconStyle: React.CSSProperties = {
+  width: 38,
+  height: 38,
+  minWidth: 38,
+  borderRadius: 14,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.12)',
+  color: '#8d4a17',
+}
+
+const detailSectionItemStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+  paddingBottom: 10,
+  borderBottom: '1px solid rgba(101, 74, 32, 0.08)',
+}
+
+const detailSectionItemLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.1em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const detailSectionItemValueStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontSize: 14,
+  fontWeight: 700,
+  overflowWrap: 'anywhere',
+}
+
+const pairedDetailCardStyle: React.CSSProperties = {
+  height: '100%',
+}
+
+const summaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 38,
+  padding: '0 14px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 13,
+  fontWeight: 700,
+}
+
+const nearbyPanelStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+  height: 360,
+}
+
+const nearbyListStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+  height: '100%',
+  overflowY: 'auto',
+  paddingRight: 6,
+}
+
+const contextCardButtonStyle: React.CSSProperties = {
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  textAlign: 'left',
+}
+
+const contextCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  padding: '16px 18px',
+  borderRadius: 20,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f8efe2 100%)',
+}
+
+const contextCardIconStyle: React.CSSProperties = {
+  width: 38,
+  height: 38,
+  minWidth: 38,
+  borderRadius: 14,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.16)',
+  color: '#8d4a17',
 }

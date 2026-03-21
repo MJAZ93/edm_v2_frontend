@@ -957,6 +957,7 @@ function OcorrenciaForm({ defaultValue, regioes, ascs, formas, setores, tiposInf
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 13, color: '#374151' }}>Localização no mapa</span>
         <MapPicker
+          markerKind="occurrence"
           value={{ lat: lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : undefined, lng: long !== '' && !Number.isNaN(Number(long)) ? Number(long) : undefined }}
           onChange={(pos) => { setLat(String(pos.lat)); setLong(String(pos.lng)) }}
           height={280}

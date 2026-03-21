@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Pagination } from '../components'
+import { Button, Card, Pagination } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import { ASCApi, AccoesApi, MaterialApi, type ModelASC, type ModelAccoes, type ModelMaterial } from '../services'
 
@@ -28,6 +28,9 @@ export default function AccoesScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [ascs, setAscs] = useState<ModelASC[]>([])
   const [materials, setMaterials] = useState<ModelMaterial[]>([])
+  const [pendingDelete, setPendingDelete] = useState<ModelAccoes | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -125,12 +128,21 @@ export default function AccoesScreen() {
 
   async function handleDelete(id?: string) {
     if (!id) return
-    if (!window.confirm('Eliminar ação?')) return
+    setDeleteLoading(true)
+    setDeleteError(null)
     try {
       await api.privateAccoesIdDelete(id, authHeader)
+      setPendingDelete(null)
       await load()
-    } catch {
-      alert('Não foi possível eliminar.')
+    } catch (err: any) {
+      const status = err?.response?.status
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      setDeleteError(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao eliminar a ação.' : 'Não foi possível eliminar a ação.')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -310,7 +322,14 @@ export default function AccoesScreen() {
                       <ActionIconButton label="Editar" variant="secondary" onClick={() => openEdit(item.id)}>
                         <PencilIcon />
                       </ActionIconButton>
-                      <ActionIconButton label="Eliminar" variant="danger" onClick={() => handleDelete(item.id)}>
+                      <ActionIconButton
+                        label="Eliminar"
+                        variant="danger"
+                        onClick={() => {
+                          setPendingDelete(item)
+                          setDeleteError(null)
+                        }}
+                      >
                         <TrashIcon />
                       </ActionIconButton>
                     </td>
@@ -331,6 +350,20 @@ export default function AccoesScreen() {
           showFirstLast={true}
         />
       </Card>
+
+      {pendingDelete ? (
+        <DeleteConfirmModal
+          item={pendingDelete}
+          loading={deleteLoading}
+          error={deleteError}
+          onCancel={() => {
+            if (deleteLoading) return
+            setPendingDelete(null)
+            setDeleteError(null)
+          }}
+          onConfirm={() => handleDelete(pendingDelete.id)}
+        />
+      ) : null}
     </div>
   )
 }
@@ -377,6 +410,46 @@ function ActionIconButton({
     >
       {children}
     </button>
+  )
+}
+
+function DeleteConfirmModal({
+  item,
+  loading,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  item: ModelAccoes
+  loading: boolean
+  error: string | null
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div style={modalBackdropStyle} role="dialog" aria-modal="true" aria-labelledby="accoes-delete-title">
+      <div style={modalCardStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={modalEyebrowStyle}>Confirmação</span>
+          <h3 id="accoes-delete-title" style={{ margin: 0, fontSize: 24, lineHeight: 1.1, color: '#1f2937' }}>
+            Eliminar ação
+          </h3>
+          <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+            Está prestes a eliminar a ação <strong style={{ color: '#1f2937' }}>{item.accoes || 'sem descrição'}</strong>.
+            Confirme apenas se pretende remover definitivamente este registo.
+          </p>
+        </div>
+
+        {error ? <div style={modalErrorStyle}>{error}</div> : null}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>Cancelar</Button>
+          <Button variant="danger" onClick={onConfirm} disabled={loading}>
+            {loading ? 'A eliminar…' : 'Eliminar ação'}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -621,4 +694,53 @@ const actionIconButtonHoverStyle: Record<'secondary' | 'danger', React.CSSProper
     transform: 'translateY(-1px)',
     boxShadow: '0 14px 28px rgba(180, 35, 24, 0.12)',
   },
+}
+
+const modalBackdropStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 80,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 24,
+  background: 'rgba(24, 31, 42, 0.42)',
+  backdropFilter: 'blur(8px)',
+}
+
+const modalCardStyle: React.CSSProperties = {
+  width: 'min(100%, 520px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
+  padding: 24,
+  borderRadius: 24,
+  background: 'linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 244, 234, 0.96) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  boxShadow: '0 28px 70px rgba(55, 34, 8, 0.18)',
+}
+
+const modalEyebrowStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  width: 'fit-content',
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+}
+
+const modalErrorStyle: React.CSSProperties = {
+  padding: '12px 14px',
+  borderRadius: 16,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#b42318',
+  fontSize: 14,
+  fontWeight: 700,
 }
