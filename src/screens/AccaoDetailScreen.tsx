@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Card } from '../components'
 import { useAuth } from '../contexts/AuthContext'
-import { AccoesApi, ASCApi, MaterialApi, type ModelAccoes, type ModelASC, type ModelMaterial } from '../services'
+import { ASCApi, AccoesApi, MaterialApi, type ModelASC, type ModelAccoes, type ModelMaterial } from '../services'
 
 export default function AccaoDetailScreen() {
   const { getApiConfig, getAuthorizationHeaderValue, logout } = useAuth()
@@ -21,161 +21,697 @@ export default function AccaoDetailScreen() {
   const [beforeAmount, setBeforeAmount] = useState<number | null>(null)
   const [afterAmount, setAfterAmount] = useState<number | null>(null)
 
-  const isUnauthorizedBody = (data: any) => { try { const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code; if (raw == null) return false; const num = Number(raw); if (!Number.isNaN(num) && num === 401) return true; const code = String(raw).toUpperCase(); return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED' } catch { return false } }
+  const isUnauthorizedBody = (data: any) => {
+    try {
+      const raw = data?.code ?? data?.error?.code ?? data?.status ?? data?.error?.status ?? data?.error_code
+      if (raw == null) return false
+      const num = Number(raw)
+      if (!Number.isNaN(num) && num === 401) return true
+      const code = String(raw).toUpperCase()
+      return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
+    } catch {
+      return false
+    }
+  }
 
   const load = useCallback(async () => {
-    setLoading(true); setError(null)
+    setLoading(true)
+    setError(null)
     try {
-      const [{ data: d1 }, { data: d2 }, { data: d3 }] = await Promise.all([
+      const [{ data: actionData }, { data: ascsData }, { data: materialsData }] = await Promise.all([
         api.privateAccoesIdGet(id, authHeader),
         ascApi.privateAscsGet(authHeader, -1, undefined, 'name', 'asc'),
-        materialApi.privateMateriaisGet(authHeader, -1, undefined, 'name', 'asc')
+        materialApi.privateMateriaisGet(authHeader, -1, undefined, 'name', 'asc'),
       ])
-      if ([d1, d2, d3].some((x) => isUnauthorizedBody(x))) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      const payload: any = d1 as any
-      const acc = (payload && payload.accoes) ? payload.accoes as ModelAccoes : (payload as ModelAccoes)
-      setAccao(acc)
-      if (typeof payload?.before_count === 'number') setBeforeCount(payload.before_count)
-      if (typeof payload?.after_count === 'number') setAfterCount(payload.after_count)
-      if (typeof payload?.before_amount === 'number') setBeforeAmount(payload.before_amount)
-      if (typeof payload?.after_amount === 'number') setAfterAmount(payload.after_amount)
-      setAscs((d2 as any).items ?? [])
-      setMaterials((d3 as any).items ?? [])
+      if ([actionData, ascsData, materialsData].some((entry) => isUnauthorizedBody(entry))) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      const payload: any = actionData as any
+      const current = normalizeAccaoPayload(payload) as ModelAccoes
+      setAccao(current)
+      setBeforeCount(typeof payload?.before_count === 'number' ? payload.before_count : null)
+      setAfterCount(typeof payload?.after_count === 'number' ? payload.after_count : null)
+      setBeforeAmount(typeof payload?.before_amount === 'number' ? payload.before_amount : null)
+      setAfterAmount(typeof payload?.after_amount === 'number' ? payload.after_amount : null)
+      setAscs((ascsData as any).items ?? [])
+      setMaterials((materialsData as any).items ?? [])
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setError(!status ? 'Sem ligação ao servidor.' : 'Falha a obter ação.')
-    } finally { setLoading(false) }
-  }, [api, authHeader, id])
+    } finally {
+      setLoading(false)
+    }
+  }, [api, ascApi, authHeader, id, logout, materialApi])
 
   useEffect(() => { load() }, [load])
 
-  function voltar() { window.history.pushState({}, '', '/accoes'); window.dispatchEvent(new Event('locationchange')) }
-  function editar() { window.history.pushState({}, '', `/accoes/${id}/editar`); window.dispatchEvent(new Event('locationchange')) }
+  function voltar() {
+    window.history.pushState({}, '', '/accoes')
+    window.dispatchEvent(new Event('locationchange'))
+  }
 
-  const resolveAsc = (id?: string) => { const it = ascs.find((a) => a.id === id); return it?.name || id || '-' }
-  const formatMoney = (n?: number) => (typeof n === 'number' && !Number.isNaN(n)) ? `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT` : '—'
+  function editar() {
+    window.history.pushState({}, '', `/accoes/${id}/editar`)
+    window.dispatchEvent(new Event('locationchange'))
+  }
+
+  const resolveAsc = useCallback((currentId?: string) => {
+    const item = ascs.find((entry) => entry.id === currentId)
+    return item?.name || currentId || '-'
+  }, [ascs])
+
+  const actionMaterials = useMemo(() => {
+    const attached = (accao as any)?.materiais
+    if (Array.isArray(attached) && attached.length) return attached as ModelMaterial[]
+    return []
+  }, [accao])
+
+  const materialNames = useMemo(() => {
+    if (actionMaterials.length) return actionMaterials.map((material) => material.name || material.id).filter(Boolean)
+    return materials.map((material) => material.name || material.id).filter(Boolean)
+  }, [actionMaterials, materials])
+
+  const metrics = useMemo(() => {
+    const deltaCount = beforeCount != null && afterCount != null ? afterCount - beforeCount : null
+    const deltaAmount = beforeAmount != null && afterAmount != null ? afterAmount - beforeAmount : null
+    const pctCount = beforeCount != null && beforeCount !== 0 && deltaCount != null ? (deltaCount / beforeCount) * 100 : null
+    const pctAmount = beforeAmount != null && beforeAmount !== 0 && deltaAmount != null ? (deltaAmount / beforeAmount) * 100 : null
+    return {
+      deltaCount,
+      deltaAmount,
+      pctCount,
+      pctAmount,
+      countBetter: beforeCount != null && afterCount != null ? afterCount < beforeCount : null,
+      amountBetter: beforeAmount != null && afterAmount != null ? afterAmount < beforeAmount : null,
+    }
+  }, [afterAmount, afterCount, beforeAmount, beforeCount])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Detalhes da ação</Heading>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="secondary" onClick={voltar}>Voltar</Button>
-          <Button onClick={editar}>Editar</Button>
+      <div style={screenHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={screenEyebrowStyle}>Ações</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.05, color: '#1f2937' }}>Detalhe da ação</h2>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+              Consulte a implementação, o enquadramento financeiro e o impacto medido antes e depois da ação.
+            </p>
+          </div>
+        </div>
+        <div style={screenActionRowStyle}>
+          <button type="button" onClick={voltar} style={detailSecondaryActionStyle}>
+            <IconBack />
+            <span>Voltar</span>
+          </button>
+          <button type="button" onClick={editar} style={detailPrimaryActionStyle}>
+            <IconEdit />
+            <span>Editar ação</span>
+          </button>
         </div>
       </div>
-      {loading && <div style={{ color: '#6b7280' }}>A carregar…</div>}
-      {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div>}
-      {!loading && !error && accao && (
-        <Card title="Dados da ação">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-            <Field label="Criado em" value={formatDate(accao.created_at)} />
-            <Field label="Implementação" value={formatDate(accao.data_implementacao)} />
-            <Field label="ASC" value={resolveAsc(accao.asc_id)} />
-            <Field label="Valor" value={formatMoney(accao.amount)} />
-            <Field label="Meses análise" value={accao.meses_analise != null ? String(accao.meses_analise) : '-'} />
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Ação</div>
-            <div style={{ whiteSpace: 'pre-wrap' }}>{accao.accoes || '-'}</div>
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Materiais</div>
-            {Array.isArray((accao as any).materiais) && (accao as any).materiais.length ? (
-              <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
-                {((accao as any).materiais as any[]).map((m, i) => (
-                  <li key={i} style={{ listStyle: 'disc' }}>{m.name || m.id}</li>
-                ))}
-              </ul>
-            ) : (
-              <div>—</div>
-            )}
-          </div>
-          {(() => {
-            const meses = accao?.meses_analise ?? null
-            const bC = typeof beforeCount === 'number' ? beforeCount : null
-            const aC = typeof afterCount === 'number' ? afterCount : null
-            const bA = typeof beforeAmount === 'number' ? beforeAmount : null
-            const aA = typeof afterAmount === 'number' ? afterAmount : null
-            const deltaCount = (bC != null && aC != null) ? (aC - bC) : null
-            const deltaAmount = (bA != null && aA != null) ? (aA - bA) : null
-            const pctCount = (bC != null && bC !== 0 && deltaCount != null) ? (deltaCount / bC) * 100 : null
-            const pctAmount = (bA != null && bA !== 0 && deltaAmount != null) ? (deltaAmount / bA) * 100 : null
-            const isBetterCount = (bC != null && aC != null) ? aC < bC : null
-            const isBetterAmount = (bA != null && aA != null) ? aA < bA : null
-            const badge = (ok?: boolean | null) => ({
-              background: ok === null ? '#f3f4f6' : (ok ? '#ecfdf5' : '#fef2f2'),
-              border: `1px solid ${ok === null ? '#e5e7eb' : (ok ? '#bbf7d0' : '#fecaca')}`,
-              color: ok === null ? '#374151' : (ok ? '#065f46' : '#991b1b'),
-            })
-            return (
-              <div style={{ marginTop: 14 }}>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Impacto</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-                  <div style={{ padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#f9fafb' }}>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>Nos {meses ?? '—'} meses antes</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                      <div>
-                        <div style={{ fontSize: 12, color: '#6b7280' }}>Quantidade</div>
-                        <div style={{ fontWeight: 700 }}>{bC != null ? String(bC) : '—'}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 12, color: '#6b7280' }}>Montante</div>
-                        <div style={{ fontWeight: 700 }}>{bA != null ? formatMoney(bA) : '—'}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ padding: 12, borderRadius: 10, ...badge(isBetterCount) }}>
-                    <div style={{ fontSize: 12, opacity: 0.9 }}>Nos {meses ?? '—'} meses depois</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                      <div>
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>Quantidade</div>
-                        <div style={{ fontWeight: 800, fontSize: 18 }}>{aC != null ? String(aC) : '—'}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>Montante</div>
-                        <div style={{ fontWeight: 800, fontSize: 18 }}>{aA != null ? formatMoney(aA) : '—'}</div>
-                      </div>
-                    </div>
+
+      {loading ? <div style={infoBannerStyle}>A carregar…</div> : null}
+      {error ? <div style={errorBannerStyle}>{error}</div> : null}
+
+      {!loading && !error && accao ? (
+        <>
+          <Card title="Dados gerais">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={detailOverviewStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0, flex: 1 }}>
+                  <div style={detailOverviewEyebrowStyle}>Ação</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <strong style={{ fontSize: 28, lineHeight: 1.05, color: '#1f2937' }}>
+                      {accao.accoes || '-'}
+                    </strong>
+                    <span style={{ color: '#5f6673', lineHeight: 1.6 }}>
+                      {resolveAsc(accao.asc_id)} · {actionMaterials.length} material{actionMaterials.length === 1 ? '' : 'ais'} associado{actionMaterials.length === 1 ? '' : 's'}
+                    </span>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginTop: 12 }}>
-                  <div style={{ padding: 12, borderRadius: 10, ...badge(isBetterCount) }}>
-                    <div style={{ fontSize: 12, opacity: 0.8 }}>Variação — Quantidade</div>
-                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <div style={{ fontWeight: 700 }}>{bC != null ? String(bC) : '—'}</div>
-                      <span>→</span>
-                      <div style={{ fontWeight: 800, fontSize: 18 }}>{aC != null ? String(aC) : '—'}</div>
-                      <div style={{ marginLeft: 'auto', fontWeight: 700 }}>{pctCount != null ? `${pctCount.toFixed(1)}%` : '—'}</div>
-                    </div>
-                  </div>
-                  <div style={{ padding: 12, borderRadius: 10, ...badge(isBetterAmount) }}>
-                    <div style={{ fontSize: 12, opacity: 0.8 }}>Variação — Montante</div>
-                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <div style={{ fontWeight: 700 }}>{bA != null ? formatMoney(bA) : '—'}</div>
-                      <span>→</span>
-                      <div style={{ fontWeight: 800, fontSize: 18 }}>{aA != null ? formatMoney(aA) : '—'}</div>
-                      <div style={{ marginLeft: 'auto', fontWeight: 700 }}>{pctAmount != null ? `${pctAmount.toFixed(1)}%` : '—'}</div>
-                    </div>
-                  </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <StatusPill icon={<IconClock />} label="Criado em" value={formatDateTime(accao.created_at)} />
+                  <StatusPill icon={<IconMoney />} label="Valor" value={formatMoney(accao.amount)} />
                 </div>
               </div>
-            )
-          })()}
-        </Card>
-      )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                <DetailSectionCard
+                  icon={<IconCalendar />}
+                  title="Implementação"
+                  description="Contexto temporal e enquadramento base da ação."
+                  items={[
+                    { label: 'Data de implementação', value: formatDateTime(accao.data_implementacao) },
+                    { label: 'Meses de análise', value: accao.meses_analise != null ? String(accao.meses_analise) : '-' },
+                    { label: 'ASC', value: resolveAsc(accao.asc_id) },
+                  ]}
+                />
+                <DetailSectionCard
+                  icon={<IconMoney />}
+                  title="Financeiro"
+                  description="Valor registado e leitura rápida do efeito monetário."
+                  items={[
+                    { label: 'Valor', value: formatMoney(accao.amount) },
+                    { label: 'Montante antes', value: formatMoney(beforeAmount ?? undefined) },
+                    { label: 'Montante depois', value: formatMoney(afterAmount ?? undefined) },
+                  ]}
+                />
+                <DetailSectionCard
+                  icon={<IconLayer />}
+                  title="Materiais"
+                  description="Materiais associados à execução e à análise desta ação."
+                  items={[
+                    { label: 'Total', value: String(actionMaterials.length) },
+                    { label: 'Principal', value: materialNames[0] || '-' },
+                    { label: 'ID do registo', value: accao.id || '-' },
+                  ]}
+                />
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Impacto" subtitle="Comparação entre o cenário antes e depois da implementação.">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+              <ImpactCard
+                title="Quantidade"
+                beforeValue={beforeCount != null ? String(beforeCount) : '—'}
+                afterValue={afterCount != null ? String(afterCount) : '—'}
+                deltaValue={metrics.deltaCount != null ? `${metrics.deltaCount > 0 ? '+' : ''}${metrics.deltaCount}` : '—'}
+                pctValue={metrics.pctCount != null ? `${metrics.pctCount.toFixed(1)}%` : '—'}
+                positive={metrics.countBetter}
+              />
+              <ImpactCard
+                title="Montante"
+                beforeValue={formatMoney(beforeAmount ?? undefined)}
+                afterValue={formatMoney(afterAmount ?? undefined)}
+                deltaValue={metrics.deltaAmount != null ? `${metrics.deltaAmount > 0 ? '+' : ''}${formatMoney(metrics.deltaAmount)}` : '—'}
+                pctValue={metrics.pctAmount != null ? `${metrics.pctAmount.toFixed(1)}%` : '—'}
+                positive={metrics.amountBetter}
+              />
+            </div>
+          </Card>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.1fr) minmax(300px, 0.9fr)', gap: 16 }}>
+            <Card title="Materiais associados" subtitle="Lista de materiais ligados à ação." style={pairedDetailCardStyle}>
+              {actionMaterials.length ? (
+                <div style={nearbyListStyle}>
+                  {actionMaterials.map((material, index) => (
+                    <div key={material.id || index} style={contextCardStyle}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                        <span style={contextCardIconStyle}>
+                          <IconBox />
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <strong style={{ color: '#1f2937' }}>{material.name || material.id}</strong>
+                          <span style={{ color: '#7b8494', fontSize: 13 }}>Material associado à ação.</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={infoBannerStyle}>Sem materiais associados a esta ação.</div>
+              )}
+            </Card>
+
+            <Card title="Leitura rápida" subtitle="Síntese dos números principais da ação." style={pairedDetailCardStyle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={summaryChipStyle}>Valor: {formatMoney(accao.amount)}</span>
+                <span style={summaryChipStyle}>ASC: {resolveAsc(accao.asc_id)}</span>
+                <span style={summaryChipStyle}>Implementação: {formatDateTime(accao.data_implementacao)}</span>
+                <span style={summaryChipStyle}>Materiais: {actionMaterials.length}</span>
+                <span style={summaryChipStyle}>Meses análise: {accao.meses_analise != null ? String(accao.meses_analise) : '-'}</span>
+              </div>
+            </Card>
+          </div>
+
+        </>
+      ) : null}
     </div>
   )
 }
 
-function Field({ label, value }: { label: string; value?: string }) {
+function normalizeAccaoPayload(payload: any) {
+  const wrapped = payload?.accoes
+  if (wrapped && typeof wrapped === 'object' && !Array.isArray(wrapped)) return wrapped
+  return payload ?? {}
+}
+
+function DetailSectionCard({
+  icon,
+  title,
+  description,
+  items,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+  items: Array<{ label: string; value: string }>
+}) {
   return (
-    <div>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
-      <div style={{ fontWeight: 500 }}>{value || '-'}</div>
+    <div style={detailSectionCardStyle}>
+      <div style={detailSectionHeaderStyle}>
+        <span style={detailSectionIconStyle}>{icon}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <strong style={{ color: '#1f2937', fontSize: 16 }}>{title}</strong>
+          <span style={{ color: '#5f6673', fontSize: 13, lineHeight: 1.5 }}>{description}</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map((item) => (
+          <div key={item.label} style={detailSectionItemStyle}>
+            <span style={detailSectionItemLabelStyle}>{item.label}</span>
+            <strong style={detailSectionItemValueStyle}>{item.value || '-'}</strong>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-function formatDate(iso?: string) { if (!iso) return '-'; try { const d = new Date(iso as any); if (Number.isNaN(d.getTime())) return '-'; return d.toLocaleDateString('pt-PT') } catch { return '-' } }
+function StatusPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <span style={statusPillStyle}>
+      <span style={statusPillIconStyle}>{icon}</span>
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={statusPillLabelStyle}>{label}</span>
+        <span style={statusPillValueStyle}>{value || '-'}</span>
+      </span>
+    </span>
+  )
+}
+
+function ImpactCard({
+  title,
+  beforeValue,
+  afterValue,
+  deltaValue,
+  pctValue,
+  positive,
+}: {
+  title: string
+  beforeValue: string
+  afterValue: string
+  deltaValue: string
+  pctValue: string
+  positive: boolean | null
+}) {
+  const accentStyle = positive == null ? impactNeutralStyle : positive ? impactPositiveStyle : impactNegativeStyle
+
+  return (
+    <div style={{ ...impactCardStyle, ...accentStyle }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={impactLabelStyle}>{title}</span>
+        <strong style={{ color: '#1f2937', fontSize: 18 }}>{afterValue}</strong>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <MetricPill label="Antes" value={beforeValue} />
+        <MetricPill label="Depois" value={afterValue} />
+        <MetricPill label="Variação" value={deltaValue} />
+        <MetricPill label="Percentagem" value={pctValue} />
+      </div>
+    </div>
+  )
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={metricPillStyle}>
+      <span style={metricPillLabelStyle}>{label}</span>
+      <strong style={metricPillValueStyle}>{value || '-'}</strong>
+    </div>
+  )
+}
+
+function formatDateTime(iso?: string) {
+  if (!iso) return '-'
+  try {
+    const date = new Date(iso)
+    if (Number.isNaN(date.getTime())) return '-'
+    return date.toLocaleDateString('pt-PT')
+  } catch {
+    return '-'
+  }
+}
+
+function formatMoney(n?: number) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return '—'
+  try {
+    return `${n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MT`
+  } catch {
+    return `${n.toFixed(2)} MT`
+  }
+}
+
+function IconBack() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconEdit() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 20L7.8 19.2L18.4 8.6C19.2 7.8 19.2 6.6 18.4 5.8L18.2 5.6C17.4 4.8 16.2 4.8 15.4 5.6L4.8 16.2L4 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.8 7.2L16.8 10.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconClock() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 8V12L14.8 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconMoney() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7.5C4 6.7 4.7 6 5.5 6H18.5C19.3 6 20 6.7 20 7.5V16.5C20 17.3 19.3 18 18.5 18H5.5C4.7 18 4 17.3 4 16.5V7.5Z" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.5 9H7.51" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M16.5 15H16.51" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconCalendar() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 4V8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16 4V8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M4 10H20" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconLayer() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4L20 8L12 12L4 8L12 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M4 12L12 16L20 12" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M4 16L12 20L20 16" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconBox() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3.8L19 7.8V16.2L12 20.2L5 16.2V7.8L12 3.8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12L19 7.8" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12L5 7.8" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12V20.2" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+const screenHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: '24px 28px',
+  borderRadius: 28,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'linear-gradient(135deg, rgba(255, 253, 248, 0.98) 0%, rgba(243, 233, 214, 0.94) 100%)',
+  boxShadow: '0 18px 40px rgba(76, 57, 24, 0.10)',
+}
+
+const screenEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.16em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const screenActionRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+}
+
+const detailSecondaryActionStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  minHeight: 44,
+  padding: '0 18px',
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#8d4a17',
+  fontWeight: 800,
+  cursor: 'pointer',
+  boxShadow: '0 10px 24px rgba(76, 57, 24, 0.08)',
+}
+
+const detailPrimaryActionStyle: React.CSSProperties = {
+  ...detailSecondaryActionStyle,
+  border: '1px solid rgba(201, 109, 31, 0.20)',
+  background: 'linear-gradient(180deg, #d77a28 0%, #b85d18 100%)',
+  color: '#fffaf5',
+}
+
+const infoBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: 'rgba(255, 252, 246, 0.92)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#5f6673',
+  fontWeight: 700,
+}
+
+const errorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 18,
+  background: '#fff1f1',
+  border: '1px solid rgba(200, 60, 60, 0.18)',
+  color: '#991b1b',
+  fontWeight: 700,
+}
+
+const detailOverviewStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 14,
+  flexWrap: 'wrap',
+  padding: '18px 20px',
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.10)',
+  background: 'linear-gradient(135deg, rgba(255, 252, 247, 0.98) 0%, rgba(246, 237, 222, 0.9) 100%)',
+}
+
+const detailOverviewEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '.14em',
+  color: '#8d4a17',
+}
+
+const statusPillStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 10,
+  minHeight: 52,
+  padding: '10px 14px',
+  borderRadius: 18,
+  background: '#fffdf8',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  boxShadow: '0 12px 30px rgba(76, 57, 24, 0.08)',
+}
+
+const statusPillIconStyle: React.CSSProperties = {
+  width: 34,
+  height: 34,
+  borderRadius: 12,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.12)',
+  color: '#8d4a17',
+}
+
+const statusPillLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.10em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const statusPillValueStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontSize: 14,
+  fontWeight: 800,
+}
+
+const detailSectionCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+  minWidth: 0,
+  padding: '18px 18px 16px',
+  borderRadius: 20,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: '#fffdf8',
+  boxShadow: '0 12px 30px rgba(76, 57, 24, 0.06)',
+}
+
+const detailSectionHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+}
+
+const detailSectionIconStyle: React.CSSProperties = {
+  width: 38,
+  height: 38,
+  minWidth: 38,
+  borderRadius: 14,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.12)',
+  color: '#8d4a17',
+}
+
+const detailSectionItemStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+  paddingBottom: 10,
+  borderBottom: '1px solid rgba(101, 74, 32, 0.08)',
+}
+
+const detailSectionItemLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.1em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const detailSectionItemValueStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontSize: 14,
+  fontWeight: 700,
+  overflowWrap: 'anywhere',
+}
+
+const pairedDetailCardStyle: React.CSSProperties = {
+  height: '100%',
+}
+
+const contextCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  padding: '16px 18px',
+  borderRadius: 20,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f8efe2 100%)',
+}
+
+const contextCardIconStyle: React.CSSProperties = {
+  width: 38,
+  height: 38,
+  minWidth: 38,
+  borderRadius: 14,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(201, 109, 31, 0.16)',
+  color: '#8d4a17',
+}
+
+const nearbyListStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+}
+
+const summaryChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 38,
+  padding: '0 14px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 13,
+  fontWeight: 700,
+}
+
+const impactCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+  padding: '18px',
+  borderRadius: 22,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: '#fffdf8',
+}
+
+const impactNeutralStyle: React.CSSProperties = {
+  boxShadow: '0 12px 30px rgba(76, 57, 24, 0.06)',
+}
+
+const impactPositiveStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, rgba(239, 250, 246, 0.98) 0%, rgba(220, 245, 235, 0.92) 100%)',
+  border: '1px solid rgba(15, 118, 110, 0.18)',
+}
+
+const impactNegativeStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, rgba(255, 243, 242, 0.98) 0%, rgba(254, 228, 226, 0.92) 100%)',
+  border: '1px solid rgba(180, 35, 24, 0.18)',
+}
+
+const impactLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const metricPillStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+  padding: '12px 14px',
+  borderRadius: 16,
+  border: '1px solid rgba(101, 74, 32, 0.10)',
+  background: 'rgba(255, 255, 255, 0.68)',
+}
+
+const metricPillLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: '.08em',
+  textTransform: 'uppercase',
+  color: '#7b8494',
+}
+
+const metricPillValueStyle: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 800,
+  color: '#1f2937',
+}
