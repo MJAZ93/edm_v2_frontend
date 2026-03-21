@@ -193,10 +193,10 @@ export default function InfractionsScreen() {
 
       <Card
         title="Resultados"
-        subtitle="Lista paginada e ordenável de infrações."
+        subtitle="Lista paginada e ordenável."
       >
         <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <Th label="Criado em" active={orderBy === 'created_at'} direction={orderDirection} onClick={() => toggleSort('created_at')} />
@@ -227,13 +227,19 @@ export default function InfractionsScreen() {
                       <span style={valueBadgeStyle}>{it.valor != null ? formatMoney(it.valor) : '-'}</span>
                     </td>
                     <td style={{ padding: '12px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.08)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <Button variant="secondary" onClick={() => { if (it.id) { window.history.pushState({}, '', `/infracoes/${it.id}`); window.dispatchEvent(new Event('locationchange')) } }}>Ver detalhes</Button>
+                      <ActionIconButton
+                        label="Ver detalhes"
+                        variant="secondary"
+                        onClick={() => { if (it.id) { window.history.pushState({}, '', `/infracoes/${it.id}`); window.dispatchEvent(new Event('locationchange')) } }}
+                      >
+                        <EyeIcon />
+                      </ActionIconButton>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
-            </table>
+          </table>
         </div>
         <Pagination
           currentPage={page}
@@ -382,4 +388,72 @@ const filterHeaderButtonActiveStyle: React.CSSProperties = {
   background: 'linear-gradient(180deg, rgba(255, 244, 230, 0.98) 0%, rgba(248, 231, 205, 0.92) 100%)',
   color: '#8d4a17',
   boxShadow: '0 12px 24px rgba(76, 57, 24, 0.10)',
+}
+
+const actionIconButtonBaseStyle: React.CSSProperties = {
+  width: 36,
+  minWidth: 36,
+  minHeight: 36,
+  height: 36,
+  padding: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 12,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: '#fffdf8',
+  color: '#4b5563',
+  boxShadow: '0 10px 24px rgba(101, 74, 32, 0.08)',
+  cursor: 'pointer',
+  transition: 'transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease',
+}
+
+const actionIconButtonHoverStyle: Record<'secondary', React.CSSProperties> = {
+  secondary: {
+    background: '#f8efe2',
+    borderColor: 'rgba(201, 109, 31, 0.28)',
+    color: '#8d4a17',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 14px 28px rgba(201, 109, 31, 0.12)',
+  },
+}
+
+function ActionIconButton({
+  label,
+  variant,
+  children,
+  onClick,
+}: {
+  label: string
+  variant: 'secondary'
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...actionIconButtonBaseStyle,
+        ...(hovered ? actionIconButtonHoverStyle[variant] : null),
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M2 12C3.9 8.6 7.5 6.5 12 6.5C16.5 6.5 20.1 8.6 22 12C20.1 15.4 16.5 17.5 12 17.5C7.5 17.5 3.9 15.4 2 12Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
 }

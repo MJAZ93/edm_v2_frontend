@@ -243,10 +243,11 @@ O card de resultados também é um padrão estável.
 Deve usar:
 
 - título `Resultados` salvo quando o contexto exigir outro nome claro
-- subtítulo curto a descrever a listagem
+- subtítulo curto e estável, preferencialmente `Lista paginada e ordenável.`
 - a mesma estrutura base usada em `OcorrenciasScreen`
 - tabela simples diretamente dentro do `Card`, sem shells decorativas extra
 - no card de filtros associado, os botões `Mostrar/Ocultar filtros` e `Limpar filtros` devem usar o estilo de botão secundário institucional
+- o card de resultados não deve ter fundos especiais, gradientes próprios, painéis internos adicionais ou ornamentos específicos por ecrã
 
 Botões do cabeçalho de filtros:
 
@@ -272,6 +273,8 @@ Tabela:
 - células com `padding: 12px 8px`
 - linhas com borda inferior `rgba(101, 74, 32, 0.08)`
 - coluna de ações alinhada ao padrão já usado em Ocorrências
+- para ações simples de linha como `Ver detalhes`, preferir botão icon-only com `title` e `aria-label`, em vez de texto
+- estes botões de ação devem seguir o mesmo padrão visual de `ActionIconButton` usado em `OcorrenciasScreen`
 
 Elementos de apoio:
 
@@ -283,6 +286,7 @@ Regra obrigatória:
 
 - novas telas de listagem devem copiar a estrutura de `OcorrenciasScreen` como baseline
 - evitar criar wrappers visuais novos para a tabela sem necessidade funcional real
+- quando uma listagem já existe, alinhar o card `Resultados` a esse mesmo padrão em vez de reinventar o cabeçalho ou a estrutura interna
 
 ### Botões
 
