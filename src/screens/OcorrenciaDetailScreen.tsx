@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Text } from '../components'
+import { Card, Text } from '../components'
 import { MapPicker } from '../components/ui/MapPicker'
 import { OccurrenceApi, RegiaoApi, ASCApi, FormaConhecimentoApi, SectorInfracaoApi, TipoInfracaoApi, MaterialApi, ScrapyardApi, DirecaoTransportesApi, type ModelOccurrence, type ModelRegiao, type ModelASC, type ModelFormaConhecimento, type ModelSectorInfracao, type ModelTipoInfracao, type ModelMaterial, type ModelScrapyard, type ModelDirecaoTransportes } from '../services'
 import { useAuth } from '../contexts/AuthContext'
@@ -41,6 +41,7 @@ export default function OcorrenciaDetailScreen() {
   const [error, setError] = useState<string | null>(null)
   const apiBase = (import.meta as any).env?.VITE_API_BASE_URL || '/api'
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
+  const [mapFocus, setMapFocus] = useState<{ lat: number; lng: number } | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -195,6 +196,50 @@ export default function OcorrenciaDetailScreen() {
       }))
     ))
   ), [infractionSummaries])
+
+  const scrapyardsWithDistance = useMemo(() => {
+    if (!item || item.lat == null || item.long == null) {
+      return scrapyards.map((s) => ({ scrapyard: s, distanceMeters: null as number | null }))
+    }
+    return scrapyards.map((s) => {
+      if (s.lat == null || s.long == null) return { scrapyard: s, distanceMeters: null as number | null }
+      return {
+        scrapyard: s,
+        distanceMeters: haversineMeters(Number(item.lat), Number(item.long), Number(s.lat), Number(s.long)),
+      }
+    }).sort((a, b) => {
+      if (a.distanceMeters == null && b.distanceMeters == null) return 0
+      if (a.distanceMeters == null) return 1
+      if (b.distanceMeters == null) return -1
+      return a.distanceMeters - b.distanceMeters
+    })
+  }, [item, scrapyards])
+
+  const nearOccurrencesWithDistance = useMemo(() => {
+    if (!item || item.lat == null || item.long == null) {
+      return nearOccurrences.map((o) => ({ occurrence: o, distanceMeters: null as number | null }))
+    }
+    return nearOccurrences
+      .filter((o) => o.id !== id)
+      .map((o) => {
+        if (o.lat == null || o.long == null) return { occurrence: o, distanceMeters: null as number | null }
+        return {
+          occurrence: o,
+          distanceMeters: haversineMeters(Number(item.lat), Number(item.long), Number(o.lat), Number(o.long)),
+        }
+      })
+      .sort((a, b) => {
+        if (a.distanceMeters == null && b.distanceMeters == null) return 0
+        if (a.distanceMeters == null) return 1
+        if (b.distanceMeters == null) return -1
+        return a.distanceMeters - b.distanceMeters
+      })
+  }, [id, item, nearOccurrences])
+
+  const maxScrapyardDistanceMeters = useMemo(() => {
+    const distances = scrapyardsWithDistance.map((entry) => entry.distanceMeters).filter((value): value is number => value != null && !Number.isNaN(value))
+    return distances.length ? Math.max(...distances) : null
+  }, [scrapyardsWithDistance])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -355,39 +400,67 @@ export default function OcorrenciaDetailScreen() {
           </Card>
           {/* Localização e sucatarias (lado a lado) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(360px, 1.4fr) minmax(280px, 1fr)', gap: 16, alignItems: 'stretch' }}>
-            <Card title="Localização">
+            <Card title="Localização" subtitle="Mapa da ocorrência com entidades próximas." style={pairedDetailCardStyle}>
               {item && (item.lat != null && item.long != null) ? (
-                <MapPicker
-                  value={{ lat: Number(item.lat), lng: Number(item.long) }}
-                  onChange={() => {}}
-                  height={360}
-                  disabled
-                  extraMarkers={[
-                    ...scrapyards
-                      .filter((s) => s.lat != null && s.long != null)
-                      .map((s) => ({
-                        lat: Number(s.lat),
-                        lng: Number(s.long),
-                        title: s.nome || s.id || 'Sucataria',
-                        color: '#2563eb',
-                        infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${(s.nome || s.id || 'Sucataria').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">ASC: ${(s.asc_name || s.asc_id || '-').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Coord.: ${s.lat != null && s.long != null ? `${Number(s.lat).toFixed(5)}, ${Number(s.long).toFixed(5)}` : '-'}</div></div>`
-                      })),
-                    ...nearOccurrences
-                      .filter((o) => o.id !== id && o.lat != null && o.long != null)
-                      .map((o) => ({
-                        lat: Number(o.lat),
-                        lng: Number(o.long),
-                        title: (o.local || o.id || 'Ocorrência') as string,
-                        color: '#16a34a',
-                        infoHtml: `<div style=\"min-width:180px\"><div style=\"font-weight:600\">${((o.local || o.id || 'Ocorrência') as string).toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#6b7280;font-size:12px\">Data: ${formatDateTime(o.data_facto)}</div></div>`
-                      })),
-                  ]}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={mapInfoChipStyle}>Ponto base: ocorrência</span>
+                    <span style={mapInfoChipStyle}>Sucatarias: {scrapyardsWithDistance.length}</span>
+                    <span style={mapInfoChipStyle}>Ocorrências próximas: {nearOccurrencesWithDistance.length}</span>
+                    {mapFocus ? <span style={mapInfoChipStyle}>Foco ativo no mapa</span> : null}
+                  </div>
+                  <MapPicker
+                    value={{ lat: Number(item.lat), lng: Number(item.long) }}
+                    focusCenter={mapFocus ?? undefined}
+                    onChange={() => {}}
+                    height={360}
+                    disabled
+                    extraMarkers={[
+                      ...scrapyardsWithDistance
+                        .filter(({ scrapyard: s }) => s.lat != null && s.long != null)
+                        .map(({ scrapyard: s, distanceMeters }) => ({
+                          lat: Number(s.lat),
+                          lng: Number(s.long),
+                          title: s.nome || s.id || 'Sucataria',
+                          color: colorForDistance(distanceMeters, maxScrapyardDistanceMeters),
+                          infoHtml: `<div style=\"min-width:200px\"><div style=\"font-weight:700;color:#1f2937\">${(s.nome || s.id || 'Sucataria').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#8d4a17;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:4px\">Sucataria próxima</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Distância: ${formatDistance(distanceMeters)}</div></div>`
+                        })),
+                      ...nearOccurrencesWithDistance
+                        .filter(({ occurrence: o }) => o.lat != null && o.long != null)
+                        .map(({ occurrence: o, distanceMeters }) => ({
+                          lat: Number(o.lat),
+                          lng: Number(o.long),
+                          title: (o.local || o.id || 'Ocorrência') as string,
+                          color: '#16a34a',
+                          infoHtml: `<div style=\"min-width:200px\"><div style=\"font-weight:700;color:#1f2937\">${((o.local || o.id || 'Ocorrência') as string).toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style=\"color:#0f766e;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:4px\">Ocorrência próxima</div><div style=\"color:#5f6673;font-size:12px;margin-top:6px\">Data: ${formatDateTime(o.data_facto)}</div><div style=\"color:#5f6673;font-size:12px;margin-top:4px\">Distância: ${formatDistance(distanceMeters)}</div></div>`
+                        })),
+                    ]}
+                  />
+                  <div style={mapLegendPanelStyle}>
+                    <span style={mapLegendChipStyle}>
+                      <span style={{ width: 10, height: 10, borderRadius: 999, background: '#0f766e', display: 'inline-block' }} />
+                      Ocorrência
+                    </span>
+                    <span style={mapLegendChipStyle}>
+                      <span style={{ width: 10, height: 10, borderRadius: 999, background: '#f97316', display: 'inline-block' }} />
+                      Sucataria distante
+                    </span>
+                    <span style={mapLegendChipStyle}>
+                      <span style={{ width: 10, height: 10, borderRadius: 999, background: '#dc2626', display: 'inline-block' }} />
+                      Sucataria próxima
+                    </span>
+                    <span style={mapLegendChipStyle}>
+                      <span style={{ width: 10, height: 10, borderRadius: 999, background: '#16a34a', display: 'inline-block' }} />
+                      Outras ocorrências
+                    </span>
+                  </div>
+                </div>
               ) : (
                 <div style={{ color: '#6b7280' }}>Sem coordenadas da ocorrência.</div>
               )}
             </Card>
-            <Card title="Sucatarias próximas">
+            <Card title="Sucatarias próximas" subtitle="Entidades próximas à ocorrência." style={pairedDetailCardStyle}>
+              <div style={nearbyPanelStyle}>
               {scrapyardsLoading ? (
                 <div style={infoBannerStyle}>A carregar…</div>
               ) : scrapyardsError ? (
@@ -395,19 +468,43 @@ export default function OcorrenciaDetailScreen() {
               ) : !scrapyards.length ? (
                 <div style={infoBannerStyle}>Sem sucatarias próximas.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, height: 360, overflowY: 'auto', paddingRight: 4 }}>
-                  {scrapyards.map((s) => (
-                    <div key={s.id} style={contextCardStyle}>
-                      <div style={{ fontWeight: 600 }}>{s.nome || s.id}</div>
-                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>ASC: {s.asc_name || s.asc_id || '-'}</div>
-                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Coordenadas: {s.lat != null && s.long != null ? `${s.lat.toFixed(5)}, ${s.long.toFixed(5)}` : '-'}</div>
-                      {Array.isArray(s.materiais) && s.materiais.length ? (
-                        <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>Materiais: {s.materiais.map((m) => m.name || m.id).filter(Boolean).join(', ')}</div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div style={nearbyListStyle}>
+                    {scrapyardsWithDistance.map(({ scrapyard: s, distanceMeters }) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        style={contextCardButtonStyle}
+                        onClick={() => {
+                          if (s.lat != null && s.long != null) {
+                            setMapFocus({ lat: Number(s.lat), lng: Number(s.long) })
+                          }
+                        }}
+                      >
+                        <div style={contextCardStyle}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                            <span style={contextCardIconStyle}>
+                              <IconMapPin />
+                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                              <strong style={{ color: '#1f2937' }}>{s.nome || s.id}</strong>
+                              <span style={{ color: '#8d4a17', fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+                                {formatDistance(distanceMeters)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={nearbySummaryStyle}>
+                    <span style={mapLegendChipStyle}>Total: {scrapyardsWithDistance.length}</span>
+                    <span style={mapLegendChipStyle}>Mais próxima: {formatDistance(scrapyardsWithDistance[0]?.distanceMeters ?? null)}</span>
+                    <span style={mapLegendChipStyle}>Mais distante: {formatDistance(scrapyardsWithDistance[scrapyardsWithDistance.length - 1]?.distanceMeters ?? null)}</span>
+                  </div>
+                </>
               )}
+              </div>
             </Card>
           </div>
 
@@ -754,6 +851,100 @@ const contextCardStyle: React.CSSProperties = {
   padding: 14,
   background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)',
   boxShadow: '0 14px 28px rgba(101, 74, 32, 0.06)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  textAlign: 'left',
+}
+
+const contextCardButtonStyle: React.CSSProperties = {
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+}
+
+const contextCardIconStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 36,
+  height: 36,
+  borderRadius: 12,
+  background: 'rgba(168, 113, 51, 0.1)',
+  color: '#8d4a17',
+  flexShrink: 0,
+}
+
+const nearbyPanelStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: 550,
+  minHeight: 550,
+  maxHeight: 550,
+  overflow: 'hidden',
+  gap: 12,
+  paddingBottom: 8,
+}
+
+const nearbyListStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+  flex: 1,
+  minHeight: 0,
+  maxHeight: 470,
+  overflowY: 'auto',
+  paddingRight: 4,
+}
+
+const nearbySummaryStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  marginTop: 'auto',
+  paddingTop: 2,
+}
+
+const mapInfoChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #faf1e3 0%, #f5ead9 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const mapLegendPanelStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+  padding: '10px 12px',
+  borderRadius: 18,
+  background: 'rgba(255, 249, 240, 0.92)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+}
+
+const mapLegendChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  minHeight: 30,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(255,255,255,0.82)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const pairedDetailCardStyle: React.CSSProperties = {
+  height: 670,
 }
 
 const detailTextPanelStyle: React.CSSProperties = {
@@ -1008,4 +1199,32 @@ function formatMoney(n?: number) {
   } catch {
     return `${n.toFixed(2)} MT`
   }
+}
+
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const toRad = (v: number) => (v * Math.PI) / 180
+  const r = 6371000
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return r * c
+}
+
+function formatDistance(distanceMeters: number | null) {
+  if (distanceMeters == null || Number.isNaN(distanceMeters)) return 'Distância indisponível'
+  if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`
+  return `${(distanceMeters / 1000).toFixed(2).replace('.', ',')} km`
+}
+
+function colorForDistance(distanceMeters: number | null, maxDistanceMeters: number | null) {
+  if (distanceMeters == null || maxDistanceMeters == null || maxDistanceMeters <= 0) return '#f97316'
+  const ratio = Math.max(0, Math.min(1, distanceMeters / maxDistanceMeters))
+  const start = { r: 220, g: 38, b: 38 }
+  const end = { r: 249, g: 115, b: 22 }
+  const r = Math.round(start.r + (end.r - start.r) * ratio)
+  const g = Math.round(start.g + (end.g - start.g) * ratio)
+  const b = Math.round(start.b + (end.b - start.b) * ratio)
+  return `rgb(${r}, ${g}, ${b})`
 }

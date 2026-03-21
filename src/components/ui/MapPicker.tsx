@@ -4,6 +4,7 @@ type LatLng = { lat: number; lng: number }
 
 type Props = {
   value?: Partial<LatLng>
+  focusCenter?: Partial<LatLng>
   onChange?: (pos: LatLng) => void
   height?: number
   zoom?: number
@@ -40,7 +41,7 @@ function injectScriptOnce(apiKey: string): Promise<void> {
   return window.__gmapsLoadingPromise
 }
 
-export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, disabled = false, extraMarkers = [] }: Props) {
+export function MapPicker({ value, focusCenter, onChange, height = 260, zoom = 8, apiKey, disabled = false, extraMarkers = [] }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -70,28 +71,26 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
           center,
           zoom,
           disableDefaultUI: false,
+          styles: disabled ? DETAIL_MAP_STYLES : undefined,
         })
         mapRef.current = map
-        const marker = new gmaps.Marker({ position: center, map, draggable: !disabled })
+        const marker = new gmaps.Marker({
+          position: center,
+          map,
+          draggable: !disabled,
+          icon: buildPinIcon(gmaps, '#0f766e', '#ffffff', 1.5),
+          zIndex: 999,
+        })
         markerRef.current = marker
         // Add extra markers (read-only visual)
         extraMarkersRef.current.forEach((m) => m.setMap(null))
         // Prettier pin icon for extra markers (e.g., sucatarias)
-        const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
         extraMarkersRef.current = (extraMarkers || []).map((m) => {
           const marker = new gmaps.Marker({
             position: { lat: m.lat, lng: m.lng },
             title: m.title,
             map,
-            icon: {
-              path: pinPath,
-              fillColor: m.color || '#ea580c',
-              fillOpacity: 1,
-              strokeColor: '#9a3412',
-              strokeWeight: 1,
-              scale: 1.2,
-              anchor: new gmaps.Point(12, 22),
-            },
+            icon: buildPinIcon(gmaps, m.color || '#ea580c', '#7c2d12', 1.2),
           })
           marker.addListener('click', () => {
             try { infoWindowRef.current?.close() } catch {}
@@ -147,6 +146,20 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
     }
   }, [value?.lat, value?.lng])
 
+  useEffect(() => {
+    const gmaps = (window as any).google?.maps
+    if (!gmaps || !mapRef.current) return
+    const lat = typeof focusCenter?.lat === 'number' ? focusCenter.lat : undefined
+    const lng = typeof focusCenter?.lng === 'number' ? focusCenter.lng : undefined
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      const pos = { lat, lng }
+      mapRef.current.panTo(pos)
+      if (disabled) {
+        try { mapRef.current.setZoom(Math.max(Number(mapRef.current.getZoom?.() || zoom), 15)) } catch {}
+      }
+    }
+  }, [focusCenter?.lat, focusCenter?.lng, disabled, zoom])
+
   // Atualiza extra markers quando prop muda
   useEffect(() => {
     const gmaps = (window as any).google?.maps
@@ -154,21 +167,12 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
     // cleanup existing
     extraMarkersRef.current.forEach((m) => m.setMap(null))
     const gmap = mapRef.current
-    const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
     extraMarkersRef.current = (extraMarkers || []).map((m) => {
       const marker = new gmaps.Marker({
         position: { lat: m.lat, lng: m.lng },
         title: m.title,
         map: gmap,
-        icon: {
-          path: pinPath,
-          fillColor: m.color || '#ea580c',
-          fillOpacity: 1,
-          strokeColor: '#9a3412',
-          strokeWeight: 1,
-          scale: 1.2,
-          anchor: new gmaps.Point(12, 22),
-        },
+        icon: buildPinIcon(gmaps, m.color || '#ea580c', '#7c2d12', 1.2),
       })
       marker.addListener('click', () => {
         try { infoWindowRef.current?.close() } catch {}
@@ -191,7 +195,7 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
 
   return (
     <div>
-      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }} />
+      <div ref={containerRef} style={{ width: '100%', height, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(101, 74, 32, 0.12)', background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,246,239,0.92) 100%)', boxShadow: '0 14px 28px rgba(101, 74, 32, 0.06)' }} />
       {error ? <div style={{ color: '#991b1b', background: '#fee2e2', padding: 8, borderRadius: 8, marginTop: 8 }}>{error}</div> : null}
       {!error && !disabled && (
         <div style={{ color: '#6b7280', marginTop: 6, fontSize: 12 }}>
@@ -201,3 +205,28 @@ export function MapPicker({ value, onChange, height = 260, zoom = 8, apiKey, dis
     </div>
   )
 }
+
+function buildPinIcon(gmaps: any, fillColor: string, strokeColor: string, scale: number) {
+  const pinPath = 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'
+  return {
+    path: pinPath,
+    fillColor,
+    fillOpacity: 1,
+    strokeColor,
+    strokeWeight: 1.2,
+    scale,
+    anchor: new gmaps.Point(12, 22),
+  }
+}
+
+const DETAIL_MAP_STYLES = [
+  { elementType: 'geometry', stylers: [{ color: '#f6efe3' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#5f6673' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#fffaf2' }] },
+  { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#d9c9af' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#efe4d4' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#dcefe2' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#eadcc6' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#dbeef0' }] },
+]

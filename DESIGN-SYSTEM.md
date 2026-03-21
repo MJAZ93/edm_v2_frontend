@@ -288,6 +288,34 @@ Regra obrigatória:
 - evitar criar wrappers visuais novos para a tabela sem necessidade funcional real
 - quando uma listagem já existe, alinhar o card `Resultados` a esse mesmo padrão em vez de reinventar o cabeçalho ou a estrutura interna
 
+### Telas de detalhe
+
+As telas de detalhe devem seguir um padrão editorial estável, inspirado em `OcorrenciaDetailScreen`.
+
+Devem usar:
+
+- hero superior com `eyebrow`, título forte, subtítulo curto e ações principais
+- ações com ícone e texto, usando o mesmo sistema visual dos botões institucionais
+- um primeiro card `Dados gerais` com resumo visual e blocos de metadados
+- secções com ícone, título, pequena descrição e conteúdo agrupado por contexto
+
+Hierarquia:
+
+- usar ícones para orientar leitura, não para decoração excessiva
+- textos auxiliares curtos são desejáveis quando ajudam a enquadrar o bloco
+- preferir 2 a 4 secções fortes em vez de muitos cartões pequenos sem hierarquia
+
+Painéis pareados de contexto:
+
+- quando existirem painéis lado a lado como `Localização` e `Sucatarias próximas`, ambos devem alinhar em altura
+- se um painel contiver lista longa, a lista deve ter altura fixa equivalente ao mapa ou painel vizinho e `overflowY: auto`
+- para mapas de detalhe, usar altura estável de referência `360px`, salvo necessidade funcional clara
+- o bloco do mapa pode incluir chips de contexto e uma legenda discreta, usando o mesmo sistema visual dos chips institucionais
+- quando houver entidades próximas listadas ao lado do mapa, apresentar a distância à entidade principal no mapa e na listagem
+- em listas de entidades próximas, preferir um resumo compacto com nome + distância, evitando metadados excessivos sem necessidade operacional
+- o marker principal deve usar uma cor própria e estável, distinta dos markers secundários
+- quando os markers secundários representam proximidade, usar uma escala cromática coerente em que a maior proximidade se aproxime do vermelho e os mais distantes usem tons mais quentes/claros
+
 ### Botões
 
 Existem dois estilos principais:
