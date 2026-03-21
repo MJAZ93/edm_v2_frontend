@@ -119,6 +119,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const resetAutoRefreshCount = useCallback(() => {
+    if (autoRefreshCountRef.current === 0) return
+    autoRefreshCountRef.current = 0
+    setState((current) => {
+      if (current.autoRefreshCount === 0) return current
+      const next = { ...current, autoRefreshCount: 0 }
+      saveToStorage(next)
+      return next
+    })
+  }, [])
+
   const refreshTokenIfNeeded = useCallback(async (force = false) => {
     try {
       if (!refreshTokenRef.current) return
@@ -237,6 +248,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (config) => {
         const skip = (config.headers as any)?.['x-skip-auth-refresh']
         if (!skip) {
+          resetAutoRefreshCount()
+        }
+        if (!skip) {
           await refreshTokenIfNeeded()
         }
         const token = accessTokenRef.current
@@ -295,7 +309,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       axios.interceptors.request.eject(reqId)
       axios.interceptors.response.eject(resId)
     }
-  }, [logout, state.user, refreshTokenIfNeeded])
+  }, [logout, state.user, refreshTokenIfNeeded, resetAutoRefreshCount])
 
   const value = useMemo<AuthContextType>(
     () => ({

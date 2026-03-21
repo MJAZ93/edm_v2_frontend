@@ -46,6 +46,7 @@ import ClientesInspeccoesDashboardScreen from './ClientesInspeccoesDashboardScre
 import InstalacaoAccaoTiposScreen from './InstalacaoAccaoTiposScreen'
 import AccaoEditScreen from './AccaoEditScreen'
 import { AscsInsightsScreen, RegioesInsightsScreen } from './TerritoryInsightsScreen'
+import { ClientesAscsDashboardScreen, ClientesRegioesDashboardScreen } from './ClientesTerritoryDashboardScreen'
 
 const MENU = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -77,6 +78,8 @@ export default function DashboardScreen() {
     instalacoes: '/instalacoes',
     instalacaoAccoes: '/instalacoes/accoes',
     instalacoesDashboard: '/instalacoes/dashboard',
+    instalacoesDashboardRegioes: '/instalacoes/dashboard/regioes',
+    instalacoesDashboardAscs: '/instalacoes/dashboard/ascs',
     inspeccoesDashboard: '/inspeccoes/dashboard',
     provincias: '/provincias',
     direcoesTransportes: '/direcoes-transportes',
@@ -336,6 +339,8 @@ export default function DashboardScreen() {
     instalacoes: 'Clientes',
     instalacaoAccoes: 'Ações (Clientes)',
     instalacoesDashboard: 'Dashboard',
+    instalacoesDashboardRegioes: 'Dashboard · Regiões',
+    instalacoesDashboardAscs: 'Dashboard · ASCs',
     inspeccoesDashboard: 'Dashboard',
   }
   const headerTitle = TITLE_MAP[active] || '—'
@@ -354,6 +359,8 @@ export default function DashboardScreen() {
     utilizadores: 'Administração da plataforma com densidade visual mais controlada.',
     config: 'Parâmetros e catálogos da aplicação organizados numa shell consistente.',
     instalacoesDashboard: 'Análise dedicada a clientes e instalações num layout mais respirado.',
+    instalacoesDashboardRegioes: 'Dashboard dedicado a regiões de clientes, com seleção por cards e drill-down territorial.',
+    instalacoesDashboardAscs: 'Dashboard dedicado a ASCs de clientes, com seleção por carrossel e contexto específico.',
     inspeccoesDashboard: 'Indicadores de inspeções apresentados numa shell privada mais moderna.',
   }
 
@@ -369,6 +376,8 @@ export default function DashboardScreen() {
           groups={[
             { label: 'Clientes', items: [
               { key: 'instalacoesDashboard', label: 'Dashboard' },
+              { key: 'instalacoesDashboardRegioes', label: 'Regiões' },
+              { key: 'instalacoesDashboardAscs', label: 'ASCs' },
               { key: 'instalacoes', label: 'Lista' },
               { key: 'instalacaoAccoes', label: 'Ações' },
             ] },
@@ -890,7 +899,19 @@ export default function DashboardScreen() {
           <ClientesScreen />
         )
       )}
-      {active === 'instalacoesDashboard' && <ClientesDashboardScreen />}
+      {active === 'instalacoesDashboard' && (
+        <ClientesDashboardScreen
+          onRegiaoCardSelect={(nextRegiaoId) => navigateToPath(`/instalacoes/dashboard/regioes?regiaoId=${encodeURIComponent(nextRegiaoId)}`)}
+          onAscCardSelect={(nextAscId, nextRegiaoId) => {
+            const params = new URLSearchParams()
+            if (nextRegiaoId) params.set('regiaoId', String(nextRegiaoId))
+            params.set('ascId', String(nextAscId))
+            navigateToPath(`/instalacoes/dashboard/ascs?${params.toString()}`)
+          }}
+        />
+      )}
+      {active === 'instalacoesDashboardRegioes' && <ClientesRegioesDashboardScreen />}
+      {active === 'instalacoesDashboardAscs' && <ClientesAscsDashboardScreen />}
       {active === 'inspeccoesDashboard' && <ClientesInspeccoesDashboardScreen />}
       {active === 'instalacaoAccoes' && (
         instalacaoAccoesRoute === 'detail' ? (
