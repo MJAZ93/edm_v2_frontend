@@ -1,5 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Text, Pagination } from '../components'
+import {
+  ActionIconButton,
+  Button,
+  DeleteConfirmModal,
+  ManagementModal,
+  PageSectionCard,
+  Pagination,
+  PencilIcon,
+  SortableHeader,
+  SummaryChip,
+  TrashIcon,
+  actionCellStyle,
+  bodyCellStyle,
+  emptyTableCellStyle,
+  fieldLabelStyle,
+  filtersGridStyle,
+  inputStyle,
+  noticeBannerStyle,
+  stackedFieldStyle,
+  summaryRowStyle,
+  tableWrapStyle,
+} from '../components'
 import { RegiaoApi, type ModelRegiao, type RegiaoCreateRegiaoRequest, type RegiaoUpdateRegiaoRequest } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -21,8 +42,11 @@ export default function RegioesScreen() {
 
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<ModelRegiao | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<ModelRegiao | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -41,123 +65,181 @@ export default function RegioesScreen() {
     setUi({ loading: true, error: null })
     try {
       const { data } = await api.privateRegioesGet(authHeader, page, pageSize, orderBy, orderDirection, filterName || undefined)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setItems(data.items ?? [])
       setTotal(data.total ?? 0)
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       const msg = !status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao carregar regiões.' : 'Falha a obter regiões.'
       setUi({ loading: false, error: msg })
       return
     }
     setUi({ loading: false, error: null })
-  }, [api, authHeader, page, pageSize, filterName, orderBy, orderDirection])
+  }, [api, authHeader, page, pageSize, filterName, orderBy, orderDirection, logout])
 
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [filterName, pageSize, orderBy, orderDirection])
 
   function toggleSort(key: 'name' | 'created_at') {
-    if (orderBy === key) {
-      setOrderDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
+    if (orderBy === key) setOrderDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+    else {
       setOrderBy(key)
       setOrderDirection('asc')
     }
   }
 
+  function clearFilters() {
+    setFilterName('')
+    setOrderBy('created_at')
+    setOrderDirection('desc')
+    setPage(1)
+  }
+
   async function handleCreate(name: string) {
-    setSubmitting(true); setSubmitError(null)
+    setSubmitting(true)
+    setSubmitError(null)
     try {
       const payload: RegiaoCreateRegiaoRequest = { name }
       const { data } = await api.privateRegioesPost(authHeader, payload)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setShowCreate(false)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setSubmitError(status === 400 ? 'Dados inválidos.' : !status ? 'Sem ligação ao servidor.' : 'Falha ao criar região.')
-    } finally { setSubmitting(false) }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleUpdate(id: string, name: string) {
-    setSubmitting(true); setSubmitError(null)
+    setSubmitting(true)
+    setSubmitError(null)
     try {
       const payload: RegiaoUpdateRegiaoRequest = { name }
       const { data } = await api.privateRegioesIdPut(id, authHeader, payload)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setEditing(null)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setSubmitError(status === 400 ? 'Dados inválidos.' : !status ? 'Sem ligação ao servidor.' : 'Falha ao atualizar região.')
-    } finally { setSubmitting(false) }
-  }
-
-  async function handleDelete(id: string) {
-    const ok = confirm('Eliminar a região selecionada?'); if (!ok) return
-    try {
-      const res = await api.privateRegioesIdDelete(id, authHeader)
-      if (isUnauthorizedBody((res as any)?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      await load()
-    } catch (err: any) {
-      const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      alert('Não foi possível eliminar a região.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  async function handleDelete(id?: string) {
+    if (!id) return
+    setDeleteLoading(true)
+    setDeleteError(null)
+    try {
+      const res = await api.privateRegioesIdDelete(id, authHeader)
+      if (isUnauthorizedBody((res as any)?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      setPendingDelete(null)
+      await load()
+    } catch (err: any) {
+      const status = err?.response?.status
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      setDeleteError(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao eliminar região.' : 'Falha ao eliminar região.')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / Math.max(1, pageSize)))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            value={filterName}
-            onChange={(e) => setFilterName(e.target.value)}
-            placeholder="Filtrar por nome"
-            style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }}
-          />
-          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
-          <Button onClick={() => setShowCreate(true)}>Nova região</Button>
-        </div>
-      </div>
-      {ui.error ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>{ui.error}</div> : null}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <PageSectionCard
+        title="Filtros e ordenação"
+        subtitle="Refine a lista por nome e ajuste o volume de resultados por página."
+        extra={(
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Button size="sm" variant="secondary" onClick={clearFilters}>Limpar filtros</Button>
+            <Button size="sm" variant="secondary" onClick={() => { setShowCreate(true); setSubmitError(null) }}>Nova região</Button>
+          </div>
+        )}
+      >
+        <div style={filtersGridStyle}>
+          <label style={stackedFieldStyle}>
+            <span style={fieldLabelStyle}>Pesquisar por nome</span>
+            <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Ex.: Centro" style={inputStyle} />
+          </label>
 
-      <Card>
-        <div style={{ overflowX: 'auto' }}>
+          <label style={stackedFieldStyle}>
+            <span style={fieldLabelStyle}>Itens por página</span>
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))} style={inputStyle}>
+              <option value={10}>10 itens</option>
+              <option value={20}>20 itens</option>
+              <option value={50}>50 itens</option>
+            </select>
+          </label>
+        </div>
+
+        <div style={{ ...summaryRowStyle, marginTop: 16 }}>
+          <SummaryChip>Total: {total.toLocaleString('pt-PT')}</SummaryChip>
+          <SummaryChip>Visiveis: {items.length.toLocaleString('pt-PT')}</SummaryChip>
+          {filterName.trim() ? <SummaryChip>Pesquisa: {filterName.trim()}</SummaryChip> : null}
+        </div>
+
+        {ui.error ? <div style={{ ...noticeBannerStyle, marginTop: 16 }}>{ui.error}</div> : null}
+      </PageSectionCard>
+
+      <PageSectionCard title="Lista de regiões" subtitle="Use as ações rápidas para editar ou remover uma configuração.">
+        <div style={tableWrapStyle}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                <th
-                  style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
-                  onClick={() => toggleSort('name')}
-                  title="Ordenar por nome"
-                >
-                  Nome {orderBy === 'name' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
+              <tr>
+                <SortableHeader label="Nome" active={orderBy === 'name'} direction={orderDirection} onClick={() => toggleSort('name')} />
+                <SortableHeader label="Acoes" align="center" />
               </tr>
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                <tr><td colSpan={2} style={emptyTableCellStyle}>A carregar...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={2} style={{ padding: 16, color: '#6b7280' }}>Sem regiões para mostrar.</td></tr>
+                <tr><td colSpan={2} style={emptyTableCellStyle}>Sem regiões para mostrar.</td></tr>
               ) : (
-                items.map((r) => (
-                  <tr key={r.id}>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{r.name}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
-                      <Button variant="secondary" onClick={() => setEditing(r)}>Editar</Button>
-                      <Button variant="danger" onClick={() => r.id && handleDelete(r.id)}>Eliminar</Button>
+                items.map((item) => (
+                  <tr key={item.id}>
+                    <td style={bodyCellStyle}>
+                      <strong style={{ color: '#1f2937' }}>{item.name || '-'}</strong>
+                    </td>
+                    <td style={{ ...actionCellStyle, justifyContent: 'center' }}>
+                      <ActionIconButton label="Editar" variant="secondary" onClick={() => { setEditing(item); setSubmitError(null) }}>
+                        <PencilIcon />
+                      </ActionIconButton>
+                      <ActionIconButton label="Eliminar" variant="danger" onClick={() => { setPendingDelete(item); setDeleteError(null) }}>
+                        <TrashIcon />
+                      </ActionIconButton>
                     </td>
                   </tr>
                 ))
@@ -165,6 +247,7 @@ export default function RegioesScreen() {
             </tbody>
           </table>
         </div>
+
         <Pagination
           currentPage={page}
           totalPages={totalPages}
@@ -175,37 +258,64 @@ export default function RegioesScreen() {
           showPageSizeSelector={true}
           showFirstLast={true}
         />
-      </Card>
+      </PageSectionCard>
 
-      {(showCreate || editing) && (
-        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { if (submitting) return; setShowCreate(false); setEditing(null); setSubmitError(null) }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: '100%', maxWidth: 420 }}>
-            <h3 style={{ marginTop: 0 }}>{showCreate ? 'Criar região' : 'Editar região'}</h3>
-            {submitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{submitError}</div> : null}
-            <RegionForm
-              defaultName={editing?.name ?? ''}
-              submitting={submitting}
-              onCancel={() => { setShowCreate(false); setEditing(null); setSubmitError(null) }}
-              onSubmit={(name) => showCreate ? handleCreate(name) : (editing?.id ? handleUpdate(editing.id, name) : undefined)}
-            />
-          </div>
-        </div>
-      )}
+      {(showCreate || editing) ? (
+        <ManagementModal
+          eyebrow={showCreate ? 'Adicionar' : 'Editar'}
+          title={showCreate ? 'Nova região' : 'Editar região'}
+          description="Esta configuração ajuda a estruturar filtros territoriais e agrupamentos do sistema."
+          error={submitError}
+          maxWidth={540}
+          onClose={() => {
+            if (submitting) return
+            setShowCreate(false)
+            setEditing(null)
+            setSubmitError(null)
+          }}
+        >
+          <RegiaoForm
+            defaultName={editing?.name ?? ''}
+            submitting={submitting}
+            onCancel={() => { setShowCreate(false); setEditing(null); setSubmitError(null) }}
+            onSubmit={(name) => showCreate ? handleCreate(name) : (editing?.id ? handleUpdate(editing.id, name) : undefined)}
+          />
+        </ManagementModal>
+      ) : null}
+
+      {pendingDelete ? (
+        <DeleteConfirmModal
+          title="Eliminar região"
+          description="Está prestes a remover a região"
+          itemLabel={`"${pendingDelete.name || 'Sem nome'}".`}
+          loading={deleteLoading}
+          error={deleteError}
+          confirmLabel="Eliminar região"
+          onCancel={() => {
+            if (deleteLoading) return
+            setPendingDelete(null)
+            setDeleteError(null)
+          }}
+          onConfirm={() => handleDelete(pendingDelete.id)}
+        />
+      ) : null}
     </div>
   )
 }
 
-function RegionForm({ defaultName, submitting, onSubmit, onCancel }: { defaultName?: string; submitting?: boolean; onSubmit: (name: string) => void; onCancel: () => void }) {
+function RegiaoForm({ defaultName, submitting, onSubmit, onCancel }: { defaultName?: string; submitting?: boolean; onSubmit: (name: string) => void; onCancel: () => void }) {
   const [name, setName] = useState(defaultName ?? '')
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; onSubmit(name.trim()) }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Nome</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da região" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+    <form onSubmit={(event) => { event.preventDefault(); if (!name.trim()) return; onSubmit(name.trim()) }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <label style={stackedFieldStyle}>
+        <span style={fieldLabelStyle}>Nome</span>
+        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome da região" style={inputStyle} />
       </label>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Button type="submit" disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar'}</Button>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
         <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>Cancelar</Button>
+        <Button type="submit" disabled={submitting}>{submitting ? 'A guardar...' : 'Guardar região'}</Button>
       </div>
     </form>
   )

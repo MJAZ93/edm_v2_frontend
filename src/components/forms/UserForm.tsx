@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '../ui/Button'
+import { fieldLabelStyle, inputStyle, stackedFieldStyle } from '../ui/ManagementUI'
 import { ASCApi, RegiaoApi, type ModelASC, type ModelRegiao } from '../../services'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -31,62 +32,57 @@ export default function UserForm({ mode, initialValues, submitting = false, erro
     type: initialValues?.type ?? undefined,
     type_id: initialValues?.type_id ?? ''
   })
-
-  // Estado para combobox de ID (ASC/Região)
   const [options, setOptions] = useState<Array<{ id: string; label: string }>>([])
   const [loadingOptions, setLoadingOptions] = useState(false)
-  // Nota: obter config/token apenas quando necessário para evitar re-render loops
 
-  const title = useMemo(() => (mode === 'create' ? 'Criar utilizador' : 'Editar utilizador'), [mode])
+  const subtitle = useMemo(
+    () => mode === 'create'
+      ? 'Preencha apenas os dados necessários para criar a conta.'
+      : 'Atualize os dados do utilizador e altere a palavra-passe apenas se necessário.',
+    [mode]
+  )
 
-  function update<K extends keyof UserFormValues>(key: K, val: UserFormValues[K]) {
-    setValues((v) => ({ ...v, [key]: val }))
+  function update<K extends keyof UserFormValues>(key: K, value: UserFormValues[K]) {
+    setValues((current) => ({ ...current, [key]: value }))
   }
 
-  // Gera username UUID automaticamente no modo criação, se estiver vazio
   useEffect(() => {
     if (mode !== 'create') return
     if (values.username && values.username.trim().length > 0) return
-    const gen = () => {
+    const generateUuid = () => {
       if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
-      // Fallback simples para UUID v4
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0
-        const v = c === 'x' ? r : (r & 0x3) | 0x8
-        return v.toString(16)
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+        const random = (Math.random() * 16) | 0
+        const value = char === 'x' ? random : (random & 0x3) | 0x8
+        return value.toString(16)
       })
     }
-    setValues((v) => ({ ...v, username: gen() }))
-  // Apenas na montagem/primeira renderização de criação
+    setValues((current) => ({ ...current, username: generateUuid() }))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!values.name || !values.email) return
-    const payload: UserFormValues = {
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!values.name.trim() || !values.email.trim()) return
+    onSubmit({
       name: values.name.trim(),
-      username: (values.username ?? '').trim(),
+      username: values.username.trim(),
       email: values.email.trim(),
       type: values.type,
-      // Quando o tipo requer ID mas não há seleção válida, envia vazio
       type_id: values.type_id?.trim() || undefined,
-      ...(mode === 'create' || values.password ? { password: values.password } : {})
-    }
-    onSubmit(payload)
+      ...(mode === 'create' || values.password ? { password: values.password } : {}),
+    })
   }
 
-  // Limpa ID ao mudar o tipo
   useEffect(() => {
     setOptions([])
-    // Se mudar o tipo, limpa o ID selecionado
-    setValues((v) => ({ ...v, type_id: '' }))
+    setValues((current) => ({ ...current, type_id: '' }))
   }, [values.type])
 
-  // Carrega opções (ASC/Região) quando type é ASC ou REGIAO, trazendo tudo (page = -1)
   useEffect(() => {
     let cancelled = false
-    async function load() {
+
+    async function loadOptions() {
       if (!values.type || (values.type !== 'ASC' && values.type !== 'REGIAO')) return
       setLoadingOptions(true)
       try {
@@ -97,14 +93,14 @@ export default function UserForm({ mode, initialValues, submitting = false, erro
           const { data } = await api.privateAscsGet(authHeader, -1, undefined, 'name', 'asc')
           const items = (data.items ?? []) as ModelASC[]
           if (!cancelled) {
-            setOptions(items.filter((i) => i.id && i.name).map((i) => ({ id: String(i.id), label: `${i.name}` })))
+            setOptions(items.filter((item) => item.id && item.name).map((item) => ({ id: String(item.id), label: item.name || '' })))
           }
-        } else if (values.type === 'REGIAO') {
+        } else {
           const api = new RegiaoApi(apiConfig)
           const { data } = await api.privateRegioesGet(authHeader, -1, undefined, 'name', 'asc')
           const items = (data.items ?? []) as ModelRegiao[]
           if (!cancelled) {
-            setOptions(items.filter((i) => i.id && i.name).map((i) => ({ id: String(i.id), label: `${i.name}` })))
+            setOptions(items.filter((item) => item.id && item.name).map((item) => ({ id: String(item.id), label: item.name || '' })))
           }
         }
       } catch {
@@ -113,104 +109,163 @@ export default function UserForm({ mode, initialValues, submitting = false, erro
         if (!cancelled) setLoadingOptions(false)
       }
     }
-    load()
+
+    loadOptions()
     return () => {
       cancelled = true
     }
   }, [values.type, getApiConfig, getAuthorizationHeaderValue])
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 360 }}>
-      <h3 style={{ margin: 0 }}>{title}</h3>
-      {error ? (
-        <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{error}</div>
-      ) : null}
+    <form onSubmit={handleSubmit} style={formStyle}>
+      <p style={subtitleStyle}>{subtitle}</p>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Nome</span>
-        <input
-          required
-          value={values.name}
-          onChange={(e) => update('name', e.target.value)}
-          placeholder="Nome completo"
-          style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }}
-        />
-      </label>
+      {error ? <div style={errorBannerStyle}>{error}</div> : null}
 
-      {/* Campo de Utilizador oculto: username é gerado automaticamente (UUID) no modo criação */}
+      <div style={formGridStyle}>
+        <label style={stackedFieldStyle}>
+          <span style={fieldLabelStyle}>Nome</span>
+          <input
+            required
+            value={values.name}
+            onChange={(e) => update('name', e.target.value)}
+            placeholder="Nome completo"
+            style={inputStyle}
+          />
+        </label>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Email</span>
-        <input
-          required
-          type="email"
-          value={values.email}
-          onChange={(e) => update('email', e.target.value)}
-          placeholder="utilizador@exemplo.com"
-          style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }}
-        />
-      </label>
+        <label style={stackedFieldStyle}>
+          <span style={fieldLabelStyle}>Email</span>
+          <input
+            required
+            type="email"
+            value={values.email}
+            onChange={(e) => update('email', e.target.value)}
+            placeholder="utilizador@exemplo.com"
+            autoComplete="email"
+            style={inputStyle}
+          />
+        </label>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Palavra‑passe{mode === 'edit' ? ' (opcional)' : ''}</span>
-        <input
-          type="password"
-          value={values.password ?? ''}
-          onChange={(e) => update('password', e.target.value)}
-          placeholder={mode === 'create' ? '••••••••' : 'Deixe em branco para manter'}
-          style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }}
-        />
-      </label>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>Tipo</span>
+        <label style={stackedFieldStyle}>
+          <span style={fieldLabelStyle}>Perfil</span>
           <select
             value={values.type ?? ''}
             onChange={(e) => update('type', e.target.value || undefined)}
-            style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}
+            style={inputStyle}
           >
-            <option value="">— Selecionar —</option>
-            <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-            <option value="PAIS">PAIS</option>
-            <option value="REGIAO">REGIAO</option>
+            <option value="">Selecionar perfil</option>
+            <option value="SUPER_ADMIN">Super administrador</option>
+            <option value="PAIS">País</option>
+            <option value="REGIAO">Região</option>
             <option value="ASC">ASC</option>
-            {/* Ocultar PT na criação */}
             {mode === 'edit' ? <option value="PT">PT</option> : null}
           </select>
         </label>
 
-        {/* Campo de ID/Combobox: mostra procura + seleção quando tipo for ASC/REGIAO; caso contrário, campo simples opcional */}
-        {values.type === 'ASC' || values.type === 'REGIAO' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>
-              {values.type === 'ASC' ? 'ASC: selecionar' : 'Região: selecionar'}
-            </span>
+        <label style={stackedFieldStyle}>
+          <span style={fieldLabelStyle}>Palavra-passe{mode === 'edit' ? ' (opcional)' : ''}</span>
+          <input
+            type="password"
+            value={values.password ?? ''}
+            onChange={(e) => update('password', e.target.value)}
+            placeholder={mode === 'create' ? 'Defina uma palavra-passe segura' : 'Deixe em branco para manter a atual'}
+            autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
+            style={inputStyle}
+          />
+        </label>
+
+        {(values.type === 'ASC' || values.type === 'REGIAO') ? (
+          <label style={{ ...stackedFieldStyle, gridColumn: '1 / -1' }}>
+            <span style={fieldLabelStyle}>{values.type === 'ASC' ? 'ASC associada' : 'Região associada'}</span>
             <select
               value={values.type_id ?? ''}
               onChange={(e) => update('type_id', e.target.value)}
-              style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}
+              style={inputStyle}
             >
-              <option value="">— {loadingOptions ? 'A carregar…' : options.length ? 'Selecionar' : 'Sem resultados'} —</option>
-              {options.map((opt) => (
-                <option key={opt.id} value={opt.id}>{opt.label}</option>
+              <option value="">
+                {loadingOptions ? 'A carregar opções…' : options.length ? 'Selecionar opção' : 'Sem resultados disponíveis'}
+              </option>
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>{option.label}</option>
               ))}
             </select>
-            <span style={{ fontSize: 12, color: '#6b7280' }}>Se não selecionar, o ID será enviado em branco.</span>
-          </div>
+            <span style={helperTextStyle}>Associe a conta ao respetivo âmbito operacional.</span>
+          </label>
         ) : null}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-        <Button type="submit" disabled={submitting}>
-          {submitting ? 'A guardar…' : 'Guardar'}
-        </Button>
+      <div style={footerStyle}>
         {onCancel ? (
-          <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
+          <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting} style={secondaryActionButtonStyle}>
             Cancelar
           </Button>
         ) : null}
+        <Button type="submit" loading={submitting} disabled={submitting} style={primaryActionButtonStyle}>
+          {mode === 'create' ? 'Criar utilizador' : 'Guardar alterações'}
+        </Button>
       </div>
     </form>
   )
+}
+
+const formStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 18,
+}
+
+const subtitleStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#64748b',
+  lineHeight: 1.6,
+}
+
+const errorBannerStyle: React.CSSProperties = {
+  padding: '12px 14px',
+  borderRadius: 16,
+  border: '1px solid rgba(220, 38, 38, 0.18)',
+  background: 'rgba(254, 226, 226, 0.92)',
+  color: '#991b1b',
+}
+
+const formGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: 16,
+}
+
+const helperTextStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#64748b',
+  lineHeight: 1.5,
+}
+
+const footerStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 8,
+  flexWrap: 'wrap',
+}
+
+const secondaryActionButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 16px',
+  borderRadius: 14,
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 8px 18px rgba(76, 57, 24, 0.08)',
+}
+
+const primaryActionButtonStyle: React.CSSProperties = {
+  minHeight: 42,
+  padding: '0 18px',
+  borderRadius: 14,
+  background: 'linear-gradient(180deg, #cf711f 0%, #a95516 100%)',
+  border: '1px solid rgba(141, 74, 23, 0.24)',
+  color: '#fffaf2',
+  fontWeight: 800,
+  boxShadow: '0 12px 24px rgba(141, 74, 23, 0.18)',
 }

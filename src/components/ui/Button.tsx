@@ -28,6 +28,7 @@ export function Button({
   loading = false,
   children, 
   disabled,
+  style,
   ...rest 
 }: Props) {
   const sizeStyles = {
@@ -101,7 +102,8 @@ export function Button({
     opacity: disabled ? 0.6 : 1,
     outline: 'none',
     ...sizeStyles[size],
-    ...variants[variant]
+    ...variants[variant],
+    ...style,
   }
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {

@@ -1,5 +1,27 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Card, Button, Text, Pagination } from '../components'
+import {
+  ActionIconButton,
+  Button,
+  DeleteConfirmModal,
+  ManagementModal,
+  PageSectionCard,
+  Pagination,
+  PencilIcon,
+  SortableHeader,
+  SummaryChip,
+  TrashIcon,
+  actionCellStyle,
+  bodyCellStyle,
+  emptyTableCellStyle,
+  fieldLabelStyle,
+  filtersGridStyle,
+  inputStyle,
+  noticeBannerStyle,
+  stackedFieldStyle,
+  summaryRowStyle,
+  tableWrapStyle,
+  textareaStyle,
+} from '../components'
 import { FormaConhecimentoApi, type FormaConhecimentoCreateFormaConhecimentoRequest, type FormaConhecimentoUpdateFormaConhecimentoRequest, type ModelFormaConhecimento } from '../services'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -21,8 +43,11 @@ export default function FormasConhecimentoScreen() {
 
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<ModelFormaConhecimento | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<ModelFormaConhecimento | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const isUnauthorizedBody = (data: any) => {
     try {
@@ -32,128 +57,190 @@ export default function FormasConhecimentoScreen() {
       if (!Number.isNaN(num) && num === 401) return true
       const code = String(raw).toUpperCase()
       return code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED'
-    } catch { return false }
+    } catch {
+      return false
+    }
   }
 
   const load = useCallback(async () => {
     setUi({ loading: true, error: null })
     try {
       const { data } = await api.privateFormaConhecimentosGet(authHeader, page, pageSize, orderBy, orderDirection, filterName || undefined)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setItems(data.items ?? [])
       setTotal(data.total ?? 0)
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       const msg = !status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao carregar formas de conhecimento.' : 'Falha a obter formas de conhecimento.'
       setUi({ loading: false, error: msg })
       return
     }
     setUi({ loading: false, error: null })
-  }, [api, authHeader, page, pageSize, filterName, orderBy, orderDirection])
+  }, [api, authHeader, page, pageSize, filterName, orderBy, orderDirection, logout])
 
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [filterName, pageSize, orderBy, orderDirection])
 
   function toggleSort(key: 'name' | 'created_at') {
-    if (orderBy === key) {
-      setOrderDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
+    if (orderBy === key) setOrderDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+    else {
       setOrderBy(key)
       setOrderDirection('asc')
     }
   }
 
+  function clearFilters() {
+    setFilterName('')
+    setOrderBy('created_at')
+    setOrderDirection('desc')
+    setPage(1)
+  }
+
   async function handleCreate(input: { name: string; description?: string }) {
-    setSubmitting(true); setSubmitError(null)
+    setSubmitting(true)
+    setSubmitError(null)
     try {
       const payload: FormaConhecimentoCreateFormaConhecimentoRequest = { name: input.name, description: input.description }
       const { data } = await api.privateFormaConhecimentosPost(authHeader, payload)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setShowCreate(false)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setSubmitError(status === 400 ? 'Dados inválidos.' : !status ? 'Sem ligação ao servidor.' : 'Falha ao criar forma de conhecimento.')
-    } finally { setSubmitting(false) }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleUpdate(id: string, input: { name: string; description?: string }) {
-    setSubmitting(true); setSubmitError(null)
+    setSubmitting(true)
+    setSubmitError(null)
     try {
       const payload: FormaConhecimentoUpdateFormaConhecimentoRequest = { name: input.name, description: input.description }
       const { data } = await api.privateFormaConhecimentosIdPut(id, authHeader, payload)
-      if (isUnauthorizedBody(data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (isUnauthorizedBody(data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setEditing(null)
       await load()
     } catch (err: any) {
       const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
       setSubmitError(status === 400 ? 'Dados inválidos.' : !status ? 'Sem ligação ao servidor.' : 'Falha ao atualizar forma de conhecimento.')
-    } finally { setSubmitting(false) }
-  }
-
-  async function handleDelete(id: string) {
-    const ok = confirm('Eliminar a forma de conhecimento selecionada?'); if (!ok) return
-    try {
-      const res = await api.privateFormaConhecimentosIdDelete(id, authHeader)
-      if (isUnauthorizedBody((res as any)?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      await load()
-    } catch (err: any) {
-      const status = err?.response?.status
-      if (status === 401 || isUnauthorizedBody(err?.response?.data)) { logout('Sessão expirada. Inicie sessão novamente.'); return }
-      alert('Não foi possível eliminar a forma de conhecimento.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  async function handleDelete(id?: string) {
+    if (!id) return
+    setDeleteLoading(true)
+    setDeleteError(null)
+    try {
+      const res = await api.privateFormaConhecimentosIdDelete(id, authHeader)
+      if (isUnauthorizedBody((res as any)?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      setPendingDelete(null)
+      await load()
+    } catch (err: any) {
+      const status = err?.response?.status
+      if (status === 401 || isUnauthorizedBody(err?.response?.data)) {
+        logout('Sessão expirada. Inicie sessão novamente.')
+        return
+      }
+      setDeleteError(!status ? 'Sem ligação ao servidor.' : status >= 500 ? 'Erro do servidor ao eliminar forma de conhecimento.' : 'Falha ao eliminar forma de conhecimento.')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / Math.max(1, pageSize)))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input value={filterName} onChange={(e) => setFilterName(e.target.value)} placeholder="Filtrar por nome" style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db' }} />
-          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} style={{ padding: 10, borderRadius: 8, border: '1px solid #d1d5db', background: '#fff' }}>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
-          <Button onClick={() => setShowCreate(true)}>Nova forma</Button>
-        </div>
-      </div>
-      {ui.error ? <div style={{ background: '#fef3c7', color: '#92400e', padding: 10, borderRadius: 8 }}>{ui.error}</div> : null}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <PageSectionCard
+        title="Filtros e página"
+        subtitle="Refine a lista por nome e mantenha a navegação da tabela sob controlo."
+        extra={(
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Button size="sm" variant="secondary" onClick={clearFilters}>Limpar filtros</Button>
+            <Button size="sm" variant="secondary" onClick={() => { setShowCreate(true); setSubmitError(null) }}>Nova forma</Button>
+          </div>
+        )}
+      >
+        <div style={filtersGridStyle}>
+          <label style={stackedFieldStyle}>
+            <span style={fieldLabelStyle}>Pesquisar por nome</span>
+            <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Ex.: Denuncia" style={inputStyle} />
+          </label>
 
-      <Card>
-        <div style={{ overflowX: 'auto' }}>
+          <label style={stackedFieldStyle}>
+            <span style={fieldLabelStyle}>Itens por página</span>
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))} style={inputStyle}>
+              <option value={10}>10 itens</option>
+              <option value={20}>20 itens</option>
+              <option value={50}>50 itens</option>
+            </select>
+          </label>
+        </div>
+
+        <div style={{ ...summaryRowStyle, marginTop: 16 }}>
+          <SummaryChip>Total: {total.toLocaleString('pt-PT')}</SummaryChip>
+          <SummaryChip>Visiveis: {items.length.toLocaleString('pt-PT')}</SummaryChip>
+          {filterName.trim() ? <SummaryChip>Pesquisa: {filterName.trim()}</SummaryChip> : null}
+        </div>
+
+        {ui.error ? <div style={{ ...noticeBannerStyle, marginTop: 16 }}>{ui.error}</div> : null}
+      </PageSectionCard>
+
+      <PageSectionCard title="Lista de formas" subtitle="A tabela apresenta descrição e ações rápidas para cada registo.">
+        <div style={tableWrapStyle}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                <th
-                  style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
-                  onClick={() => toggleSort('name')}
-                  title="Ordenar por nome"
-                >
-                  Nome {orderBy === 'name' ? (orderDirection === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Descrição</th>
-                
-                <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Ações</th>
+              <tr>
+                <SortableHeader label="Nome" active={orderBy === 'name'} direction={orderDirection} onClick={() => toggleSort('name')} />
+                <SortableHeader label="Descricao" />
+                <SortableHeader label="Acoes" align="center" />
               </tr>
             </thead>
             <tbody>
               {ui.loading ? (
-                <tr><td colSpan={4} style={{ padding: 16, color: '#6b7280' }}>A carregar…</td></tr>
+                <tr><td colSpan={3} style={emptyTableCellStyle}>A carregar...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: 16, color: '#6b7280' }}>Sem formas para mostrar.</td></tr>
+                <tr><td colSpan={3} style={emptyTableCellStyle}>Sem formas para mostrar.</td></tr>
               ) : (
-                items.map((f) => (
-                  <tr key={f.id}>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{f.name}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>{f.description}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8 }}>
-                      <Button variant="secondary" onClick={() => setEditing(f)}>Editar</Button>
-                      <Button variant="danger" onClick={() => f.id && handleDelete(f.id)}>Eliminar</Button>
+                items.map((item) => (
+                  <tr key={item.id}>
+                    <td style={bodyCellStyle}><strong style={{ color: '#1f2937' }}>{item.name || '-'}</strong></td>
+                    <td style={bodyCellStyle}>{item.description || 'Sem descrição.'}</td>
+                    <td style={{ ...actionCellStyle, justifyContent: 'center' }}>
+                      <ActionIconButton label="Editar" variant="secondary" onClick={() => { setEditing(item); setSubmitError(null) }}>
+                        <PencilIcon />
+                      </ActionIconButton>
+                      <ActionIconButton label="Eliminar" variant="danger" onClick={() => { setPendingDelete(item); setDeleteError(null) }}>
+                        <TrashIcon />
+                      </ActionIconButton>
                     </td>
                   </tr>
                 ))
@@ -161,6 +248,7 @@ export default function FormasConhecimentoScreen() {
             </tbody>
           </table>
         </div>
+
         <Pagination
           currentPage={page}
           totalPages={totalPages}
@@ -171,42 +259,80 @@ export default function FormasConhecimentoScreen() {
           showPageSizeSelector={true}
           showFirstLast={true}
         />
-      </Card>
+      </PageSectionCard>
 
-      {(showCreate || editing) && (
-        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { if (submitting) return; setShowCreate(false); setEditing(null); setSubmitError(null) }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: '100%', maxWidth: 520 }}>
-            <h3 style={{ marginTop: 0 }}>{showCreate ? 'Criar forma de conhecimento' : 'Editar forma de conhecimento'}</h3>
-            {submitError ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{submitError}</div> : null}
-            <FormaConhecimentoForm
-              defaultValue={{ name: editing?.name ?? '', description: editing?.description ?? '' }}
-              submitting={submitting}
-              onCancel={() => { setShowCreate(false); setEditing(null); setSubmitError(null) }}
-              onSubmit={(input) => showCreate ? handleCreate(input) : (editing?.id ? handleUpdate(editing.id, input) : undefined)}
-            />
-          </div>
-        </div>
-      )}
+      {(showCreate || editing) ? (
+        <ManagementModal
+          eyebrow={showCreate ? 'Adicionar' : 'Editar'}
+          title={showCreate ? 'Nova forma de conhecimento' : 'Editar forma de conhecimento'}
+          description="Defina o nome e, se necessário, uma descrição curta para dar contexto ao registo."
+          error={submitError}
+          maxWidth={560}
+          onClose={() => {
+            if (submitting) return
+            setShowCreate(false)
+            setEditing(null)
+            setSubmitError(null)
+          }}
+        >
+          <FormaConhecimentoForm
+            defaultValue={{ name: editing?.name ?? '', description: editing?.description ?? '' }}
+            submitting={submitting}
+            onCancel={() => { setShowCreate(false); setEditing(null); setSubmitError(null) }}
+            onSubmit={(input) => showCreate ? handleCreate(input) : (editing?.id ? handleUpdate(editing.id, input) : undefined)}
+          />
+        </ManagementModal>
+      ) : null}
+
+      {pendingDelete ? (
+        <DeleteConfirmModal
+          title="Eliminar forma de conhecimento"
+          description="Está prestes a remover a forma"
+          itemLabel={`"${pendingDelete.name || 'Sem nome'}".`}
+          loading={deleteLoading}
+          error={deleteError}
+          confirmLabel="Eliminar forma"
+          onCancel={() => {
+            if (deleteLoading) return
+            setPendingDelete(null)
+            setDeleteError(null)
+          }}
+          onConfirm={() => handleDelete(pendingDelete.id)}
+        />
+      ) : null}
     </div>
   )
 }
 
-function FormaConhecimentoForm({ defaultValue, submitting, onSubmit, onCancel }: { defaultValue?: { name: string; description?: string }; submitting?: boolean; onSubmit: (input: { name: string; description?: string }) => void; onCancel: () => void }) {
+function FormaConhecimentoForm({
+  defaultValue,
+  submitting,
+  onSubmit,
+  onCancel,
+}: {
+  defaultValue?: { name: string; description?: string }
+  submitting?: boolean
+  onSubmit: (input: { name: string; description?: string }) => void
+  onCancel: () => void
+}) {
   const [name, setName] = useState(defaultValue?.name ?? '')
   const [description, setDescription] = useState(defaultValue?.description ?? '')
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; onSubmit({ name: name.trim(), description: description.trim() || undefined }) }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Nome</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+    <form onSubmit={(event) => { event.preventDefault(); if (!name.trim()) return; onSubmit({ name: name.trim(), description: description.trim() || undefined }) }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <label style={stackedFieldStyle}>
+        <span style={fieldLabelStyle}>Nome</span>
+        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome da forma" style={inputStyle} />
       </label>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, color: '#374151' }}>Descrição</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição" rows={3} style={{ padding: 12, borderRadius: 8, border: '1px solid #d1d5db' }} />
+
+      <label style={stackedFieldStyle}>
+        <span style={fieldLabelStyle}>Descrição</span>
+        <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Descrição opcional" rows={3} style={textareaStyle} />
       </label>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Button type="submit" disabled={submitting}>{submitting ? 'A guardar…' : 'Guardar'}</Button>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
         <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>Cancelar</Button>
+        <Button type="submit" disabled={submitting}>{submitting ? 'A guardar...' : 'Guardar forma'}</Button>
       </div>
     </form>
   )

@@ -109,7 +109,7 @@ export default function ClienteAccaoDetailScreen() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Button variant="secondary" onClick={goBack}>Voltar</Button>
+          <button type="button" onClick={goBack} style={heroSecondaryButtonStyle}>Voltar</button>
         </div>
       </div>
 
@@ -480,6 +480,21 @@ const commentLabelStyle: React.CSSProperties = {
   fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: '.06em',
+}
+
+const heroSecondaryButtonStyle: React.CSSProperties = {
+  minHeight: 46,
+  padding: '0 16px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  borderRadius: 14,
+  border: '1px solid rgba(101, 74, 32, 0.16)',
+  background: 'linear-gradient(180deg, #fffaf2 0%, #f6ecde 100%)',
+  color: '#8d4a17',
+  fontWeight: 700,
+  boxShadow: '0 10px 24px rgba(76, 57, 24, 0.08)',
+  cursor: 'pointer',
 }
 
 const mapLegendChipStyle: React.CSSProperties = {
