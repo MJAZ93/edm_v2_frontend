@@ -344,8 +344,7 @@ export default function DashboardScreen() {
     inspeccoesDashboard: 'Dashboard',
   }
   const headerTitle = TITLE_MAP[active] || '—'
-  const showHeaderTitle = active !== 'instalacoes'
-    && !(active === 'ocorrencias' && (occRoute === 'create' || occRoute === 'edit' || occRoute === 'detail'))
+  const showHeaderTitle = !(active === 'ocorrencias' && (occRoute === 'create' || occRoute === 'edit' || occRoute === 'detail'))
   const hasSelectedRegiao = Boolean(regiaoId)
   const headerSubtitleMap: Record<string, string> = {
     dashboard: 'Vista operacional consolidada com acesso rápido às métricas, mapas e distribuição de risco.',

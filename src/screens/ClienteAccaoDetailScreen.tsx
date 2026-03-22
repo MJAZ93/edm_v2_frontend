@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Button, Card, Heading, Text } from '../components'
+import { Button, Card } from '../components'
 import { useAuth } from '../contexts/AuthContext'
 import {
   InstalacaoAccoesApi,
@@ -96,37 +96,69 @@ export default function ClienteAccaoDetailScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Heading level={2}>Detalhes da ação (Cliente)</Heading>
-        <Button variant="secondary" onClick={goBack}>Voltar</Button>
+      <div style={screenHeroStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={screenEyebrowStyle}>Ação de cliente</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.05, color: '#1f2937' }}>
+              {(accao as any)?.accao_tipo?.nome || (accao as any)?.accao_tipo_id || 'Detalhe da ação'}
+            </h2>
+            <p style={{ margin: 0, color: '#5f6673', lineHeight: 1.6 }}>
+              Consulte o contexto do cliente, a execução da ação e o comportamento de compras antes e depois.
+            </p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Button variant="secondary" onClick={goBack}>Voltar</Button>
+        </div>
       </div>
 
-      {ui.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 8 }}>{ui.error}</div> : null}
+      {ui.loading ? <div style={infoBannerStyle}>A carregar detalhes da ação…</div> : null}
+      {ui.error ? <div style={errorBannerStyle}>{ui.error}</div> : null}
 
-      <Card title="Dados da ação">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          <Info label="PF" value={accao?.pf || '—'} color="#1d4ed8" />
-          <Info label="Execução" value={formatDate(accao?.data_execucao)} color="#0ea5e9" />
-          <Info label="Tipo" value={(accao as any)?.accao_tipo?.nome || (accao as any)?.accao_tipo_id || '—'} color="#10b981" />
-          <Info label="Marcação" value={accao?.marcacao_status || '—'} color="#f59e0b" />
-          <Info label="Análise" value={accao?.analise_status || '—'} color="#6366f1" />
-          <Info label="Tendência" value={formatTendencia(accao?.tendencia_compras)} color="#ef4444" />
-          <Info label="Valor recuperado" value={formatKwh(accao?.valor_recuperado)} color="#111827" />
-        </div>
-        {accao?.comentario ? (
-          <div style={{ marginTop: 12 }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Comentário</span>
-            <div style={{ padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb' }}>{accao?.comentario}</div>
+      <Card title="Dados da ação" subtitle="Informação principal da execução, estado e enquadramento do cliente.">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={detailOverviewStyle}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, flex: 1 }}>
+              <span style={detailOverviewEyebrowStyle}>Cliente</span>
+              <strong style={{ fontSize: 26, lineHeight: 1.05, color: '#1f2937' }}>{accao?.pf || 'PF indisponível'}</strong>
+              <span style={{ color: '#5f6673', lineHeight: 1.6 }}>
+                Executada em {formatDate(accao?.data_execucao)} · Criada em {formatDate(accao?.created_at)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <span style={statusPillStyle('#fff9e8', '#a16207', 'rgba(202, 138, 4, 0.18)')}>{accao?.marcacao_status || '—'}</span>
+              <span style={statusPillStyle('#eff6ff', '#3056a6', 'rgba(48, 86, 166, 0.14)')}>{accao?.analise_status || '—'}</span>
+              <span style={trendPillStyle(accao?.tendencia_compras)}>{formatTendencia(accao?.tendencia_compras)}</span>
+            </div>
           </div>
-        ) : null}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
+            <Metric label="Tipo de ação" value={(accao as any)?.accao_tipo?.nome || (accao as any)?.accao_tipo_id || '—'} color="#8d4a17" />
+            <Metric label="Valor recuperado" value={formatMoney(accao?.valor_recuperado)} color="#0f766e" />
+            <Metric label="Compras (6m)" value={formatKwh(inst?.compras_6_meses)} color="#3056a6" />
+            <Metric label="Score" value={formatPercentage(inst?.score)} color="#c96d1f" />
+          </div>
+
+          {accao?.comentario ? (
+            <div style={commentCardStyle}>
+              <span style={commentLabelStyle}>Comentário</span>
+              <div style={{ color: '#3f4652', lineHeight: 1.6 }}>{accao?.comentario}</div>
+            </div>
+          ) : null}
+        </div>
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
-        <Card title="Compras (últimos períodos)">
-          <ComprasChart data={compras} actionDate={accao?.data_execucao} />
-        </Card>
-        <Card title="Equipamentos">
+      <Card title="Compras (últimos períodos)" subtitle="Leitura temporal das compras em torno da ação.">
+        <ComprasChart data={compras} actionDate={accao?.data_execucao} actionLabel={(accao as any)?.accao_tipo?.nome || (accao as any)?.accao_tipo_id || 'Ação'} />
+      </Card>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1fr)', gap: 16, alignItems: 'stretch' }}>
+        <Card title="Equipamentos" subtitle="Inventário associado à inspeção encontrada para o cliente.">
           <EquipamentosList items={equipamentos} emptyHint={!inst?.inspecao_id ? 'Sem inspeção associada para este mês.' : 'Sem equipamentos registados.'} />
+        </Card>
+        <Card title="Compras" subtitle="Lista de compras usada para a leitura temporal e comparação antes/depois.">
+          <ComprasList items={compras} />
         </Card>
       </div>
 
@@ -134,7 +166,7 @@ export default function ClienteAccaoDetailScreen() {
         <BeforeAfterPurchases data={compras} actionDate={accao?.data_execucao} months={6} />
       </Card>
 
-      <Card title="Resumo do mês da ação" subtitle="Indicadores da instalação nesse mês">
+      <Card title="Resumo do mês da ação" subtitle="Indicadores da instalação no mês em que a ação foi registada.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           <Metric label="Compras (últ. 6m)" value={formatKwh(inst?.compras_6_meses)} color="#0ea5e9" />
           <Metric label="Compras vizinhos (6m)" value={formatKwh(inst?.compras_vizinhos_6_meses)} color="#6366f1" />
@@ -157,94 +189,82 @@ function toMonthStart(iso?: string) {
   } catch { return new Date().toISOString().slice(0, 10) }
 }
 
-function Info({ label, value, color = '#111827' }: { label: string; value: React.ReactNode; color?: string }) {
-  return (
-    <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 10 }}>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
-      <div style={{ fontWeight: 800, color }}>{value as any}</div>
-    </div>
-  )
-}
-
 function Metric({ label, value, color = '#111827' }: { label: string; value: string | number; color?: string }) {
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>{label}</div>
-      <div style={{ fontWeight: 800, fontSize: 18, color }}>{value as any}</div>
+    <div style={{ background: '#fffdf8', border: `1px solid ${hexToRgba(color, 0.16)}`, borderRadius: 18, padding: '16px 18px', boxShadow: '0 12px 24px rgba(76, 57, 24, 0.06)' }}>
+      <div style={{ fontSize: 12, color, marginBottom: 8, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontWeight: 800, fontSize: 22, lineHeight: 1.1, color: '#1f2937' }}>{value as any}</div>
     </div>
   )
 }
 
-function ComprasChart({ data = [] as ModelCompras[], actionDate }: { data?: ModelCompras[]; actionDate?: string }) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null)
-  const [width, setWidth] = React.useState<number>(520)
-  const H = 200
-  const pad = 28
+function ComprasChart({ data = [] as ModelCompras[], actionDate, actionLabel }: { data?: ModelCompras[]; actionDate?: string; actionLabel?: string }) {
   const clean = (Array.isArray(data) ? data : [])
     .map((d) => ({ ts: toDateMs(d.periodo), total: Number(d.trn_units || 0) }))
     .filter((p) => Number.isFinite(p.ts))
     .sort((a, b) => a.ts - b.ts)
     .slice(-12)
 
-  React.useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth))
-    setWidth(el.clientWidth)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
   if (!clean.length) return <div style={{ color: '#6b7280' }}>Sem dados de compras.</div>
-  const W = Math.max(280, width)
   const maxY = Math.max(1, ...clean.map((p) => p.total))
-  const barW = Math.max(8, Math.floor((W - pad * 2) / (clean.length * 1.5)))
-  const gap = barW / 2
-  const x0 = pad + gap
-  const sy = (y: number) => H - pad - (y / maxY) * (H - pad * 2)
   const tsAction = toDateMs(actionDate)
-  // Calcula posição da linha de ação alinhada às barras (limite esquerdo do mês de execução)
   const idxAction = Number.isFinite(tsAction) ? clean.findIndex((p) => p.ts >= tsAction) : -1
-  let xLine: number | null = null
+  let actionPercent: number | null = null
   if (Number.isFinite(tsAction)) {
-    if (!clean.length) xLine = null
-    else if (idxAction === -1) xLine = Math.min(W - pad, (pad + (W - pad)) - 1)
-    else if (tsAction < clean[0].ts) xLine = pad
-    else xLine = (pad + (gap)) + idxAction * (barW + gap)
+    if (!clean.length) actionPercent = null
+    else if (idxAction === -1) actionPercent = 99
+    else if (tsAction < clean[0].ts) actionPercent = 1
+    else actionPercent = ((idxAction + 0.88) / clean.length) * 100
   }
+  const actionMarkerLabel = actionLabel || 'Ação'
+  const gridValues = [1, 0.75, 0.5, 0.25, 0]
 
   return (
-    <div ref={containerRef} style={{ width: '100%' }}>
-      <svg width={W} height={H} role="img" aria-label="Compras (barras)">
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#e5e7eb" />
-        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#e5e7eb" />
-        {xLine != null && xLine >= pad && xLine <= (W - pad) && (
-          <g>
-            <line x1={xLine} y1={pad - 6} x2={xLine} y2={H - pad + 6} stroke="#ef4444" strokeDasharray="4 2" strokeWidth={3} />
-            <text x={Math.min(W - pad - 4, Math.max(pad + 4, xLine + 8))} y={pad + 10} fontSize={10} fill="#ef4444">Início da ação</text>
-          </g>
-        )}
-        {clean.map((p, i) => {
-          const h = (H - pad * 2) * (p.total / maxY)
-          const x = x0 + i * (barW + gap)
-          const y = H - pad - h
-          return <rect key={i} x={x} y={y} width={barW} height={h} fill="#1d4ed8" rx={3} />
-        })}
-        {clean.map((p, i) => {
-          const x = x0 + i * (barW + gap) + barW / 2
-          return <text key={i} x={x} y={H - pad + 12} fontSize={9} fill="#6b7280" textAnchor="middle">{formatMonth(new Date(p.ts))}</text>
-        })}
-        {[0, 0.5, 1].map((f, i) => {
-          const yv = f * maxY
-          const y = sy(yv)
-          return (
-            <g key={i}>
-              <line x1={pad - 4} y1={y} x2={pad} y2={y} stroke="#e5e7eb" />
-              <text x={4} y={y + 4} fontSize={10} fill="#6b7280">{formatKwh(yv)}</text>
-            </g>
-          )
-        })}
-      </svg>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={chartShellStyle}>
+        <div style={chartYAxisStyle}>
+          {gridValues.map((factor) => (
+            <span key={factor} style={chartYAxisLabelStyle}>
+              {Math.round(maxY * factor).toLocaleString('pt-PT')} kWh
+            </span>
+          ))}
+        </div>
+
+        <div style={chartPlotWrapStyle}>
+          <div style={chartGridStyle}>
+            {gridValues.map((factor) => (
+              <span key={factor} style={{ ...chartGridLineStyle, top: `${(1 - factor) * 100}%` }} />
+            ))}
+          </div>
+
+          {actionPercent != null ? (
+            <div style={{ ...chartMarkerWrapStyle, left: `${actionPercent}%` }}>
+              <div style={chartMarkerLabelStyle}>
+                <span style={chartMarkerDotStyle} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <strong style={{ fontSize: 11, color: '#8d4a17', lineHeight: 1.1 }}>{truncateText(actionMarkerLabel, 18)}</strong>
+                  <span style={{ fontSize: 10, color: '#9a6b34', lineHeight: 1.1 }}>{formatDate(actionDate)}</span>
+                </div>
+              </div>
+              <span style={chartMarkerLineStyle} />
+            </div>
+          ) : null}
+
+          <div style={chartBarsRowStyle}>
+            {clean.map((point, index) => (
+              <div key={index} style={chartBarSlotStyle}>
+                <div style={{ ...chartBarStyle, height: `${(point.total / maxY) * 100}%` }} />
+                <span style={chartXAxisLabelStyle}>{formatMonth(new Date(point.ts))}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <span style={mapLegendChipStyle}>Barras: compras em kWh</span>
+        <span style={mapLegendChipStyle}>Linha vertical: ação executada</span>
+      </div>
     </div>
   )
 }
@@ -252,38 +272,77 @@ function ComprasChart({ data = [] as ModelCompras[], actionDate }: { data?: Mode
 function EquipamentosList({ items = [], emptyHint = 'Sem equipamentos.' }: { items: ModelEquipamentos[]; emptyHint?: string }) {
   if (!items.length) return <div style={{ color: '#6b7280' }}>{emptyHint}</div>
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={tablePanelStyle}>
+      <div style={cardContextStripStyle}>
+        <span style={mapLegendChipStyle}>Equipamentos: {items.length}</span>
+        <span style={mapLegendChipStyle}>Consumo estimado: {formatKwh(items.reduce((sum, item) => sum + Number(item.consumo_estimado || 0), 0))}</span>
+      </div>
+      <div style={tableScrollWrapStyle}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr>
-            <Th label="Nome" />
-            <Th label="Potência" />
-            <Th label="Quantidade" />
-            <Th label="Horas" />
-            <Th label="Dias" />
-            <Th label="Consumo estimado (kWh)" />
-          </tr>
+            <tr>
+              <Th label="Nome" />
+              <Th label="Potência" />
+              <Th label="Quantidade" />
+              <Th label="Consumo estimado (kWh)" />
+            </tr>
         </thead>
         <tbody>
           {items.map((e, i) => (
             <tr key={i}>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{e.nome || '-'}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.potencia)}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.quantidade)}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.horas)}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(e.dias)}</td>
-              <td style={{ padding: '8px 8px', borderBottom: '1px solid #f3f4f6' }}>{formatKwh(e.consumo_estimado)}</td>
+              <td style={tableCellStyle}><span style={emphasisTextStyle}>{e.nome || '-'}</span></td>
+              <td style={tableCellStyle}><span style={secondaryEmphasisTextStyle}>{formatNumber(e.potencia)}</span></td>
+              <td style={tableCellStyle}>{formatNumber(e.quantidade)}</td>
+              <td style={tableCellStyle}><span style={consumptionBadgeStyle}>{formatKwh(e.consumo_estimado)}</span></td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
 
 function Th({ label }: { label: string }) {
   return (
-    <th style={{ textAlign: 'left', padding: '8px 8px', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>{label}</th>
+    <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid rgba(101, 74, 32, 0.12)', whiteSpace: 'nowrap', color: '#3f4652', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</th>
+  )
+}
+
+function ComprasList({ items = [] as ModelCompras[] }) {
+  if (!items.length) return <div style={{ color: '#6b7280' }}>Sem compras registadas.</div>
+  const totalUnits = items.reduce((sum, item) => sum + Number(item.trn_units || 0), 0)
+  const totalAmount = items.reduce((sum, item) => sum + Number(item.trn_amount || 0), 0)
+  return (
+    <div style={tablePanelStyle}>
+      <div style={cardContextStripStyle}>
+        <span style={mapLegendChipStyle}>Compras: {items.length}</span>
+        <span style={mapLegendChipStyle}>Energia: {formatKwh(totalUnits)}</span>
+        <span style={mapLegendChipStyle}>Valor: {formatMoney(totalAmount)}</span>
+      </div>
+      <div style={tableScrollWrapStyle}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <Th label="Período" />
+              <Th label="Unidades" />
+              <Th label="Valor" />
+              <Th label="Nº compras" />
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => (
+              <tr key={`compra-${item.id ?? 'sem-id'}-${item.periodo ?? index}`}>
+                <td style={tableCellStyle}><span style={emphasisTextStyle}>{item.periodo || '-'}</span></td>
+                <td style={tableCellStyle}><span style={consumptionBadgeStyle}>{formatKwh(item.trn_units)}</span></td>
+                <td style={tableCellStyle}>{formatMoney(item.trn_amount)}</td>
+                <td style={tableCellStyle}><span style={secondaryEmphasisTextStyle}>{formatNumber(item.no_compras)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   )
 }
 
@@ -305,6 +364,310 @@ function formatTendencia(t?: any) {
     case 'SEM_COMPRAS': return 'Sem compras'
     default: return '—'
   }
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace('#', '')
+  const safe = normalized.length === 3 ? normalized.split('').map((char) => char + char).join('') : normalized
+  const value = parseInt(safe, 16)
+  const r = (value >> 16) & 255
+  const g = (value >> 8) & 255
+  const b = value & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function truncateText(value: string, limit: number) {
+  if (value.length <= limit) return value
+  return `${value.slice(0, Math.max(0, limit - 1))}…`
+}
+
+function statusPillStyle(background: string, color: string, borderColor: string): React.CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: 34,
+    padding: '0 12px',
+    borderRadius: 999,
+    background,
+    border: `1px solid ${borderColor}`,
+    color,
+    fontSize: 12,
+    fontWeight: 800,
+    whiteSpace: 'nowrap',
+  }
+}
+
+function trendPillStyle(trend?: any): React.CSSProperties {
+  const raw = String(trend || '')
+  if (raw === 'SEM_COMPRAS') return statusPillStyle('#fff7f6', '#b42318', 'rgba(180, 35, 24, 0.16)')
+  if (raw === 'MUITO_DECRESCENTE') return statusPillStyle('#fff4e8', '#c96d1f', 'rgba(201, 109, 31, 0.18)')
+  if (raw === 'DECRESCENTE') return statusPillStyle('#fff9e8', '#a16207', 'rgba(202, 138, 4, 0.18)')
+  if (raw === 'MUITO_CRESCENTE') return statusPillStyle('#f2fcfa', '#0f766e', 'rgba(15, 118, 110, 0.16)')
+  if (raw === 'CRESCENTE') return statusPillStyle('#f0fdf4', '#15803d', 'rgba(34, 197, 94, 0.18)')
+  return statusPillStyle('#eff6ff', '#3056a6', 'rgba(48, 86, 166, 0.14)')
+}
+
+const screenHeroStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: '24px 28px',
+  borderRadius: 28,
+  border: '1px solid rgba(101, 74, 32, 0.14)',
+  background: 'linear-gradient(135deg, rgba(255, 253, 248, 0.98) 0%, rgba(243, 233, 214, 0.94) 100%)',
+  boxShadow: '0 18px 40px rgba(76, 57, 24, 0.10)',
+}
+
+const screenEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.16em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const infoBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 16,
+  background: 'rgba(255, 252, 246, 0.9)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#5f6673',
+}
+
+const errorBannerStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 16,
+  background: '#fff7f6',
+  border: '1px solid rgba(180, 35, 24, 0.14)',
+  color: '#991b1b',
+}
+
+const detailOverviewStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 16,
+  flexWrap: 'wrap',
+  padding: '18px 20px',
+  borderRadius: 22,
+  background: 'linear-gradient(135deg, rgba(255, 253, 248, 0.96) 0%, rgba(244, 236, 221, 0.92) 100%)',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+}
+
+const detailOverviewEyebrowStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: '.12em',
+  textTransform: 'uppercase',
+  color: '#8d4a17',
+}
+
+const commentCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  padding: '16px 18px',
+  borderRadius: 18,
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  background: '#fffdf8',
+}
+
+const commentLabelStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#7b8494',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
+}
+
+const mapLegendChipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  minHeight: 34,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: '#fffdf8',
+  border: '1px solid rgba(101, 74, 32, 0.12)',
+  color: '#5f6673',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const tablePanelStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  height: '100%',
+}
+
+const cardContextStripStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+}
+
+const tableScrollWrapStyle: React.CSSProperties = {
+  overflowX: 'auto',
+  overflowY: 'auto',
+  maxHeight: 420,
+  minHeight: 420,
+  borderRadius: 18,
+  border: '1px solid rgba(101, 74, 32, 0.08)',
+  background: '#fffdf8',
+}
+
+const tableCellStyle: React.CSSProperties = {
+  padding: '12px 8px',
+  borderBottom: '1px solid rgba(101, 74, 32, 0.08)',
+  color: '#4b5563',
+  fontSize: 13,
+  lineHeight: 1.5,
+}
+
+const emphasisTextStyle: React.CSSProperties = {
+  color: '#1f2937',
+  fontSize: 13,
+  fontWeight: 800,
+  letterSpacing: '-0.01em',
+}
+
+const secondaryEmphasisTextStyle: React.CSSProperties = {
+  color: '#374151',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const consumptionBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 32,
+  padding: '0 12px',
+  borderRadius: 999,
+  background: 'rgba(48, 86, 166, 0.08)',
+  color: '#3056a6',
+  fontSize: 13,
+  fontWeight: 800,
+}
+
+const chartShellStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '92px minmax(0, 1fr)',
+  gap: 18,
+  alignItems: 'stretch',
+  minHeight: 360,
+}
+
+const chartYAxisStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  paddingTop: 44,
+  paddingBottom: 24,
+}
+
+const chartYAxisLabelStyle: React.CSSProperties = {
+  color: '#7b8494',
+  fontSize: 12,
+  fontWeight: 700,
+}
+
+const chartPlotWrapStyle: React.CSSProperties = {
+  position: 'relative',
+  minHeight: 360,
+  paddingTop: 44,
+  paddingBottom: 36,
+  borderLeft: '1px solid rgba(101, 74, 32, 0.10)',
+  borderBottom: '1px solid rgba(101, 74, 32, 0.10)',
+}
+
+const chartGridStyle: React.CSSProperties = {
+  position: 'absolute',
+  inset: '44px 0 36px 0',
+}
+
+const chartGridLineStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  borderTop: '1px dashed rgba(148, 163, 184, 0.22)',
+}
+
+const chartBarsRowStyle: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+  height: '100%',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))',
+  gap: 10,
+  alignItems: 'end',
+}
+
+const chartBarSlotStyle: React.CSSProperties = {
+  minWidth: 0,
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-end',
+  alignItems: 'stretch',
+  gap: 12,
+}
+
+const chartBarStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: 8,
+  alignSelf: 'stretch',
+  borderRadius: '14px 14px 10px 10px',
+  background: '#0f766e',
+  boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.18)',
+}
+
+const chartXAxisLabelStyle: React.CSSProperties = {
+  textAlign: 'center',
+  color: '#64748b',
+  fontSize: 11,
+  fontWeight: 700,
+}
+
+const chartMarkerWrapStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 0,
+  bottom: 20,
+  transform: 'translateX(-50%)',
+  zIndex: 2,
+  pointerEvents: 'none',
+}
+
+const chartMarkerLabelStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'flex-start',
+  gap: 8,
+  padding: '8px 12px',
+  borderRadius: 16,
+  background: '#fff7ec',
+  border: '1px solid rgba(201, 109, 31, 0.22)',
+  boxShadow: '0 12px 24px rgba(201, 109, 31, 0.10)',
+  minWidth: 160,
+}
+
+const chartMarkerDotStyle: React.CSSProperties = {
+  width: 10,
+  height: 10,
+  borderRadius: 999,
+  marginTop: 4,
+  background: '#c96d1f',
+  flexShrink: 0,
+}
+
+const chartMarkerLineStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 40,
+  bottom: 0,
+  left: '50%',
+  width: 0,
+  borderLeft: '3px dashed #c96d1f',
 }
 
 function BeforeAfterPurchases({ data = [], actionDate, months = 6 }: { data?: ModelCompras[]; actionDate?: string; months?: number }) {
